@@ -207,7 +207,7 @@ docker_ps() {
         echo -e "${GREEN}12. 查看日志${RESET}"
         echo -e "${GREEN}13. 查看网络信息${RESET}"
         echo -e "${GREEN}14. 查看占用资源${RESET}"
-        echo -e "${GREEN}0. 返回主菜单${RESET}"
+        echo -e "${GREEN}0.  返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入创建命令: " cmd; $cmd ;;
@@ -243,7 +243,7 @@ docker_image() {
         echo -e "${GREEN}02. 更新镜像${RESET}"
         echo -e "${GREEN}03. 删除镜像${RESET}"
         echo -e "${GREEN}04. 删除所有镜像${RESET}"
-        echo -e "${GREEN}0. 返回主菜单${RESET}"
+        echo -e "${GREEN}0.  返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入镜像名: " imgs; for img in $imgs; do docker pull $img; done ;;
@@ -353,7 +353,7 @@ main_menu() {
         echo -e "${GREEN}07. 关闭 IPv6${RESET}"
         echo -e "${GREEN}08. 开放所有端口${RESET}"
         echo -e "${GREEN}09. 网络管理${RESET}"
-        echo -e "${GREEN}0. 退出${RESET}"
+        echo -e "${GREEN}0.  退出${RESET}"
 
         read -p "请选择: " choice
         case $choice in
