@@ -345,7 +345,6 @@ main_menu() {
         echo " |____/ \___/ \___|_|\_\___|_|   "
         echo -e "\033[33m🐳 一键 VPS Docker 管理工具${RESET}"
         echo ""
-
         echo -e "${GREEN}01. 安装/更新 Docker（自动检测国内/国外源）${RESET}"
         echo -e "${GREEN}02. 安装/更新 Docker Compose${RESET}"
         echo -e "${GREEN}03. 卸载 Docker${RESET}"
