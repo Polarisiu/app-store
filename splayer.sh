@@ -66,21 +66,22 @@ uninstall() {
 # 菜单
 menu() {
     clear
-    echo "====================================="
-    echo "     SPlayer 一键管理脚本"
-    echo "====================================="
-    echo "1. 部署 SPlayer"
-    echo "2. 更新 SPlayer"
-    echo "3. 卸载 SPlayer"
-    echo "0. 退出"
-    echo "====================================="
-    read -rp "请输入选项 [0-3]: " choice
+    echo -e "${GREEN}=====================================${RESET}"
+    echo -e "${GREEN}     SPlayer 一键管理脚本${RESET}"
+    echo -e "${GREEN}=====================================${RESET}"
+    echo -e "${GREEN}1. 部署 SPlayer${RESET}"
+    echo -e "${GREEN}2. 更新 SPlayer${RESET}"
+    echo -e "${GREEN}3. 卸载 SPlayer${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
+    echo -e "${GREEN}=====================================${RESET}"
+    echo -ne "${YELLOW}请输入选项 [0-3]: ${RESET}"
+    read -r choice
     case $choice in
         1) deploy ;;
         2) update ;;
         3) uninstall ;;
         0) exit 0 ;;
-        *) echo "无效选项" ;;
+        *) echo -e "${RED}无效选项${RESET}" ;;
     esac
 }
 
