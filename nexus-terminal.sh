@@ -57,12 +57,12 @@ get_public_ip() {
 # 菜单函数
 show_menu() {
     echo -e "${CYAN}================ Nexus Terminal 管理菜单 ================${RESET}"
-    echo -e "${YELLOW}1.${RESET} 启动服务"
-    echo -e "${YELLOW}2.${RESET} 停止服务"
-    echo -e "${YELLOW}3.${RESET} 更新服务"
-    echo -e "${YELLOW}4.${RESET} 查看日志"
-    echo -e "${YELLOW}5.${RESET} 卸载服务"
-    echo -e "${YELLOW}6.${RESET} 退出"
+    echo -e "${YELLOW}1. 启动服务${RESET}"
+    echo -e "${YELLOW}2. 停止服务${RESET}"
+    echo -e "${YELLOW}3. 更新服务${RESET}"
+    echo -e "${YELLOW}4. 查看日志${RESET}"
+    echo -e "${YELLOW}5. 卸载服务${RESET}"
+    echo -e "${YELLOW}6. 退出${RESET}"
     echo -e "${CYAN}======================================================${RESET}"
 }
 
