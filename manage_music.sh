@@ -119,26 +119,30 @@ EOF
 # ---------- 4️⃣ 管理菜单 ----------
 show_menu() {
     clear
-    echo "==============================="
-    echo "   音乐服务管理菜单"
-    echo "==============================="
-    echo "容器状态:"
+    GREEN="\033[32m"
+    RESET="\033[0m"
+
+    echo -e "${GREEN}===============================${RESET}"
+    echo -e "${GREEN}   音乐服务管理菜单${RESET}"
+    echo -e "${GREEN}===============================${RESET}"
+    echo -e "${GREEN}容器状态:${RESET}"
     docker-compose ps --services --filter "status=running" | awk '{print "  " $1 " : 运行中"}'
     docker-compose ps --services --filter "status=exited" | awk '{print "  " $1 " : 停止"}'
-    echo "-------------------------------"
-    echo "1) 启动所有服务"
-    echo "2) 停止所有服务"
-    echo "3) 重启所有服务"
-    echo "4) 查看 Navidrome 日志"
-    echo "5) 查看 Miniserve 日志"
-    echo "6) 查看 MusicTagWeb 日志"
-    echo "7) 查看所有容器状态"
-    echo "8) 更新所有服务镜像"
-    echo "9) 卸载所有服务及容器"
-    echo "0) 退出"
-    echo "==============================="
-    echo -n "请输入选项: "
+    echo -e "${GREEN}-------------------------------${RESET}"
+    echo -e "${GREEN}1) 启动所有服务${RESET}"
+    echo -e "${GREEN}2) 停止所有服务${RESET}"
+    echo -e "${GREEN}3) 重启所有服务${RESET}"
+    echo -e "${GREEN}4) 查看 Navidrome 日志${RESET}"
+    echo -e "${GREEN}5) 查看 Miniserve 日志${RESET}"
+    echo -e "${GREEN}6) 查看 MusicTagWeb 日志${RESET}"
+    echo -e "${GREEN}7) 查看所有容器状态${RESET}"
+    echo -e "${GREEN}8) 更新所有服务镜像${RESET}"
+    echo -e "${GREEN}9) 卸载所有服务及容器${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}===============================${RESET}"
+    echo -ne "${GREEN}请输入选项: ${RESET}"
 }
+
 
 start_services() { docker-compose up -d; echo "所有服务已启动"; read -p "按回车返回菜单..."; }
 stop_services() { docker-compose down; echo "所有服务已停止"; read -p "按回车返回菜单..."; }
