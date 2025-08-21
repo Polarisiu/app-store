@@ -158,13 +158,13 @@ show_config() {
 # 菜单
 while true; do
     echo -e "${GREEN}====== Lsky Pro 管理菜单 ======${RESET}"
-    echo "1. 部署 Lsky Pro"
-    echo "2. 更新 Lsky Pro"
-    echo "3. 卸载 Lsky Pro"
-    echo "4. 查看日志"
-    echo "5. 显示配置信息"
-    echo "0. 退出"
-    read -p "请输入选项: " choice
+    echo -e "${GREEN}1. 部署 Lsky Pro${RESET}"
+    echo -e "${GREEN}2. 更新 Lsky Pro${RESET}"
+    echo -e "${GREEN}3. 卸载 Lsky Pro${RESET}"
+    echo -e "${GREEN}4. 查看日志${RESET}"
+    echo -e "${GREEN}5. 显示配置信息${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
+    read -p "$(echo -e ${GREEN}请输入选项: ${RESET})" choice
     case $choice in
         1) deploy_lsky ;;
         2) update_lsky ;;
