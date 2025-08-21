@@ -91,15 +91,16 @@ show_address() {
 
 # ========== 菜单 ==========
 while true; do
-    echo -e "\n${BLUE}========== VPS Value Calculator 管理菜单 ==========${RESET}"
-    echo "1. 部署 / 更新并启动服务"
-    echo "2. 停止服务"
-    echo "3. 重启服务"
-    echo "4. 删除容器和镜像"
-    echo "5. 查看日志"
-    echo "6. 显示访问地址"
-    echo "0. 退出"
-    read -rp "请选择操作 [0-6]: " choice
+    echo -e "\n${GREEN}========== VPS Value Calculator 管理菜单 ==========${RESET}"
+    echo -e "${GREEN}1. 部署 / 更新并启动服务${RESET}"
+    echo -e "${GREEN}2. 停止服务${RESET}"
+    echo -e "${GREEN}3. 重启服务${RESET}"
+    echo -e "${GREEN}4. 删除容器和镜像${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 显示访问地址${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
+    echo -ne "${YELLOW}请选择操作 [0-6]: ${RESET}"
+    read -r choice
     case $choice in
         1) check_docker && deploy_app ;;
         2) stop_app ;;
