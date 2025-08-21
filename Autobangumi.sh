@@ -92,15 +92,15 @@ uninstall_app() {
 # 菜单
 menu() {
     clear
-    echo -e "${CYAN}==== AutoBangumi 管理菜单 ====${RESET}"
-    echo -e "1. 部署 AutoBangumi"
-    echo -e "2. 启动 AutoBangumi"
-    echo -e "3. 停止 AutoBangumi"
-    echo -e "4. 重启 AutoBangumi"
-    echo -e "5. 查看日志"
-    echo -e "6. 更新 AutoBangumi"
-    echo -e "7. 卸载 AutoBangumi"
-    echo -e "0. 退出"
+    echo -e "${GREEN}==== AutoBangumi 管理菜单 ====${RESET}"
+    echo -e "${GREEN}1. 部署 AutoBangumi${RESET}"
+    echo -e "${GREEN}2. 启动 AutoBangumi${RESET}"
+    echo -e "${GREEN}3. 停止 AutoBangumi${RESET}"
+    echo -e "${GREEN}4. 重启 AutoBangumi${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 更新 AutoBangumi${RESET}"
+    echo -e "${GREEN}7. 卸载 AutoBangumi${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
     echo -ne "${YELLOW}请输入选项: ${RESET}"
     read -r choice
     case "$choice" in
