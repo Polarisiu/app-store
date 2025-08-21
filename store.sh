@@ -33,8 +33,8 @@ show_menu() {
     echo -e "${GREEN}[14] MoviePilot${RESET}"
     echo -e "${GREEN}[15] Foxel${RESET}"
     echo -e "${GREEN}[16] STB图床${RESET}"
-    echo -e "${GREEN}[17] OCI抢机${RESET}"
-    echo -e "${GREEN}[18] y探长${RESET}"
+    echo -e "${GREEN}[17] oci-start${RESET}"
+    echo -e "${GREEN}[18] Y探长${RESET}"
     echo -e "${GREEN}[19] Sub-store${RESET}"
     echo -e "${GREEN}[20] Poste.io邮局${RESET}"
     echo -e "${GREEN}[21] WebSSH${RESET}"
@@ -53,34 +53,34 @@ show_menu() {
 # ================== 功能函数 ==================
 install_service() {
     case "$1" in
-        1|01) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/Docker.sh) ;;
-        2|02) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/mysql-manager.sh) ;;
-        3|03) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/install_wallos.sh) ;;
-        4|04) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/kuma-mieru-manager.sh) ;;
-        5|05) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/dnss.sh) ;;
-        6|06) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/xtrafficdash.sh) ;;
-        7|07) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/nexus-terminal.sh) ;;
-        8|08) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/vps-value-manager.sh) ;;
-        9|09) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/vaultwarden.sh) ;;
-        10) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/sun-panel.sh) ;;
-        11) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/splayer_manager.sh) ;;
-        12) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/vertex_manage.sh) ;;
-        13) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/autobangumi_manage.sh) ;;
-        14) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/moviepilot_manage.sh) ;;
-        15) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/foxel_manage.sh) ;;
-        16) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/stb_manager.sh) ;;
-        17) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/oci-docker.sh) ;;
-        18) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/oci-helper_install.sh) ;;
-        19) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/sub-store.sh) ;;
+        1|01) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh) ;;
+        2|02) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh) ;;
+        3|03) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh) ;;
+        4|04) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh) ;;
+        5|05) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh) ;;
+        6|06) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/xtrafficdash.sh) ;;
+        7|07) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh) ;;
+        8|08) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vps-value.sh) ;;
+        9|09) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh) ;;
+        10) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh) ;;
+        11) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh) ;;
+        12) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh) ;;
+        13) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh) ;;
+        14) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/moviepilot.sh) ;;
+        15) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh) ;;
+        16) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh) ;;
+        17) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/oci-start.sh) ;;
+        18) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/Yoci-helper.sh) ;;
+        19) bash <(curl -sL https://raw.githubusercontent.com//Polarisiu/app-store/main/sub-store.sh) ;;
         20) curl -sS -O https://raw.githubusercontent.com/woniu336/open_shell/main/poste_io.sh && chmod +x poste_io.sh && ./poste_io.sh ;;
-        21) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/webssh.sh) ;;
-        22) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/Openlist.sh) ;;
-        23) bash <(curl -sL https://raw.githubusercontent.com/iu683/vps-tools/main/qbittorrent_manage.sh) ;;
-        24) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/music_full_auto.sh) ;;
-        25) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/lsky_menu.sh) ;;
-        26) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/iuLsky.sh) ;;
-        27) bash <(curl -sL https://raw.githubusercontent.com/iu683/app-store/main/jdtuc.sh) ;;
-        28) bash <(curl -fsSL https://raw.githubusercontent.com/iu683/app-store/main/ytdlb.sh) ;;
+        21) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh) ;;
+        22) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh) ;;
+        23) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qbittorrent.sh) ;;
+        24) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/music_full_auto.sh) ;;
+        25) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lsky_menu.sh) ;;
+        26) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Lsky.sh) ;;
+        27) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh) ;;
+        28) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh) ;;
         88)
             echo -e "\033[31m正在更新脚本...\033[0m"
             curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
