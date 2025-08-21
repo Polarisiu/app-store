@@ -58,7 +58,7 @@ install_service() {
         3|03) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh) ;;
         4|04) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh) ;;
         5|05) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh) ;;
-        6|06) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/xtrafficdash.sh) ;;
+        6|06) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh) ;;
         7|07) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh) ;;
         8|08) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vps-value.sh) ;;
         9|09) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh) ;;
