@@ -62,15 +62,23 @@ view_logs() {
     docker logs -f $CONTAINER_NAME
 }
 
+# ===== 颜色定义 =====
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+CYAN="\033[36m"
+RESET="\033[0m"
+
 # ===== 菜单 =====
 while true; do
-    echo -e "\n\033[34m=== Sub-Store 一键管理 ===\033[0m"
-    echo "1. 安装 / 启动"
-    echo "2. 卸载"
-    echo "3. 更新"
-    echo "4. 查看日志"
-    echo "0. 退出"
-    read -p "请输入选项: " choice
+    echo -e "\n${GREEN}=== Sub-Store 一键管理 ===${RESET}"
+    echo -e "${GREEN}1. 安装 / 启动${RESET}"
+    echo -e "${GREEN}2. 卸载${RESET}"
+    echo -e "${GREEN}3. 更新${RESET}"
+    echo -e "${GREEN}4. 查看日志${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
+    echo -ne "${YELLOW}请输入选项: ${RESET}"
+    read -r choice
 
     case $choice in
         1) install_substore ;;
@@ -78,6 +86,6 @@ while true; do
         3) update_substore ;;
         4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "\033[31m[ERROR] 无效选项\033[0m" ;;
+        *) echo -e "${RED}[ERROR] 无效选项${RESET}" ;;
     esac
 done
