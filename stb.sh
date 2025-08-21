@@ -16,17 +16,17 @@ MONGO_HOST=${MONGO_URL:-"mongodb://localhost:27017/stb"}
 # ================== 菜单 ==================
 function show_menu() {
     echo -e "${CYAN}================= STB 管理脚本 =================${RESET}"
-    echo -e "${GREEN}1.${RESET} 下载源码"
-    echo -e "${GREEN}2.${RESET} 安装 Node.js / pnpm / 项目依赖"
-    echo -e "${GREEN}3.${RESET} 编译项目"
-    echo -e "${GREEN}4.${RESET} 启动项目"
-    echo -e "${GREEN}5.${RESET} 查看日志"
-    echo -e "${GREEN}6.${RESET} 停止项目"
-    echo -e "${GREEN}7.${RESET} 检测 MongoDB"
-    echo -e "${GREEN}8.${RESET} 安装 MongoDB (Docker)"
-    echo -e "${GREEN}9.${RESET} 卸载项目及环境"
-    echo -e "${GREEN}10.${RESET} 更新项目"
-    echo -e "${GREEN}0.${RESET} 退出"
+    echo -e "${GREEN}1. 下载源码${RESET}"
+    echo -e "${GREEN}2. 安装 Node.js / pnpm / 项目依赖${RESET}"
+    echo -e "${GREEN}3. 编译项目${RESET}"
+    echo -e "${GREEN}4. 启动项目${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 停止项目${RESET}"
+    echo -e "${GREEN}7. 检测 MongoDB${RESET}"
+    echo -e "${GREEN}8. 安装 MongoDB(Docker)${RESET}"
+    echo -e "${GREEN}9. 卸载项目及环境${RESET}"
+    echo -e "${GREEN}10.更新项目${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
     echo -e "${CYAN}==============================================${RESET}"
 }
 
