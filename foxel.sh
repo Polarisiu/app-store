@@ -92,15 +92,15 @@ show_access_info() {
 # 菜单
 menu() {
     clear
-    echo -e "${CYAN}==== Foxel Docker 管理菜单 ====${RESET}"
-    echo -e "1. 一键部署 & 启动容器"
-    echo -e "2. 启动容器"
-    echo -e "3. 停止容器"
-    echo -e "4. 重启容器"
-    echo -e "5. 查看日志"
-    echo -e "6. 卸载容器"
-    echo -e "7. 更新容器镜像"
-    echo -e "0. 退出"
+    echo -e "${GREEN}==== Foxel Docker 管理菜单 ====${RESET}"
+    echo -e "${GREEN}1. 一键部署 & 启动容器${RESET}"
+    echo -e "${GREEN}2. 启动容器${RESET}"
+    echo -e "${GREEN}3. 停止容器${RESET}"
+    echo -e "${GREEN}4. 重启容器${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 卸载容器${RESET}"
+    echo -e "${GREEN}7. 更新容器镜像${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
     echo -ne "${YELLOW}请输入选项: ${RESET}"
     read -r choice
     case "$choice" in
