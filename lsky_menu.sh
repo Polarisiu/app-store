@@ -126,14 +126,16 @@ view_info() {
 # 菜单
 while true; do
     clear
-    echo "=== Lsky Pro 管理菜单 ==="
-    echo "1. 安装 Lsky Pro"
-    echo "2. 更新 Lsky Pro"
-    echo "3. 卸载 Lsky Pro"
-    echo "4. 查看日志"
-    echo "5. 查看访问信息"
-    echo "0. 退出"
-    read -rp "请选择操作: " choice
+    GREEN="\033[32m"
+    RESET="\033[0m"
+    echo -e "${GREEN}=== Lsky Pro 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1. 安装 Lsky Pro${RESET}"
+    echo -e "${GREEN}2. 更新 Lsky Pro${RESET}"
+    echo -e "${GREEN}3. 卸载 Lsky Pro${RESET}"
+    echo -e "${GREEN}4. 查看日志${RESET}"
+    echo -e "${GREEN}5. 查看访问信息${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
+    read -rp "$(echo -e ${GREEN}请选择操作: ${RESET})" choice
     case "$choice" in
         1) install_lsky ;;
         2) update_lsky ;;
@@ -141,7 +143,7 @@ while true; do
         4) view_logs ;;
         5) view_info ;;
         0) exit 0 ;;
-        *) echo "无效选择，请重试。" ;;
+        *) echo -e "${RED}无效选择，请重试。${RESET}" ;;
     esac
-    read -rp "按回车键继续..."
+    read -rp "$(echo -e ${GREEN}按回车键继续...${RESET})"
 done
