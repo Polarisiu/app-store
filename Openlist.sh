@@ -48,15 +48,15 @@ check_port() {
 show_menu() {
     clear
     echo -e "${CYAN}================== Openlist Docker 管理 ==================${RESET}"
-    echo -e "${GREEN}01.${RESET} 安装并运行 Openlist"
-    echo -e "${GREEN}02.${RESET} 停止 Openlist 容器"
-    echo -e "${GREEN}03.${RESET} 启动 Openlist 容器"
-    echo -e "${GREEN}04.${RESET} 重启 Openlist 容器"
-    echo -e "${GREEN}05.${RESET} 查看 Openlist 容器状态"
-    echo -e "${GREEN}06.${RESET} 查看 Openlist 日志"
-    echo -e "${GREEN}07.${RESET} 更新 Openlist 镜像并重启"
-    echo -e "${GREEN}08.${RESET} 删除 Openlist 容器"
-    echo -e "${GREEN}0.${RESET} 退出"
+    echo -e "${GREEN}01. 安装并运行 Openlist${RESET}"
+    echo -e "${GREEN}02. 停止 Openlist 容器${RESET}"
+    echo -e "${GREEN}03. 启动 Openlist 容器${RESET}"
+    echo -e "${GREEN}04. 重启 Openlist 容器${RESET}"
+    echo -e "${GREEN}05. 查看 Openlist 容器状态${RESET}"
+    echo -e "${GREEN}06. 查看 Openlist 日志${RESET}"
+    echo -e "${GREEN}07. 更新 Openlist 镜像并重启${RESET}"
+    echo -e "${GREEN}08. 删除 Openlist 容器${RESET}"
+    echo -e "${GREEN}0.  退出${RESET}"
     echo -e "${CYAN}=======================================================${RESET}"
     read -p "请输入操作编号: " choice
     case "$choice" in
