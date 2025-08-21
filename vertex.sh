@@ -88,16 +88,16 @@ show_password() {
 # 菜单
 menu() {
     clear
-    echo -e "${CYAN}==== Vertex 管理菜单 ====${RESET}"
-    echo -e "1. 部署 Vertex"
-    echo -e "2. 启动 Vertex"
-    echo -e "3. 停止 Vertex"
-    echo -e "4. 重启 Vertex"
-    echo -e "5. 查看日志"
-    echo -e "6. 更新 Vertex"
-    echo -e "7. 卸载 Vertex"
-    echo -e "8. 查看初始密码"
-    echo -e "0. 退出"
+    echo -e "${GREEN}==== Vertex 管理菜单 ====${RESET}"
+    echo -e "${GREEN}1. 部署 Vertex${RESET}"
+    echo -e "${GREEN}2. 启动 Vertex${RESET}"
+    echo -e "${GREEN}3. 停止 Vertex${RESET}"
+    echo -e "${GREEN}4. 重启 Vertex${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 更新 Vertex${RESET}"
+    echo -e "${GREEN}7. 卸载 Vertex${RESET}"
+    echo -e "${GREEN}8. 查看初始密码${RESET}"
+    echo -e "${GREEN}0. 退出${RESET}"
     echo -ne "${YELLOW}请输入选项: ${RESET}"
     read -r choice
     case "$choice" in
