@@ -135,15 +135,15 @@ modify_config() {
 # ================== 菜单 ==================
 while true; do
     echo -e "\n${GREEN}================ xTrafficDash 管理菜单 ================${RESET}"
-    echo -e "${GREEN}1.${RESET} 启动容器"
-    echo -e "${GREEN}2.${RESET} 停止容器"
-    echo -e "${GREEN}3.${RESET} 重启容器"
-    echo -e "${GREEN}4.${RESET} 查看日志"
-    echo -e "${GREEN}5.${RESET} 删除容器"
-    echo -e "${GREEN}6.${RESET} 更新镜像并重启"
-    echo -e "${GREEN}7.${RESET} 备份数据"
-    echo -e "${GREEN}8.${RESET} 修改端口和密码"
-    echo -e "${GREEN}0.${RESET} 退出脚本"
+    echo -e "${GREEN}1. 启动容器${RESET}"
+    echo -e "${GREEN}2. 停止容器${RESET}"
+    echo -e "${GREEN}3. 重启容器${RESET}"
+    echo -e "${GREEN}4. 查看日志${RESET}"
+    echo -e "${GREEN}5. 删除容器${RESET}"
+    echo -e "${GREEN}6. 更新镜像并重启${RESET}"
+    echo -e "${GREEN}7. 备份数据${RESET}"
+    echo -e "${GREEN}8. 修改端口和密码${RESET}"
+    echo -e "${GREEN}0. 退出脚本${RESET}"
     echo -ne "${YELLOW}请输入选项 [0-8]: ${RESET}"
     read choice
     case $choice in
