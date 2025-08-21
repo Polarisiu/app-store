@@ -130,19 +130,19 @@ EOF
 
 while true; do
     clear
-    echo "=== MySQL Docker 管理菜单 ==="
-    echo "1.  安装并启动 MySQL (持久化 & UTF8MB4)"
-    echo "2.  启动 MySQL"
-    echo "3.  停止 MySQL"
-    echo "4.  重启 MySQL"
-    echo "5.  查看 MySQL 日志"
-    echo "6.  删除容器 (保留数据)"
-    echo "7.  删除容器和数据"
-    echo "8.  创建新数据库"
-    echo "9.  创建用户并授权"
-    echo "10. 一键创建数据库+用户+授权"
-    echo "11. 查看访问地址"
-    echo "0.  退出"
+    echo "${GREEN}=== MySQL Docker 管理菜单 ===${RESET}"
+    echo "${GREEN}1.  安装并启动 MySQL (持久化 & UTF8MB4)${RESET}"
+    echo "${GREEN}2.  启动 MySQL${RESET}"
+    echo "${GREEN}3.  停止 MySQL${RESET}"
+    echo "${GREEN}4.  重启 MySQL${RESET}"
+    echo "${GREEN}5.  查看 MySQL日志${RESET}"
+    echo "${GREEN}6.  删除容器(保留数据)${RESET}"
+    echo "${GREEN}7.  删除容器和数据${RESET}"
+    echo "${GREEN}8.  创建新数据库${RESET}"
+    echo "${GREEN}9.  创建用户并授权${RESET}"
+    echo "${GREEN}10. 一键创建数据库+用户+授权${RESET}"
+    echo "${GREEN}11. 查看访问地址${RESET}"
+    echo "${GREEN}0.  退出${RESET}"
     echo "==========================="
     read -p "请输入选项: " choice
 
