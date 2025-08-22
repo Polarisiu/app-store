@@ -110,8 +110,8 @@ show_access_info() {
         echo -e "${RED}无法获取公网 IP${RESET}"
     fi
     echo -e "${GREEN}用户名: $USERNAME${RESET}"
-    echo -e "${GREEN}密码: $PASSWORD${RESET}"
-     echo -e "${GREEN}安全入口：allinssl{RESET}"
+    echo -e "${GREEN}密码:   $PASSWORD${RESET}"
+     echo -e "${GREEN}安全入口：allinssl${RESET}"
     echo -e "${GREEN}===========================================${RESET}"
 }
 
