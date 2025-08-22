@@ -64,9 +64,7 @@ show_menu() {
     echo -e "${GREEN}========== 综合管理菜单 ==========${RESET}\n"
 
     local total=${#MENU_ITEMS[@]}
-    local term_width=$(tput cols)
-    local col_width=$((term_width / 2 - 1))
-    if [ $col_width -lt 20 ]; then col_width=20; fi
+    local col_width=30
 
     for ((i=0; i<total; i+=2)); do
         left_item="[${i+1}] ${MENU_ITEMS[$i]}"
