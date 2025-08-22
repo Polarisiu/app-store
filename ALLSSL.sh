@@ -99,18 +99,19 @@ view_logs() {
 show_access_info() {
     # 本地 IP
     LOCAL_IP=$(hostname -I | awk '{print $1}')
-    # 公网 IP
-    PUBLIC_IP=$(curl -s https://api.ip.sb/ip)
+    # 公网 IP（稳定接口）
+    PUBLIC_IP=$(curl -s https://api.ipify.org)
 
     echo -e "${GREEN}================ 访问信息 =================${RESET}"
     echo -e "${GREEN}本地地址: http://$LOCAL_IP:$HOST_PORT${RESET}"
-    if [ -n "$PUBLIC_IP" ]; then
+    if [[ -n "$PUBLIC_IP" && "$PUBLIC_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo -e "${GREEN}公网地址: http://$PUBLIC_IP:$HOST_PORT${RESET}"
     else
         echo -e "${RED}无法获取公网 IP${RESET}"
     fi
     echo -e "${GREEN}用户名: $USERNAME${RESET}"
     echo -e "${GREEN}密码: $PASSWORD${RESET}"
+     echo -e "${GREEN}安全入口：allinssl{RESET}"
     echo -e "${GREEN}===========================================${RESET}"
 }
 
