@@ -64,44 +64,46 @@ declare -A apps=(
 )
 
 # ================== 二级菜单命令 ==================
-declare -A commands=(
-    [1,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh | bash"'
-    [1,2]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh | bash"'
+declare -A commands
+commands=(
+    [1,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh)'
+    [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh)'
+    
+    [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
+    [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
+    
+    [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
+    
+    [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh)'
+    [4,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
+    [4,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh)'
+    [4,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh)'
+    [4,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh)'
+    [4,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sub-store.sh)'
+    [4,7]='curl -sS -O https://raw.githubusercontent.com/woniu336/open_shell/main/poste_io.sh && chmod +x poste_io.sh && ./poste_io.sh'
+    [4,8]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/oci-start.sh)'
+    [4,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/Yoci-helper.sh)'
+    [4,10]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/R-Bot.sh)'
 
-    [2,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh | bash"'
-    [2,2]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh | bash"'
+    
+    [5,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/music_full_auto.sh)'
+    [5,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh)'
+    [5,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh)'
+    [5,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh)'
+    [5,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh)'
+    [5,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/moviepilot.sh)'
+    [5,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qbittorrent.sh)'
+    [5,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh)'
+    [5,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh)'
 
-    [3,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh | bash"'
+    [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
+    [6,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
+    [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lsky_menu.sh)'
+    [6,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Lsky.sh)'
+    [6,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh)'
+    [6,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh)'
 
-    [4,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh | bash"'
-    [4,2]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh | bash"'
-    [4,3]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh | bash"'
-    [4,4]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh | bash"'
-    [4,5]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh | bash"'
-    [4,6]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sub-store.sh | bash"'
-    [4,7]='bash -c "curl -sS -O https://raw.githubusercontent.com/woniu336/open_shell/main/poste_io.sh && chmod +x poste_io.sh && ./poste_io.sh"'
-    [4,8]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/oci-start.sh | bash"'
-    [4,9]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/Yoci-helper.sh | bash"'
-    [4,10]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/R-Bot.sh | bash"'
-
-    [5,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/music_full_auto.sh | bash"'
-    [5,2]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh | bash"'
-    [5,3]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh | bash"'
-    [5,4]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh | bash"'
-    [5,5]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh | bash"'
-    [5,6]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/moviepilot.sh | bash"'
-    [5,7]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qbittorrent.sh | bash"'
-    [5,8]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh | bash"'
-    [5,9]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh | bash"'
-
-    [6,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh | bash"'
-    [6,2]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh | bash"'
-    [6,3]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lsky_menu.sh | bash"'
-    [6,4]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Lsky.sh | bash"'
-    [6,5]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh | bash"'
-    [6,6]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh | bash"'
-
-    [7,1]='bash -c "curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh | bash"'
+    [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
 )
 
 # ================== 菜单显示函数 ==================
