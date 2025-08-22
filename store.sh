@@ -131,16 +131,28 @@ show_app_menu() {
     local i=1
     declare -gA menu_map
     menu_map=()
+
+    # 遍历当前分类下的应用，按第二个索引排序
+    keys=()
     for key in "${!apps[@]}"; do
         if [[ $key == $cat,* ]]; then
-            menu_map[$i]=$key
-            echo -e "${GREEN}[$i] ${apps[$key]}${RESET}"
-            ((i++))
+            keys+=("$key")
         fi
+    done
+
+    # 排序 keys
+    IFS=$'\n' sorted_keys=($(sort -t, -k2n <<<"${keys[*]}"))
+    unset IFS
+
+    for key in "${sorted_keys[@]}"; do
+        menu_map[$i]=$key
+        echo -e "${GREEN}[$i] ${apps[$key]}${RESET}"
+        ((i++))
     done
 
     echo -e "${GREEN}[0] 返回上一级${RESET}"
 }
+
 
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
@@ -171,6 +183,13 @@ app_menu_handler() {
         read -p $'\033[31m请输入应用编号: \033[0m' app_choice
         app_choice=$(echo "$app_choice" | xargs)
 
+        # 检查是否为数字
+        if ! [[ "$app_choice" =~ ^[0-9]+$ ]]; then
+            echo -e "${RED}无效选择，请输入数字!${RESET}"
+            sleep 1
+            continue
+        fi
+
         if [[ "$app_choice" == "0" ]]; then
             break
         elif [[ "$app_choice" == "88" ]]; then
@@ -183,6 +202,7 @@ app_menu_handler() {
         else
             echo -e "${RED}无效选择，请重新输入!${RESET}"
         fi
+
         read -p $'\n\033[33m按 Enter 返回应用菜单...\033[0m'
     done
 }
