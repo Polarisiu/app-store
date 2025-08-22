@@ -12,8 +12,7 @@ SCRIPT_PATH="$HOME/store.sh"
 VERSION="1.0.3"
 
 # ================== 一级菜单分类 ==================
-declare -A categories
-categories=(
+declare -A categories=(
     [1]="Docker及数据库"
     [2]="订阅服务"
     [3]="监控通知"
@@ -24,8 +23,7 @@ categories=(
 )
 
 # ================== 二级菜单应用 ==================
-declare -A apps
-apps=(
+declare -A apps=(
     [1,1]="安装/管理 Docker"
     [1,2]="MySQL数据管理"
 
@@ -66,8 +64,7 @@ apps=(
 )
 
 # ================== 二级菜单命令 ==================
-declare -A commands
-commands=(
+declare -A commands=(
     [1,1]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh | bash"'
     [1,2]='bash -c "curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh | bash"'
 
@@ -119,7 +116,7 @@ show_category_menu() {
     done
     echo -e "${GREEN}[88] 更新脚本${RESET}"
     echo -e "${GREEN}[99] 卸载脚本${RESET}"
-    echo -e "${GREEN}[0]  退出脚本${RESET}"
+    echo -e "${GREEN}[0] 退出脚本${RESET}"
 }
 
 show_app_menu() {
@@ -129,9 +126,9 @@ show_app_menu() {
     echo -e "${GREEN}${BOLD}        ${categories[$cat]}${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
 
-    # 二级菜单自动编号
     local i=1
-    declare -A menu_map
+    declare -gA menu_map
+    menu_map=()
     for key in "${!apps[@]}"; do
         if [[ $key == $cat,* ]]; then
             menu_map[$i]=$key
@@ -140,10 +137,9 @@ show_app_menu() {
         fi
     done
 
+    echo -e "${GREEN}[88] 更新脚本${RESET}"
+    echo -e "${GREEN}[99] 卸载脚本${RESET}"
     echo -e "${GREEN}[0] 返回上一级${RESET}"
-
-    # 返回映射数组供选择使用
-    echo "${menu_map[@]}"
 }
 
 # ================== 菜单处理函数 ==================
@@ -171,8 +167,7 @@ category_menu_handler() {
 app_menu_handler() {
     local cat=$1
     while true; do
-        # 获取菜单映射
-        map=($(show_app_menu "$cat"))
+        show_app_menu "$cat"
         read -p $'\033[31m请输入应用编号: \033[0m' app_choice
         app_choice=$(echo "$app_choice" | xargs)
 
@@ -182,8 +177,8 @@ app_menu_handler() {
             update_script
         elif [[ "$app_choice" == "99" ]]; then
             uninstall_script
-        elif [[ -n "${map[$app_choice-1]}" ]]; then
-            key="${map[$app_choice-1]}"
+        elif [[ -n "${menu_map[$app_choice]}" ]]; then
+            key="${menu_map[$app_choice]}"
             bash -c "${commands[$key]}"
         else
             echo -e "${RED}无效选择，请重新输入!${RESET}"
@@ -195,10 +190,9 @@ app_menu_handler() {
 # ================== 脚本更新与卸载 ==================
 update_script() {
     echo -e "${YELLOW}正在更新脚本...${RESET}"
-    cp "$SCRIPT_PATH" "$SCRIPT_PATH.bak"
     curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
     chmod +x "$SCRIPT_PATH"
-    echo -e "${GREEN}更新完成! 已备份原脚本为 vpsdocker.sh.bak${RESET}"
+    echo -e "${GREEN}更新完成!${RESET}"
 }
 
 uninstall_script() {
