@@ -3,6 +3,8 @@
 # ================== 颜色定义 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
+
+# 脚本固定路径
 SCRIPT_PATH="$HOME/vpsdocker.sh"
 
 # ================== 菜单项 ==================
@@ -48,16 +50,6 @@ str_width() {
     echo "$str" | awk '{gsub(/[^\x00-\x7F]/,"  "); print length}'
 }
 
-get_max_width() {
-    local arr=("$@")
-    local max=0
-    for item in "${arr[@]}"; do
-        local w=$(str_width "$item")
-        (( w > max )) && max=$w
-    done
-    echo $max
-}
-
 print_column() {
     local text="$1"
     local width="$2"
@@ -72,19 +64,15 @@ show_menu() {
     echo -e "${GREEN}========== 综合管理菜单 ==========${RESET}\n"
 
     local total=${#MENU_ITEMS[@]}
-    local half=$(( (total + 1) / 2 ))
+    local term_width=$(tput cols)
+    local col_width=$((term_width / 2 - 1))
+    if [ $col_width -lt 20 ]; then col_width=20; fi
 
-    # 动态列宽，根据最长菜单项计算
-    local col_width=$(get_max_width "${MENU_ITEMS[@]}")
-    col_width=$((col_width + 6)) # 加上编号长度和间隔
-
-    for ((i=0; i<half; i++)); do
-        local left_index=$((i+1))
-        local right_index=$((i+half))
-        local left_item="[${left_index:0>2}] ${MENU_ITEMS[$i]}"
-        local right_item=""
-        if [ $right_index -lt $total ]; then
-            right_item="[${right_index:0>2}] ${MENU_ITEMS[$right_index]}"
+    for ((i=0; i<total; i+=2)); do
+        left_item="[${i+1}] ${MENU_ITEMS[$i]}"
+        right_item=""
+        if [ $((i+1)) -lt $total ]; then
+            right_item="[${i+2}] ${MENU_ITEMS[$((i+1))]}"
         fi
         printf "${GREEN}"
         print_column "$left_item" $col_width
@@ -130,19 +118,20 @@ install_service() {
         29) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh) ;;
         30) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh) ;;
         31|88)
-            echo -e "${GREEN}正在更新菜单脚本...${RESET}"
+            echo -e "${GREEN}正在更新脚本...${RESET}"
             curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
             chmod +x "$SCRIPT_PATH"
             echo -e "${GREEN}更新完成!${RESET}"
             ;;
         32|99)
-            echo -e "${GREEN}正在卸载菜单脚本...${RESET}"
+            echo -e "${GREEN}正在卸载脚本...${RESET}"
             rm -f "$SCRIPT_PATH"
             echo -e "${GREEN}卸载完成!${RESET}"
             exit 0
             ;;
         33|0)
             echo -e "${GREEN}退出脚本，感谢使用！${RESET}"
+            sleep 1
             exit 0
             ;;
         *)
