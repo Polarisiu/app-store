@@ -137,8 +137,6 @@ show_app_menu() {
         fi
     done
 
-    echo -e "${GREEN}[88] 更新脚本${RESET}"
-    echo -e "${GREEN}[99] 卸载脚本${RESET}"
     echo -e "${GREEN}[0] 返回上一级${RESET}"
 }
 
