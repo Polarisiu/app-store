@@ -117,9 +117,9 @@ show_category_menu() {
     for i in $(seq 1 ${#categories[@]}); do
         echo -e "${GREEN}[$i] ${categories[$i]}${RESET}"
     done
-    echo -e "${GREEN}[0] 退出脚本${RESET}"
     echo -e "${GREEN}[88] 更新脚本${RESET}"
     echo -e "${GREEN}[99] 卸载脚本${RESET}"
+    echo -e "${GREEN}[0]  退出脚本${RESET}"
 }
 
 show_app_menu() {
@@ -141,8 +141,6 @@ show_app_menu() {
     done
 
     echo -e "${GREEN}[0] 返回上一级${RESET}"
-    echo -e "${GREEN}[88] 更新脚本${RESET}"
-    echo -e "${GREEN}[99] 卸载脚本${RESET}"
 
     # 返回映射数组供选择使用
     echo "${menu_map[@]}"
@@ -204,14 +202,9 @@ update_script() {
 }
 
 uninstall_script() {
-    read -p "确认卸载脚本吗? (y/N): " confirm
-    if [[ "$confirm" =~ ^[Yy]$ ]]; then
-        rm -f "$SCRIPT_PATH"
-        echo -e "${RED}卸载完成!${RESET}"
-        exit 0
-    else
-        echo -e "${GREEN}已取消卸载${RESET}"
-    fi
+    rm -f "$SCRIPT_PATH"
+    echo -e "${RED}卸载完成!${RESET}"
+    exit 0
 }
 
 # ================== 主循环 ==================
