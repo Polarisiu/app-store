@@ -119,19 +119,19 @@ install_service() {
         28) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh) ;;
         29) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh) ;;
         30) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh) ;;
-        88)
+        31|88)
             echo -e "${GREEN}正在更新脚本...${RESET}"
             curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
             chmod +x "$SCRIPT_PATH"
             echo -e "${GREEN}更新完成!${RESET}"
             ;;
-        99)
+        32|99)
             echo -e "${GREEN}正在卸载脚本...${RESET}"
             rm -f "$SCRIPT_PATH"
             echo -e "${GREEN}卸载完成!${RESET}"
             exit 0
             ;;
-        0)
+        33|0)
             echo -e "${GREEN}退出脚本，感谢使用！${RESET}"
             sleep 1
             exit 0
