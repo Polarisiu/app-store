@@ -61,6 +61,7 @@ declare -A apps=(
     [6,6]="简单图床"
 
     [7,1]="ALLinSSL证书"
+    [7,2]="SaveAnyBot(TG转存)"
 )
 
 # ================== 二级菜单命令 ==================
@@ -104,6 +105,7 @@ commands=(
     [6,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh)'
 
     [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
+    [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
 )
 
 # ================== 菜单显示函数 ==================
