@@ -2,7 +2,6 @@
 
 # ================== 颜色定义 ==================
 GREEN="\033[32m"
-RED="\033[31m"
 RESET="\033[0m"
 
 # 脚本固定路径
@@ -76,11 +75,13 @@ show_menu() {
         if [ $right_index -lt $total ]; then
             right_item="[${right_index:0>2}] ${MENU_ITEMS[$right_index]}"
         fi
+        # 打印左右列
+        printf "${GREEN}"
         print_column "$left_item" $col_width
         if [ -n "$right_item" ]; then
             print_column "$right_item" $col_width
         fi
-        echo
+        printf "${RESET}\n"
     done
     echo
 }
@@ -118,25 +119,25 @@ install_service() {
         28) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh) ;;
         29) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh) ;;
         30) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh) ;;
-        31|88)
-            echo -e "${RED}正在更新脚本...${RESET}"
+        88)
+            echo -e "${GREEN}正在更新脚本...${RESET}"
             curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
             chmod +x "$SCRIPT_PATH"
-            echo -e "${RED}更新完成!${RESET}"
+            echo -e "${GREEN}更新完成!${RESET}"
             ;;
-        32|99)
-            echo -e "${RED}正在卸载脚本...${RESET}"
+        99)
+            echo -e "${GREEN}正在卸载脚本...${RESET}"
             rm -f "$SCRIPT_PATH"
-            echo -e "${RED}卸载完成!${RESET}"
+            echo -e "${GREEN}卸载完成!${RESET}"
             exit 0
             ;;
-        33|0)
-            echo -e "${RED}退出脚本，感谢使用！${RESET}"
+        0)
+            echo -e "${GREEN}退出脚本，感谢使用！${RESET}"
             sleep 1
             exit 0
             ;;
         *)
-            echo -e "${RED}无效选择，请重新输入!${RESET}"
+            echo -e "${GREEN}无效选择，请重新输入!${RESET}"
             ;;
     esac
 }
@@ -144,9 +145,9 @@ install_service() {
 # ================== 主循环 ==================
 while true; do
     show_menu
-    read -p $'\033[31m请输入编号: \033[0m' choice
+    read -p $'\033[32m请输入编号: \033[0m' choice
     choice=$(echo "$choice" | xargs)
     install_service "$choice"
-    echo -e "\n\033[31m按 Enter 返回菜单...\033[0m"
+    echo -e "\n\033[32m按 Enter 返回菜单...\033[0m"
     read
 done
