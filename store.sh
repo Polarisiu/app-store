@@ -4,77 +4,88 @@
 GREEN="\033[32m"
 RED="\033[31m"
 RESET="\033[0m"
-BOLD="\033[1m"
 
 # 脚本固定路径
 SCRIPT_PATH="$HOME/vpsdocker.sh"
-VERSION="1.0.3"
 
-# ================== 菜单项定义 ==================
+# ================== 菜单项 ==================
 MENU_ITEMS=(
-    "安装/管理 Docker"
-    "MySQL数据管理"
-    "Wallos订阅"
-    "Kuma-Mieru"
-    "彩虹聚合DNS"
-    "XTrafficDash"
-    "NexusTerminal"
-    "VPS价值计算"
-    "密码管理 (Vaultwarden)"
-    "Sun-Panel"
-    "SPlayer音乐"
-    "Vertex"
-    "AutoBangumi"
-    "MoviePilot"
-    "Foxel"
-    "STB图床"
-    "oci-start"
-    "Y探长"
-    "Sub-store"
-    "Poste.io邮局"
-    "WebSSH"
-    "Openlist"
-    "qBittorrent v4.6.3"
-    "音乐服务"
-    "兰空图床(无MySQL)"
-    "兰空图床(有MySQL)"
-    "简单图床"
-    "yt-dlp视频下载工具"
-    "LrcApi"
-    "图片API (兰空图床)"
-    "更新菜单脚本"
-    "卸载菜单脚本"
-    "退出"
+"安装/管理 Docker"
+"MySQL数据管理"
+"Wallos订阅"
+"Kuma-Mieru"
+"彩虹聚合DNS"
+"XTrafficDash"
+"NexusTerminal"
+"VPS价值计算"
+"密码管理 (Vaultwarden)"
+"Sun-Panel"
+"SPlayer音乐"
+"Vertex"
+"AutoBangumi"
+"MoviePilot"
+"Foxel"
+"STB图床"
+"oci-start"
+"Y探长"
+"Sub-store"
+"Poste.io邮局"
+"WebSSH"
+"Openlist"
+"qBittorrent v4.6.3"
+"音乐服务"
+"兰空图床(无MySQL)"
+"兰空图床(有MySQL)"
+"简单图床"
+"yt-dlp视频下载工具"
+"LrcApi"
+"图片API (兰空图床)"
+"更新菜单脚本"
+"卸载菜单脚本"
+"退出"
 )
 
-# ================== 菜单显示函数 ==================
+# ================== 字符宽度计算 ==================
+str_width() {
+    local str="$1"
+    echo "$str" | awk '{gsub(/[^\x00-\x7F]/,"  "); print length}'
+}
+
+print_column() {
+    local text="$1"
+    local width="$2"
+    local len=$(str_width "$text")
+    local pad=$((width - len))
+    printf "%s%*s" "$text" $pad ""
+}
+
+# ================== 显示菜单 ==================
 show_menu() {
     clear
-    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
-    echo -e "${GREEN}${BOLD}          Docker 应用管理菜单${RESET}"
-    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
+    echo -e "${GREEN}========== 综合管理菜单 ==========${RESET}\n"
 
     local total=${#MENU_ITEMS[@]}
     local half=$(( (total + 1) / 2 ))
+    local col_width=30
 
     for ((i=0; i<half; i++)); do
         left_index=$((i+1))
         right_index=$((i+half))
-        left_item="${MENU_ITEMS[$i]}"
+        left_item="[${left_index:0>2}] ${MENU_ITEMS[$i]}"
         right_item=""
         if [ $right_index -lt $total ]; then
-            right_item="${MENU_ITEMS[$right_index]}"
+            right_item="[${right_index:0>2}] ${MENU_ITEMS[$right_index]}"
         fi
-        printf "${GREEN}[%02d] %-22s${RESET}" "$left_index" "$left_item"
+        print_column "$left_item" $col_width
         if [ -n "$right_item" ]; then
-            printf " ${GREEN}[%02d] %-22s${RESET}" "$((right_index+1))" "$right_item"
+            print_column "$right_item" $col_width
         fi
         echo
     done
     echo
 }
 
-# ================== 功能执行函数 ==================
+# ================== 功能执行 ==================
 install_service() {
     case "$1" in
         1|01) bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh) ;;
@@ -107,19 +118,19 @@ install_service() {
         28) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh) ;;
         29) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh) ;;
         30) bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh) ;;
-        31|88) # 更新菜单
+        31|88)
             echo -e "${RED}正在更新脚本...${RESET}"
             curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
             chmod +x "$SCRIPT_PATH"
             echo -e "${RED}更新完成!${RESET}"
             ;;
-        32|99) # 卸载脚本
+        32|99)
             echo -e "${RED}正在卸载脚本...${RESET}"
             rm -f "$SCRIPT_PATH"
             echo -e "${RED}卸载完成!${RESET}"
             exit 0
             ;;
-        33|0)  # 退出
+        33|0)
             echo -e "${RED}退出脚本，感谢使用！${RESET}"
             sleep 1
             exit 0
@@ -134,7 +145,7 @@ install_service() {
 while true; do
     show_menu
     read -p $'\033[31m请输入编号: \033[0m' choice
-    choice=$(echo "$choice" | xargs)  # 去掉前后空格
+    choice=$(echo "$choice" | xargs)
     install_service "$choice"
     echo -e "\n\033[31m按 Enter 返回菜单...\033[0m"
     read
