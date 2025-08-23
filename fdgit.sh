@@ -8,9 +8,12 @@ red="\033[31m"
 yellow="\033[33m"
 reset="\033[0m"
 
-# 获取公网 IP，如果获取失败则用本地 IP
+# 获取公网 IP，保证输出纯 IP
 get_ip() {
-  IP=$(curl -s https://ip.sb)
+  IP=$(curl -s https://api.ip.sb/ip)
+  if [ -z "$IP" ]; then
+    IP=$(curl -s https://api.ipify.org)
+  fi
   if [ -z "$IP" ]; then
     IP=$(hostname -I | awk '{print $1}')
   fi
@@ -19,17 +22,17 @@ get_ip() {
 menu() {
   clear
   echo -e "${green}====== gh-proxy-py Docker 管理脚本 ======${reset}"
-  echo -e "${green}1.${reset} 部署并运行容器"
-  echo -e "${green}2.${reset} 启动容器"
-  echo -e "${green}3.${reset} 停止容器"
-  echo -e "${green}4.${reset} 重启容器"
-  echo -e "${green}5.${reset} 查看容器日志"
-  echo -e "${green}6.${reset} 删除容器"
-  echo -e "${green}7.${reset} 修改外部端口并重新部署"
-  echo -e "${green}8.${reset} 查看运行状态"
-  echo -e "${green}9.${reset} 更新镜像并重新部署"
-  echo -e "${green}0.${reset} 退出"
-  echo "====================================="
+  echo -e "${green}1.${green} 部署并运行容器${reset}"
+  echo -e "${green}2.${green} 启动容器${reset}"
+  echo -e "${green}3.${green} 停止容器${reset}"
+  echo -e "${green}4.${green} 重启容器${reset}"
+  echo -e "${green}5.${green} 查看容器日志${reset}"
+  echo -e "${green}6.${green} 删除容器${reset}"
+  echo -e "${green}7.${green} 修改外部端口并重新部署${reset}"
+  echo -e "${green}8.${green} 查看运行状态${reset}"
+  echo -e "${green}9.${green} 更新镜像并重新部署${reset}"
+  echo -e "${green}0.${green} 退出${reset}"
+  echo -e "${green}=====================================${reset}"
 }
 
 deploy_container() {
@@ -51,7 +54,7 @@ deploy_container() {
 
 check_status() {
   if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
-    echo -e "${yellow}容器状态:${reset}"
+    echo -e "${green}容器状态:${reset}"
     docker ps -a --filter "name=$CONTAINER_NAME"
   else
     echo -e "${red}容器 $CONTAINER_NAME 未安装${reset}"
@@ -71,14 +74,14 @@ while true; do
   case $choice in
     1) deploy_container ;;
     2) docker start $CONTAINER_NAME && echo -e "${green}容器已启动${reset}" ;;
-    3) docker stop $CONTAINER_NAME && echo -e "${yellow}容器已停止${reset}" ;;
+    3) docker stop $CONTAINER_NAME && echo -e "${green}容器已停止${reset}" ;;
     4) docker restart $CONTAINER_NAME && echo -e "${green}容器已重启${reset}" ;;
     5) docker logs -f $CONTAINER_NAME ;;
-    6) docker rm -f $CONTAINER_NAME && echo -e "${red}容器已删除${reset}" ;;
+    6) docker rm -f $CONTAINER_NAME && echo -e "${green}容器已删除${reset}" ;;
     7) deploy_container ;;
     8) check_status ;;
     9) update_image ;;
-    0) echo "退出"; exit 0 ;;
+    0) echo -e "${green}退出${reset}"; exit 0 ;;
     *) echo -e "${red}无效选项，请重试${reset}" ;;
   esac
   echo -e "\n按任意键返回菜单..."
