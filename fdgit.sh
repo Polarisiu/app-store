@@ -8,15 +8,9 @@ red="\033[31m"
 yellow="\033[33m"
 reset="\033[0m"
 
-# 获取公网 IP，保证输出纯 IP
+# 获取本机 IP
 get_ip() {
-  IP=$(curl -s https://api.ip.sb/ip)
-  if [ -z "$IP" ]; then
-    IP=$(curl -s https://api.ipify.org)
-  fi
-  if [ -z "$IP" ]; then
-    IP=$(hostname -I | awk '{print $1}')
-  fi
+  IP=$(hostname -I | awk '{print $1}')
 }
 
 menu() {
