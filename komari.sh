@@ -174,12 +174,12 @@ change_admin() {
 # ================== 主程序 ==================
 while true; do
     clear
-    echo "${green}===== Komari Docker 管理脚本 =====${re}"
-    echo "${green}容器状态: $(get_status)${re}"
-    echo "${green}当前端口: $PORT${re}"
-    echo "${green}管理员账号: $ADMIN_USERNAME${re}"
-    echo "${green}管理员密码: $ADMIN_PASSWORD${re}"
-    echo "================================="
+    echo -e "${green}===== Komari Docker 管理脚本 =====${re}"
+    echo -e "${green}容器状态: $(get_status)${re}"
+    echo -e "${green}当前端口: $PORT${re}"
+    echo -e "${green}管理员账号: $ADMIN_USERNAME${re}"
+    echo -e "${green}管理员密码: $ADMIN_PASSWORD${re}"
+    echo -e "${green}=================================${re}"
     echo -e "${green}1. 启动 Komari${re}"
     echo -e "${green}2. 停止 Komari${re}"
     echo -e "${green}3. 重启 Komari${re}"
@@ -188,7 +188,8 @@ while true; do
     echo -e "${green}6. 卸载 Komari${re}"
     echo -e "${green}7. 修改管理员账号密码${re}"
     echo -e "${green}8. 退出${re}"
-    echo "================================="
+    echo -e "${green}=================================${re}"
+
     read -p "请选择操作 [1-8]: " choice
 
     case $choice in
