@@ -7,11 +7,11 @@ yellow="\033[33m"
 re="\033[0m"
 
 # ================== 配置 ==================
-IMAGE_NAME="komari:latest"
+IMAGE_NAME="ghcr.io/komari-monitor/komari:latest"
 CONTAINER_NAME="komari"
 CONFIG_FILE="/root/komari.env"
 
-# ================== 检查并安装 Docker ==================
+# ================== Docker 安装 ==================
 install_docker() {
     if command -v docker >/dev/null 2>&1; then
         echo -e "${green}✅ Docker 已安装${re}"
@@ -40,7 +40,7 @@ install_docker() {
         systemctl enable docker
         systemctl start docker
     else
-        echo -e "${red}❌ 暂不支持的系统，请手动安装 Docker${re}"
+        echo -e "${red}❌ 系统不支持自动安装 Docker，请手动安装${re}"
         exit 1
     fi
     echo -e "${green}✅ Docker 安装完成${re}"
@@ -62,6 +62,17 @@ ADMIN_PASSWORD="$ADMIN_PASSWORD"
 PORT=$PORT
 EOF
 }
+
+# ================== 首次运行初始化 ==================
+install_docker
+
+if [ ! -f "$CONFIG_FILE" ] || [ "$ADMIN_USERNAME" = "默认" ] || [ "$ADMIN_PASSWORD" = "默认" ]; then
+    echo -e "${yellow}首次运行，请设置管理员账号和密码${re}"
+    read -p "请输入管理员账号: " ADMIN_USERNAME
+    read -p "请输入管理员密码: " ADMIN_PASSWORD
+    save_config
+    echo -e "${green}✅ 管理员账号密码已保存${re}"
+fi
 
 # ================== 工具函数 ==================
 get_status() {
@@ -92,6 +103,9 @@ start_komari() {
     stop_komari >/dev/null 2>&1
     echo -e "${yellow}正在启动 Komari...${re}"
 
+    # 确保镜像存在
+    docker image inspect ${IMAGE_NAME} >/dev/null 2>&1 || docker pull ${IMAGE_NAME}
+
     if check_nat_available; then
         docker run -d --name ${CONTAINER_NAME} \
             -p ${PORT}:${PORT} \
@@ -112,7 +126,7 @@ start_komari() {
         echo -e "${green}✅ Komari 已启动${re}"
         echo "访问地址: http://$(curl -s ifconfig.me):${PORT} （${MODE} 模式）"
     else
-        echo -e "${red}❌ 启动失败${re}"
+        echo -e "${red}❌ 启动失败，请检查镜像或网络${re}"
     fi
 }
 
@@ -154,9 +168,7 @@ change_port() {
     restart_komari
 }
 
-# ================== 主程序入口 ==================
-install_docker
-
+# ================== 主程序 ==================
 while true; do
     clear
     echo "===== Komari Docker 管理脚本 ====="
