@@ -180,7 +180,7 @@ while true; do
     echo -e "${green}管理员账号: $ADMIN_USERNAME${re}"
     echo -e "${green}管理员密码: $ADMIN_PASSWORD${re}"
     echo -e "${green}=================================${re}"
-    echo -e "${green}1.启动 Komari${re}"
+    echo -e "${green}1.安装 Komari${re}"
     echo -e "${green}2.停止 Komari${re}"
     echo -e "${green}3.重启 Komari"
     echo -e "${green}4.查看日志${re}"
