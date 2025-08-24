@@ -73,7 +73,7 @@ if [ ! -f "$CONFIG_FILE" ] || [ "$ADMIN_USERNAME" = "默认" ] || [ "$ADMIN_PASS
     read -sp "请输入管理员密码: " ADMIN_PASSWORD
     echo
     read -p "请输入端口号 (默认 25774): " PORT
-    if [[ -z "$PORT" || ! "$PORT" =~ ^[0-9]+$ ]]; then
+    if [[ -z "$PORT" || ! "$PORT" =~ ^[0-9]+$ || $PORT -lt 1024 || $PORT -gt 65535 ]]; then
         PORT=25774
     fi
     save_config
@@ -94,10 +94,9 @@ get_status() {
 }
 
 check_nat_available() {
-    iptables -t nat -L >/dev/null 2>&1
-    if [ $? -ne 0 ]; then return 1; fi
-    iptables -t nat -L DOCKER >/dev/null 2>&1
-    if [ $? -ne 0 ]; then return 1; fi
+    command -v iptables >/dev/null 2>&1 || return 1
+    iptables -t nat -L >/dev/null 2>&1 || return 1
+    iptables -t nat -L DOCKER >/dev/null 2>&1 || return 1
     return 0
 }
 
@@ -136,7 +135,8 @@ start_komari() {
 }
 
 stop_komari() {
-    docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1
+    docker stop ${CONTAINER_NAME} >/dev/null 2>&1
+    echo -e "${green}🛑 Komari 已停止${re}"
 }
 
 restart_komari() {
@@ -154,43 +154,34 @@ uninstall_komari() {
     if [[ "$deldata" =~ ^[Yy]$ ]]; then
         rm -rf "$DATA_DIR"
     fi
+    docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1
+    docker rmi ${IMAGE_NAME} >/dev/null 2>&1
     rm -f "$CONFIG_FILE"
     echo -e "${green}✅ Komari 已卸载${re}"
 }
 
 show_logs() {
-    docker logs -f ${CONTAINER_NAME}
-}
-
-change_admin() {
-    read -p "请输入新的管理员账号: " ADMIN_USERNAME
-    read -sp "请输入新的管理员密码: " ADMIN_PASSWORD
-    echo
-    save_config
-    echo -e "${green}管理员账号密码已修改，正在重启容器...${re}"
-    restart_komari
+    docker logs -f --tail 100 ${CONTAINER_NAME}
 }
 
 # ================== 主程序 ==================
 while true; do
-    clear
-    echo -e "${green}===== Komari Docker 管理脚本 =====${re}"
+    echo -e "\n${green}===== Komari Docker 管理脚本 =====${re}"
     echo -e "${green}容器状态: $(get_status)${re}"
     echo -e "${green}当前端口: $PORT${re}"
     echo -e "${green}管理员账号: $ADMIN_USERNAME${re}"
     echo -e "${green}管理员密码: $ADMIN_PASSWORD${re}"
     echo -e "${green}=================================${re}"
-    echo -e "${green}1. 启动 Komari${re}"
-    echo -e "${green}2. 停止 Komari${re}"
-    echo -e "${green}3. 重启 Komari${re}"
-    echo -e "${green}4. 查看日志${re}"
-    echo -e "${green}5. 更新 Komari${re}"
-    echo -e "${green}6. 卸载 Komari${re}"
-    echo -e "${green}7. 修改管理员账号密码${re}"
-    echo -e "${green}8. 退出${re}"
+    echo -e "${green}1.${re} 启动 Komari"
+    echo -e "${green}2.${re} 停止 Komari"
+    echo -e "${green}3.${re} 重启 Komari"
+    echo -e "${green}4.${re} 查看日志"
+    echo -e "${green}5.${re} 更新 Komari"
+    echo -e "${green}6.${re} 卸载 Komari"
+    echo -e "${green}7.${re} 退出"
     echo -e "${green}=================================${re}"
 
-    read -p "请选择操作 [1-8]: " choice
+    read -p "请选择操作 [1-7]: " choice
 
     case $choice in
         1) start_komari ;;
@@ -199,8 +190,7 @@ while true; do
         4) show_logs ;;
         5) update_komari ;;
         6) uninstall_komari ;;
-        7) change_admin ;;
-        8) exit 0 ;;
+        7) exit 0 ;;
         *) echo -e "${red}无效选项${re}" ;;
     esac
     read -p "按回车键返回菜单..."
