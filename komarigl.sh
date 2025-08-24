@@ -8,7 +8,8 @@ menu() {
     clear
     echo -e "${GREEN}=== Komari 监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 Komari${RESET}"
-    echo -e "${GREEN}2) 卸载 Komari Agent${RESET}"
+    echo -e "${GREEN}2) 安装 NGINX反代${RESET}"
+    echo -e "${GREEN}3) 卸载 Komari Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo
     read -p $'\033[32m请选择操作 (0-2): \033[0m' choice
@@ -19,6 +20,11 @@ menu() {
             pause
             ;;
         2)
+            echo -e "${GREEN}正在安装 NGINX反代...${RESET}"
+            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/nigxssl.sh)
+            pause
+            ;;
+        3)
             echo -e "${GREEN}正在卸载 Komari Agent...${RESET}"
             sudo systemctl stop komari-agent
             sudo systemctl disable komari-agent
