@@ -1,0 +1,116 @@
+#!/bin/sh
+set -e
+
+# ================== 颜色 ==================
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
+# ================== 工具函数 ==================
+info() { echo -e "${GREEN}[INFO] $1${RESET}"; }
+warn() { echo -e "${YELLOW}[WARN] $1${RESET}"; }
+error() { echo -e "${RED}[ERROR] $1${RESET}"; }
+
+# ================== 功能函数 ==================
+
+install_docker() {
+    info "更新 apk 源..."
+    apk update
+    apk upgrade -y
+
+    info "安装 Docker..."
+    apk add docker -y
+
+    info "安装依赖..."
+    apk add py3-pip curl -y
+
+    info "安装 Docker Compose V2..."
+    COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    curl -L "https://github.com/docker/compose/releases/download/v$COMPOSE_LATEST/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+
+    info "设置 Docker 开机自启..."
+    rc-update add docker boot
+
+    info "启动 Docker 服务..."
+    service docker start
+
+    info "验证安装..."
+    docker version
+    docker-compose version
+    info "Docker 和 Docker Compose 安装完成"
+}
+
+update_docker() {
+    info "更新 apk 源..."
+    apk update
+    apk upgrade -y
+
+    info "更新 Docker..."
+    apk add --upgrade docker -y
+
+    info "更新 Docker Compose V2..."
+    COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+    curl -L "https://github.com/docker/compose/releases/download/v$COMPOSE_LATEST/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+
+    info "更新完成"
+    docker version
+    docker-compose version
+}
+
+uninstall_docker() {
+    info "停止 Docker 服务..."
+    service docker stop || true
+
+    info "卸载 Docker 和 Docker Compose..."
+    apk del docker py3-pip
+    rm -f /usr/local/bin/docker-compose
+
+    info "移除开机自启..."
+    rc-update del docker
+
+    info "卸载完成"
+}
+
+check_status() {
+    if service docker status >/dev/null 2>&1; then
+        info "Docker 服务正在运行"
+    else
+        warn "Docker 服务未运行"
+    fi
+}
+
+restart_docker() {
+    info "重启 Docker 服务..."
+    service docker restart
+    check_status
+}
+
+# ================== 菜单 ==================
+show_menu() {
+    echo "=============================="
+    echo "  Alpine Docker 管理脚本"
+    echo "=============================="
+    echo "1) 安装 Docker + Docker Compose"
+    echo "2) 更新 Docker + Docker Compose"
+    echo "3) 卸载 Docker + Docker Compose"
+    echo "4) 查看 Docker 服务状态"
+    echo "5) 重启 Docker 服务"
+    echo "0) 退出"
+    echo "=============================="
+    printf "请选择: "
+    read choice
+    case $choice in
+        1) install_docker ;;
+        2) update_docker ;;
+        3) uninstall_docker ;;
+        4) check_status ;;
+        5) restart_docker ;;
+        0) exit 0 ;;
+        *) warn "无效选项"; show_menu ;;
+    esac
+}
+
+show_menu
