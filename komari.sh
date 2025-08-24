@@ -1,142 +1,193 @@
 #!/bin/bash
 
+# ================== 颜色定义 ==================
+green="\033[32m"
+red="\033[31m"
+yellow="\033[33m"
+re="\033[0m"
+
+# ================== 配置 ==================
+IMAGE_NAME="komari:latest"
 CONTAINER_NAME="komari"
-IMAGE_NAME="ghcr.io/komari-monitor/komari:latest"
-DATA_DIR="./data"
-PORT=25774
-GREEN="\033[32m"
-RESET="\033[0m"
+CONFIG_FILE="/root/komari.env"
 
-# 获取服务器公网IP
-get_ip() {
-  curl -s ifconfig.me || echo "你的服务器IP"
+# ================== 检查并安装 Docker ==================
+install_docker() {
+    if command -v docker >/dev/null 2>&1; then
+        echo -e "${green}✅ Docker 已安装${re}"
+        return
+    fi
+
+    echo -e "${yellow}⚠️ 未检测到 Docker，正在安装...${re}"
+    if [ -f /etc/alpine-release ]; then
+        apk update
+        apk add docker openrc
+        rc-update add docker boot
+        service docker start
+    elif [ -f /etc/debian_version ]; then
+        apt update -y
+        apt install -y curl apt-transport-https ca-certificates software-properties-common gnupg lsb-release
+        curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | apt-key add -
+        add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
+        apt update -y
+        apt install -y docker-ce docker-ce-cli containerd.io
+        systemctl enable docker
+        systemctl start docker
+    elif [ -f /etc/redhat-release ]; then
+        yum install -y yum-utils
+        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        yum install -y docker-ce docker-ce-cli containerd.io
+        systemctl enable docker
+        systemctl start docker
+    else
+        echo -e "${red}❌ 暂不支持的系统，请手动安装 Docker${re}"
+        exit 1
+    fi
+    echo -e "${green}✅ Docker 安装完成${re}"
 }
 
-# 检查容器状态
+# ================== 配置加载 ==================
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+else
+    ADMIN_USERNAME="默认"
+    ADMIN_PASSWORD="默认"
+    PORT=25774
+fi
+
+save_config() {
+    cat > "$CONFIG_FILE" <<EOF
+ADMIN_USERNAME="$ADMIN_USERNAME"
+ADMIN_PASSWORD="$ADMIN_PASSWORD"
+PORT=$PORT
+EOF
+}
+
+# ================== 工具函数 ==================
 get_status() {
-  if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo -e "${GREEN}运行中${RESET}"
-  elif docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-    echo -e "${GREEN}已停止${RESET}"
-  else
-    echo -e "${GREEN}未安装${RESET}"
-  fi
+    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+        if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+            echo "运行中"
+        else
+            echo "已停止"
+        fi
+    else
+        echo "未安装"
+    fi
 }
 
-# 运行容器
-run_container() {
-  mkdir -p $DATA_DIR
-  if [ -n "$ADMIN_USERNAME" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    docker run -d \
-      -p ${PORT}:25774 \
-      -v $(pwd)/${DATA_DIR}:/app/data \
-      -e ADMIN_USERNAME=$ADMIN_USERNAME \
-      -e ADMIN_PASSWORD=$ADMIN_PASSWORD \
-      --name ${CONTAINER_NAME} \
-      ${IMAGE_NAME}
-  else
-    docker run -d \
-      -p ${PORT}:25774 \
-      -v $(pwd)/${DATA_DIR}:/app/data \
-      --name ${CONTAINER_NAME} \
-      ${IMAGE_NAME}
-  fi
+check_nat_available() {
+    iptables -t nat -L >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    iptables -t nat -L DOCKER >/dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
+    return 0
 }
 
-pause() {
-  echo
-  read -p "按回车键返回菜单..." temp
+start_komari() {
+    stop_komari >/dev/null 2>&1
+    echo -e "${yellow}正在启动 Komari...${re}"
+
+    if check_nat_available; then
+        docker run -d --name ${CONTAINER_NAME} \
+            -p ${PORT}:${PORT} \
+            -e ADMIN_USERNAME="${ADMIN_USERNAME}" \
+            -e ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+            ${IMAGE_NAME}
+        MODE="端口映射"
+    else
+        docker run -d --name ${CONTAINER_NAME} \
+            --network host \
+            -e ADMIN_USERNAME="${ADMIN_USERNAME}" \
+            -e ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+            ${IMAGE_NAME}
+        MODE="host 网络"
+    fi
+
+    if [ $? -eq 0 ]; then
+        echo -e "${green}✅ Komari 已启动${re}"
+        echo "访问地址: http://$(curl -s ifconfig.me):${PORT} （${MODE} 模式）"
+    else
+        echo -e "${red}❌ 启动失败${re}"
+    fi
 }
 
-menu() {
-  clear
-  echo -e "${GREEN}===== Komari Docker 管理脚本 =====${RESET}"
-  echo -e "容器状态: $(get_status)"
-  echo -e "当前端口: ${PORT}"
-  echo -e "管理员账号: ${ADMIN_USERNAME:-默认}"
-  echo -e "管理员密码: ${ADMIN_PASSWORD:-默认}"
-  echo -e "${GREEN}=================================${RESET}"
-  echo -e "${GREEN}1.${RESET} 启动 Komari"
-  echo -e "${GREEN}2.${RESET} 停止 Komari"
-  echo -e "${GREEN}3.${RESET} 重启 Komari"
-  echo -e "${GREEN}4.${RESET} 查看日志"
-  echo -e "${GREEN}5.${RESET} 更新 Komari"
-  echo -e "${GREEN}6.${RESET} 卸载 Komari"
-  echo -e "${GREEN}7.${RESET} 修改管理员账号密码"
-  echo -e "${GREEN}8.${RESET} 修改端口号"
-  echo -e "${GREEN}9.${RESET} 退出"
-  echo -e "${GREEN}=================================${RESET}"
-  read -p "请选择操作 [1-9]: " choice
-
-  case $choice in
-    1)
-      run_container
-      echo -e "${GREEN}✅ Komari 已启动${RESET}"
-      echo -e "访问地址: ${GREEN}http://$(get_ip):${PORT}${RESET}"
-      pause
-      ;;
-    2)
-      docker stop ${CONTAINER_NAME}
-      echo -e "${GREEN}🛑 Komari 已停止${RESET}"
-      pause
-      ;;
-    3)
-      docker restart ${CONTAINER_NAME}
-      echo -e "${GREEN}🔄 Komari 已重启${RESET}"
-      echo -e "访问地址: ${GREEN}http://$(get_ip):${PORT}${RESET}"
-      pause
-      ;;
-    4)
-      docker logs -f ${CONTAINER_NAME}
-      ;;
-    5)
-      echo -e "${GREEN}⬇️ 正在更新 Komari ...${RESET}"
-      docker pull ${IMAGE_NAME}
-      docker stop ${CONTAINER_NAME}
-      docker rm ${CONTAINER_NAME}
-      run_container
-      echo -e "${GREEN}✅ Komari 已更新并重新启动${RESET}"
-      echo -e "访问地址: ${GREEN}http://$(get_ip):${PORT}${RESET}"
-      pause
-      ;;
-    6)
-      docker stop ${CONTAINER_NAME}
-      docker rm ${CONTAINER_NAME}
-      echo -e "${GREEN}🗑️ Komari 已卸载 (数据目录 ${DATA_DIR} 未删除)${RESET}"
-      pause
-      ;;
-    7)
-      read -p "请输入管理员用户名: " ADMIN_USERNAME
-      read -sp "请输入管理员密码: " ADMIN_PASSWORD
-      echo
-      echo -e "${GREEN}✅ 已设置管理员账号密码，正在重启容器...${RESET}"
-      docker stop ${CONTAINER_NAME} >/dev/null 2>&1
-      docker rm ${CONTAINER_NAME} >/dev/null 2>&1
-      run_container
-      echo -e "${GREEN}🔑 管理员账号已更新${RESET}"
-      echo -e "访问地址: ${GREEN}http://$(get_ip):${PORT}${RESET}"
-      pause
-      ;;
-    8)
-      read -p "请输入新的端口号 (默认 25774): " NEW_PORT
-      if [[ "$NEW_PORT" =~ ^[0-9]+$ ]]; then
-        PORT=$NEW_PORT
-        echo -e "${GREEN}✅ 已修改端口号为: $PORT，下次启动/更新将使用${RESET}"
-      else
-        echo -e "${GREEN}❌ 端口号必须是数字${RESET}"
-      fi
-      pause
-      ;;
-    9)
-      exit 0
-      ;;
-    *)
-      echo -e "${GREEN}❌ 无效选择，请重新输入${RESET}"
-      pause
-      ;;
-  esac
+stop_komari() {
+    docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1
 }
+
+restart_komari() {
+    start_komari
+}
+
+update_komari() {
+    docker pull ${IMAGE_NAME}
+    restart_komari
+}
+
+uninstall_komari() {
+    stop_komari
+    rm -f "$CONFIG_FILE"
+    echo -e "${green}✅ Komari 已卸载${re}"
+}
+
+show_logs() {
+    docker logs -f ${CONTAINER_NAME}
+}
+
+change_admin() {
+    read -p "请输入新的管理员账号: " ADMIN_USERNAME
+    read -p "请输入新的管理员密码: " ADMIN_PASSWORD
+    save_config
+    echo -e "${green}管理员账号密码已修改，正在重启容器...${re}"
+    restart_komari
+}
+
+change_port() {
+    read -p "请输入新的端口号: " PORT
+    save_config
+    echo -e "${green}端口已修改，正在重启容器...${re}"
+    restart_komari
+}
+
+# ================== 主程序入口 ==================
+install_docker
 
 while true; do
-  menu
+    clear
+    echo "===== Komari Docker 管理脚本 ====="
+    echo "容器状态: $(get_status)"
+    echo "当前端口: $PORT"
+    echo "管理员账号: $ADMIN_USERNAME"
+    echo "管理员密码: $ADMIN_PASSWORD"
+    echo "================================="
+    echo -e "${green}1. 启动 Komari${re}"
+    echo -e "${green}2. 停止 Komari${re}"
+    echo -e "${green}3. 重启 Komari${re}"
+    echo -e "${green}4. 查看日志${re}"
+    echo -e "${green}5. 更新 Komari${re}"
+    echo -e "${green}6. 卸载 Komari${re}"
+    echo -e "${green}7. 修改管理员账号密码${re}"
+    echo -e "${green}8. 修改端口号${re}"
+    echo -e "${green}9. 退出${re}"
+    echo "================================="
+    read -p "请选择操作 [1-9]: " choice
+
+    case $choice in
+        1) start_komari ;;
+        2) stop_komari ;;
+        3) restart_komari ;;
+        4) show_logs ;;
+        5) update_komari ;;
+        6) uninstall_komari ;;
+        7) change_admin ;;
+        8) change_port ;;
+        9) exit 0 ;;
+        *) echo -e "${red}无效选项${re}" ;;
+    esac
+    read -p "按回车键返回菜单..."
 done
