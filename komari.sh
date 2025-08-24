@@ -140,8 +140,16 @@ stop_komari() {
 }
 
 restart_komari() {
-    start_komari
+    if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+        echo -e "${yellow}正在重启 Komari...${re}"
+        docker restart ${CONTAINER_NAME}
+        echo -e "${green}✅ Komari 已重启${re}"
+    else
+        echo -e "${yellow}容器不存在，正在启动...${re}"
+        start_komari
+    fi
 }
+
 
 update_komari() {
     docker pull ${IMAGE_NAME}
@@ -172,13 +180,13 @@ while true; do
     echo -e "${green}管理员账号: $ADMIN_USERNAME${re}"
     echo -e "${green}管理员密码: $ADMIN_PASSWORD${re}"
     echo -e "${green}=================================${re}"
-    echo -e "${green}1.${re} 启动 Komari"
-    echo -e "${green}2.${re} 停止 Komari"
-    echo -e "${green}3.${re} 重启 Komari"
-    echo -e "${green}4.${re} 查看日志"
-    echo -e "${green}5.${re} 更新 Komari"
-    echo -e "${green}6.${re} 卸载 Komari"
-    echo -e "${green}7.${re} 退出"
+    echo -e "${green}1.启动 Komari${re}"
+    echo -e "${green}2.停止 Komari${re}"
+    echo -e "${green}3.重启 Komari"
+    echo -e "${green}4.查看日志${re}"
+    echo -e "${green}5.更新 Komari${re}"
+    echo -e "${green}6.卸载 Komari${re}"
+    echo -e "${green}7.退出${re}"
     echo -e "${green}=================================${re}"
 
     read -p "请选择操作 [1-7]: " choice
