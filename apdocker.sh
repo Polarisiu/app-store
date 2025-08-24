@@ -7,23 +7,20 @@ RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-# ================== 工具函数 ==================
 info() { echo -e "${GREEN}[INFO] $1${RESET}"; }
 warn() { echo -e "${YELLOW}[WARN] $1${RESET}"; }
 error() { echo -e "${RED}[ERROR] $1${RESET}"; }
 
-# ================== 功能函数 ==================
-
 install_docker() {
     info "更新 apk 源..."
     apk update
-    apk upgrade -y
+    apk upgrade
 
     info "安装 Docker..."
-    apk add docker -y
+    apk add docker
 
     info "安装依赖..."
-    apk add py3-pip curl -y
+    apk add py3-pip curl
 
     info "安装 Docker Compose V2..."
     COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
@@ -45,10 +42,10 @@ install_docker() {
 update_docker() {
     info "更新 apk 源..."
     apk update
-    apk upgrade -y
+    apk upgrade
 
     info "更新 Docker..."
-    apk add --upgrade docker -y
+    apk add --upgrade docker
 
     info "更新 Docker Compose V2..."
     COMPOSE_LATEST=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
@@ -88,19 +85,18 @@ restart_docker() {
     check_status
 }
 
-# ================== 菜单 ==================
 show_menu() {
-    echo "=============================="
-    echo "  Alpine Docker 管理脚本"
-    echo "=============================="
-    echo "1) 安装 Docker + Docker Compose"
-    echo "2) 更新 Docker + Docker Compose"
-    echo "3) 卸载 Docker + Docker Compose"
-    echo "4) 查看 Docker 服务状态"
-    echo "5) 重启 Docker 服务"
-    echo "0) 退出"
-    echo "=============================="
-    printf "请选择: "
+    echo -e "${GREEN}==============================${RESET}"
+    echo -e "${GREEN}  Alpine Docker 管理脚本${RESET}"
+    echo -e "${GREEN}==============================${RESET}"
+    echo -e "${GREEN}1) 安装 Docker + Docker Compose${RESET}"
+    echo -e "${GREEN}2) 更新 Docker + Docker Compose${RESET}"
+    echo -e "${GREEN}3) 卸载 Docker + Docker Compose${RESET}"
+    echo -e "${GREEN}4) 查看 Docker 服务状态${RESET}"
+    echo -e "${GREEN}5) 重启 Docker 服务${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}==============================${RESET}"
+    printf "${GREEN}请选择: ${RESET}"
     read choice
     case $choice in
         1) install_docker ;;
