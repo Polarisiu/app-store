@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+# ================== 颜色 ==================
 GREEN="\033[32m"
 RED="\033[31m"
 YELLOW="\033[33m"
@@ -9,6 +10,23 @@ RESET="\033[0m"
 info() { echo -e "${GREEN}[INFO] $1${RESET}"; }
 warn() { echo -e "${YELLOW}[WARN] $1${RESET}"; }
 error() { echo -e "${RED}[ERROR] $1${RESET}"; }
+
+# ================== 功能函数 ==================
+
+wait_docker_ready() {
+    info "等待 Docker daemon 就绪..."
+    timeout=15
+    while [ ! -S /var/run/docker.sock ] && [ $timeout -gt 0 ]; do
+        sleep 1
+        timeout=$((timeout-1))
+    done
+
+    if [ -S /var/run/docker.sock ]; then
+        info "Docker daemon 已就绪"
+    else
+        warn "Docker daemon 仍未就绪，稍后可重启服务"
+    fi
+}
 
 install_docker() {
     info "更新 apk 源..."
@@ -35,15 +53,11 @@ install_docker() {
     info "启动 Docker 服务..."
     service docker start
 
+    wait_docker_ready
+
     info "验证安装..."
     docker version
     docker-compose version
-
-    if docker info >/dev/null 2>&1; then
-        info "Docker 安装并可用"
-    else
-        warn "Docker daemon 尚未就绪，请稍等再试"
-    fi
     pause
 }
 
@@ -62,6 +76,8 @@ update_docker() {
 
     info "重启 Docker 服务..."
     service docker restart
+
+    wait_docker_ready
 
     info "更新完成"
     docker version
@@ -96,7 +112,7 @@ check_status() {
 restart_docker() {
     info "重启 Docker 服务..."
     service docker restart
-    check_status
+    wait_docker_ready
     pause
 }
 
