@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# ================== 颜色 ==================
 GREEN="\033[32m"
 RED="\033[31m"
 YELLOW="\033[33m"
@@ -30,13 +29,22 @@ install_docker() {
     info "设置 Docker 开机自启..."
     rc-update add docker boot
 
+    info "清理旧 socket 和日志..."
+    rm -f /var/run/docker.sock /var/log/docker.log
+
     info "启动 Docker 服务..."
     service docker start
 
     info "验证安装..."
     docker version
     docker-compose version
-    info "Docker 和 Docker Compose 安装完成"
+
+    if docker info >/dev/null 2>&1; then
+        info "Docker 安装并可用"
+    else
+        warn "Docker daemon 尚未就绪，请稍等再试"
+    fi
+    pause
 }
 
 update_docker() {
@@ -52,9 +60,13 @@ update_docker() {
     curl -L "https://github.com/docker/compose/releases/download/v$COMPOSE_LATEST/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
 
+    info "重启 Docker 服务..."
+    service docker restart
+
     info "更新完成"
     docker version
     docker-compose version
+    pause
 }
 
 uninstall_docker() {
@@ -69,6 +81,7 @@ uninstall_docker() {
     rc-update del docker
 
     info "卸载完成"
+    pause
 }
 
 check_status() {
@@ -77,15 +90,23 @@ check_status() {
     else
         warn "Docker 服务未运行"
     fi
+    pause
 }
 
 restart_docker() {
     info "重启 Docker 服务..."
     service docker restart
     check_status
+    pause
+}
+
+pause() {
+    echo
+    read -p "按回车键返回菜单..." dummy
 }
 
 show_menu() {
+    clear
     echo -e "${GREEN}==============================${RESET}"
     echo -e "${GREEN}  Alpine Docker 管理脚本${RESET}"
     echo -e "${GREEN}==============================${RESET}"
@@ -105,8 +126,9 @@ show_menu() {
         4) check_status ;;
         5) restart_docker ;;
         0) exit 0 ;;
-        *) warn "无效选项"; show_menu ;;
+        *) warn "无效选项"; pause ;;
     esac
+    show_menu
 }
 
 show_menu
