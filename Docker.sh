@@ -1,6 +1,6 @@
 #!/bin/bash
 # ========================================
-# 🐳 一键 VPS Docker 管理工具
+# 🐳 一键 VPS Docker 管理工具（完整整合版）
 # ========================================
 
 # -----------------------------
@@ -110,16 +110,31 @@ docker_install_update() {
     fi
 }
 
+# -----------------------------
+# 卸载 Docker（彻底）
+# -----------------------------
 docker_uninstall() {
     root_use
     echo -e "${RED}正在卸载 Docker...${RESET}"
+
+    # 停止服务
     systemctl stop docker 2>/dev/null
     systemctl disable docker 2>/dev/null
     pkill dockerd 2>/dev/null
-    apt remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
-    yum remove -y docker docker-engine docker.io containerd runc 2>/dev/null || true
-    rm -rf /var/lib/docker /etc/docker /var/lib/containerd
-    echo -e "${GREEN}Docker 已卸载${RESET}"
+
+    # 卸载各种包
+    if command -v apt &>/dev/null; then
+        apt remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
+        apt purge -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
+        apt autoremove -y
+    elif command -v yum &>/dev/null; then
+        yum remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
+    fi
+
+    # 删除 Docker 文件
+    rm -rf /var/lib/docker /etc/docker /var/lib/containerd /var/run/docker.sock
+
+    echo -e "${GREEN}Docker 已卸载干净${RESET}"
 }
 
 # -----------------------------
@@ -143,7 +158,7 @@ docker_compose_install_update() {
 }
 
 # -----------------------------
-# IPv6 管理
+# Docker IPv6
 # -----------------------------
 docker_ipv6_on() {
     root_use
@@ -265,66 +280,20 @@ docker_network() {
     while true; do
         clear
         echo -e "${BOLD}${CYAN}===== Docker 网络管理 =====${RESET}"
-        echo -e "${GREEN}Docker 网络列表${RESET}"
-        echo -e "${GREEN}------------------------------------------------------------${RESET}"
         docker network ls
-        echo ""
-
-        echo -e "${GREEN}------------------------------------------------------------${RESET}"
-        container_ids=$(docker ps -q)
-        printf "%-25s %-25s %-25s\n" "容器名称" "网络名称" "IP地址"
-
-        for container_id in $container_ids; do
-            container_info=$(docker inspect --format '{{ .Name }}{{ range $network, $config := .NetworkSettings.Networks }} {{ $network }} {{ $config.IPAddress }}{{ end }}' "$container_id")
-
-            container_name=$(echo "$container_info" | awk '{print $1}')
-            network_info=$(echo "$container_info" | cut -d' ' -f2-)
-
-            while IFS= read -r line; do
-                network_name=$(echo "$line" | awk '{print $1}')
-                ip_address=$(echo "$line" | awk '{print $2}')
-
-                printf "%-20s %-20s %-15s\n" "$container_name" "$network_name" "$ip_address"
-            done <<< "$network_info"
-        done
-
-        echo ""
-        echo -e "${GREEN}网络操作${RESET}"
-        echo -e "${GREEN}------------------------${RESET}"
         echo -e "${GREEN}1. 创建网络${RESET}"
         echo -e "${GREEN}2. 加入网络${RESET}"
         echo -e "${GREEN}3. 退出网络${RESET}"
         echo -e "${GREEN}4. 删除网络${RESET}"
-        echo -e "${GREEN}------------------------${RESET}"
         echo -e "${GREEN}0. 返回上一级菜单${RESET}"
-        echo -e "${GREEN}------------------------${RESET}"
-        read -p $'\033[1;91m请输入你的选择: \033[0m' sub_choice
-
+        read -p "请输入你的选择: " sub_choice
         case $sub_choice in
-            1)
-                read -p "设置新网络名: " dockernetwork
-                docker network create $dockernetwork
-                ;;
-            2)
-                read -p "加入网络名: " dockernetwork
-                read -p "容器名: " dockername
-                docker network connect $dockernetwork $dockername
-                ;;
-            3)
-                read -p "退出网络名: " dockernetwork
-                read -p "容器名: " dockername
-                docker network disconnect $dockernetwork $dockername
-                ;;
-            4)
-                read -p "请输入要删除的网络名: " dockernetwork
-                docker network rm $dockernetwork
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo "无效选择"
-                ;;
+            1) read -p "设置新网络名: " dockernetwork; docker network create $dockernetwork ;;
+            2) read -p "加入网络名: " dockernetwork; read -p "容器名: " dockername; docker network connect $dockernetwork $dockername ;;
+            3) read -p "退出网络名: " dockernetwork; read -p "容器名: " dockername; docker network disconnect $dockernetwork $dockername ;;
+            4) read -p "请输入要删除的网络名: " dockernetwork; docker network rm $dockernetwork ;;
+            0) break ;;
+            *) echo "无效选择" ;;
         esac
         read -p "按回车继续..."
     done
@@ -353,7 +322,7 @@ main_menu() {
         echo -e "${GREEN}07. 关闭 IPv6${RESET}"
         echo -e "${GREEN}08. 开放所有端口${RESET}"
         echo -e "${GREEN}09. 网络管理${RESET}"
-        echo -e "${GREEN}0.  退出${RESET}"
+        echo -e "${GREEN}0. 退出${RESET}"
 
         read -p "请选择: " choice
         case $choice in
