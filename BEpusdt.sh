@@ -21,6 +21,10 @@ fi
 
 # ================== 函数 ==================
 
+pause_return() {
+    read -p "按回车返回菜单..."
+}
+
 check_port() {
     local port=$1
     while lsof -i :"$port" >/dev/null 2>&1; do
@@ -44,6 +48,7 @@ start_container() {
 
     if [ ! -f "$CONF_PATH" ]; then
         echo -e "${RED}配置文件不存在: $CONF_PATH${RESET}"
+        pause_return
         return
     fi
 
@@ -66,6 +71,7 @@ start_container() {
             echo -e "${RED}容器启动失败，请检查配置！${RESET}"
         fi
     fi
+    pause_return
 }
 
 stop_container() {
@@ -74,6 +80,7 @@ stop_container() {
     else
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在${RESET}"
     fi
+    pause_return
 }
 
 restart_container() {
@@ -82,6 +89,7 @@ restart_container() {
     else
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在${RESET}"
     fi
+    pause_return
 }
 
 remove_container() {
@@ -94,11 +102,12 @@ remove_container() {
                 rm -f "$DB_PATH" && echo -e "${GREEN}数据库文件已删除: $DB_PATH${RESET}"
             fi
         else
-            echo "取消删除操作，返回菜单"
+            echo "取消删除操作"
         fi
     else
-        echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在，返回菜单${RESET}"
+        echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在${RESET}"
     fi
+    pause_return
 }
 
 update_container() {
@@ -110,16 +119,18 @@ update_container() {
     else
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在，无法重启，请先启动容器${RESET}"
     fi
+    pause_return
 }
 
 logs_container() {
     if [ "$(docker ps -a -q -f name=^/${CONTAINER_NAME}$)" ]; then
         read -p "输入查看日志行数，默认显示最近 100 行: " LINES
         LINES=${LINES:-100}
-        docker logs --tail $LINES -f ${CONTAINER_NAME}
+        docker logs --tail $LINES ${CONTAINER_NAME}
     else
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在，无法查看日志${RESET}"
     fi
+    pause_return
 }
 
 status_container() {
@@ -128,6 +139,7 @@ status_container() {
     else
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 不存在${RESET}"
     fi
+    pause_return
 }
 
 # ================== 菜单 ==================
