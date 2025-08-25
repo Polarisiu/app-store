@@ -31,6 +31,7 @@ declare -A apps=(
     [2,2]="Vaultwarden (密码管理)"
 
     [3,1]="Kuma-Mieru"
+    [3,2]="Komari监控"
 
     [4,1]="彩虹聚合DNS"
     [4,2]="XTrafficDash(流量监控)"
@@ -74,6 +75,7 @@ commands=(
     [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
     
     [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
+    [3,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/komarigl.sh)'
     
     [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh)'
     [4,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
