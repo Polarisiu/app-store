@@ -9,7 +9,7 @@ BOLD="\033[1m"
 
 # 脚本固定路径
 SCRIPT_PATH="$HOME/store.sh"
-VERSION="1.0.3"
+VERSION="1.0.4"
 
 # ================== 一级菜单分类 ==================
 declare -A categories=(
@@ -69,21 +69,19 @@ declare -A apps=(
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
     [8,3]="BEpusdt收款"
-
 )
 
 # ================== 二级菜单命令 ==================
-declare -A commands
-commands=(
+declare -A commands=(
     [1,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh)'
     [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh)'
-    
+
     [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
     [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
-    
+
     [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
     [3,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/komarigl.sh)'
-    
+
     [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh)'
     [4,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
     [4,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh)'
@@ -95,7 +93,6 @@ commands=(
     [4,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/Yoci-helper.sh)'
     [4,10]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/oracle/main/R-Bot.sh)'
 
-    
     [5,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/music_full_auto.sh)'
     [5,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh)'
     [5,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh)'
@@ -115,11 +112,11 @@ commands=(
 
     [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
     [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
-    [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
+    [7,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
 
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
-    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh'
+    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh)'
 )
 
 # ================== 菜单显示函数 ==================
@@ -148,7 +145,7 @@ show_app_menu() {
     declare -gA menu_map
     menu_map=()
 
-    # 遍历当前分类下的应用，按第二个索引排序
+    # 遍历当前分类下的应用
     keys=()
     for key in "${!apps[@]}"; do
         if [[ $key == $cat,* ]]; then
@@ -169,13 +166,20 @@ show_app_menu() {
     echo -e "${GREEN}[0] 返回上一级${RESET}"
 }
 
-
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
     while true; do
         show_category_menu
-        read -p $'\033[31m请输入分类编号: \033[0m' cat_choice
+        read -rp "$(echo -e "${RED}请输入分类编号: ${RESET}")" cat_choice
         cat_choice=$(echo "$cat_choice" | xargs)
+
+        # 输入校验
+        if ! [[ "$cat_choice" =~ ^[0-9]+$ ]]; then
+            echo -e "${RED}无效选择，请输入数字!${RESET}"
+            sleep 1
+            continue
+        fi
+
         if [[ "$cat_choice" == "0" ]]; then
             echo -e "${RED}退出脚本，感谢使用！${RESET}"
             exit 0
@@ -196,7 +200,7 @@ app_menu_handler() {
     local cat=$1
     while true; do
         show_app_menu "$cat"
-        read -p $'\033[31m请输入应用编号: \033[0m' app_choice
+        read -rp "$(echo -e "${RED}请输入应用编号: ${RESET}")" app_choice
         app_choice=$(echo "$app_choice" | xargs)
 
         # 检查是否为数字
@@ -208,18 +212,15 @@ app_menu_handler() {
 
         if [[ "$app_choice" == "0" ]]; then
             break
-        elif [[ "$app_choice" == "88" ]]; then
-            update_script
-        elif [[ "$app_choice" == "99" ]]; then
-            uninstall_script
         elif [[ -n "${menu_map[$app_choice]}" ]]; then
             key="${menu_map[$app_choice]}"
             bash -c "${commands[$key]}"
         else
             echo -e "${RED}无效选择，请重新输入!${RESET}"
+            sleep 1
         fi
 
-        read -p $'\n\033[33m按 Enter 返回应用菜单...\033[0m'
+        read -rp $'\n\033[33m按 Enter 返回应用菜单...\033[0m'
     done
 }
 
