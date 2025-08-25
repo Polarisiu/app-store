@@ -20,6 +20,7 @@ declare -A categories=(
     [5]="多媒体工具"
     [6]="图床工具"
     [7]="实用工具"
+    [8]="交易商店"
 )
 
 # ================== 二级菜单应用 ==================
@@ -63,6 +64,11 @@ declare -A apps=(
 
     [7,1]="ALLinSSL证书"
     [7,2]="SaveAnyBot(TG转存)"
+
+    [8,1]="异次元商城"
+    [8,2]="萌次元商城"
+    [8,3]="BEpusdt收款"
+
 )
 
 # ================== 二级菜单命令 ==================
@@ -108,6 +114,10 @@ commands=(
 
     [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
     [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
+
+    [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
+    [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
+    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh'
 )
 
 # ================== 菜单显示函数 ==================
