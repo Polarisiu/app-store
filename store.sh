@@ -64,6 +64,7 @@ declare -A apps=(
 
     [7,1]="ALLinSSL证书"
     [7,2]="SaveAnyBot(TG转存)"
+    [7,3]="github镜像"
 
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
@@ -114,6 +115,7 @@ commands=(
 
     [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
     [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
+    [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
 
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
