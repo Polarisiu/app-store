@@ -130,6 +130,10 @@ show_menu() {
                 IP=$(curl -s ifconfig.me)
                 echo -e "${GREEN}网站访问地址: http://${IP}:${WEB_PORT}${RESET}"
                 echo -e "${GREEN}后台路径: http://${IP}:${WEB_PORT}/admin${RESET}"
+                echo -e "${GREEN}数据库地址: mysql${RESET}"
+                echo -e "${GREEN}数据库名称: acgfakadb${RESET}"
+                echo -e "${GREEN}数据库账号: acgfakauser${RESET}"
+                echo -e "${GREEN}数据库密码: ${MYSQL_PASSWORD}${RESET}"
                 read -p "回车返回菜单..."
                 ;;
             2)
