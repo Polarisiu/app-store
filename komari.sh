@@ -46,15 +46,7 @@ install_docker() {
     echo -e "${green}✅ Docker 安装完成${re}"
 }
 
-# ================== 配置加载 ==================
-if [ -f "$CONFIG_FILE" ]; then
-    source "$CONFIG_FILE"
-else
-    ADMIN_USERNAME="默认"
-    ADMIN_PASSWORD="默认"
-    PORT=25774
-fi
-
+# ================== 保存配置 ==================
 save_config() {
     cat > "$CONFIG_FILE" <<EOF
 ADMIN_USERNAME="$ADMIN_USERNAME"
@@ -63,22 +55,16 @@ PORT=$PORT
 EOF
 }
 
-# ================== 首次运行初始化 ==================
-install_docker
-mkdir -p "$DATA_DIR"
-
-if [ ! -f "$CONFIG_FILE" ] || [ "$ADMIN_USERNAME" = "默认" ] || [ "$ADMIN_PASSWORD" = "默认" ]; then
-    echo -e "${yellow}首次运行，请设置管理员账号、密码和端口号${re}"
-    read -p "请输入管理员账号: " ADMIN_USERNAME
-    read -sp "请输入管理员密码: " ADMIN_PASSWORD
-    echo
-    read -p "请输入端口号 (默认 25774): " PORT
-    if [[ -z "$PORT" || ! "$PORT" =~ ^[0-9]+$ || $PORT -lt 1024 || $PORT -gt 65535 ]]; then
+# ================== 加载配置 ==================
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        ADMIN_USERNAME=""
+        ADMIN_PASSWORD=""
         PORT=25774
     fi
-    save_config
-    echo -e "${green}✅ 管理员账号、密码和端口已保存${re}"
-fi
+}
 
 # ================== 工具函数 ==================
 get_status() {
@@ -100,7 +86,25 @@ check_nat_available() {
     return 0
 }
 
+# ================== 启动函数 ==================
 start_komari() {
+    # 先检查是否已有配置，没有就提示输入
+    if [ -z "$ADMIN_USERNAME" ] || [ -z "$ADMIN_PASSWORD" ]; then
+        echo -e "${yellow}首次安装，请设置管理员账号、密码和端口号${re}"
+        read -p "请输入管理员账号: " ADMIN_USERNAME
+        read -sp "请输入管理员密码: " ADMIN_PASSWORD
+        echo
+        read -p "请输入端口号 (默认 25774): " PORT
+        if [[ -z "$PORT" || ! "$PORT" =~ ^[0-9]+$ || $PORT -lt 1024 || $PORT -gt 65535 ]]; then
+            PORT=25774
+        fi
+        save_config
+        echo -e "${green}✅ 管理员账号、密码和端口已保存${re}"
+    fi
+
+    install_docker
+    mkdir -p "$DATA_DIR"
+
     stop_komari >/dev/null 2>&1
     echo -e "${yellow}正在启动 Komari...${re}"
 
@@ -150,7 +154,6 @@ restart_komari() {
     fi
 }
 
-
 update_komari() {
     docker pull ${IMAGE_NAME}
     restart_komari
@@ -166,6 +169,8 @@ uninstall_komari() {
     docker rmi ${IMAGE_NAME} >/dev/null 2>&1
     rm -f "$CONFIG_FILE"
     echo -e "${green}✅ Komari 已卸载${re}"
+    ADMIN_USERNAME=""
+    ADMIN_PASSWORD=""
 }
 
 show_logs() {
@@ -173,16 +178,17 @@ show_logs() {
 }
 
 # ================== 主程序 ==================
+load_config
 while true; do
     echo -e "\n${green}===== Komari Docker 管理脚本 =====${re}"
     echo -e "${green}容器状态: $(get_status)${re}"
     echo -e "${green}当前端口: $PORT${re}"
-    echo -e "${green}管理员账号: $ADMIN_USERNAME${re}"
-    echo -e "${green}管理员密码: $ADMIN_PASSWORD${re}"
+    echo -e "${green}管理员账号: ${ADMIN_USERNAME:-未设置}${re}"
+    echo -e "${green}管理员密码: ${ADMIN_PASSWORD:-未设置}${re}"
     echo -e "${green}=================================${re}"
-    echo -e "${green}1.安装 Komari${re}"
+    echo -e "${green}1.安装/启动 Komari${re}"
     echo -e "${green}2.停止 Komari${re}"
-    echo -e "${green}3.重启 Komari"
+    echo -e "${green}3.重启 Komari${re}"
     echo -e "${green}4.查看日志${re}"
     echo -e "${green}5.更新 Komari${re}"
     echo -e "${green}6.卸载 Komari${re}"
