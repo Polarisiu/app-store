@@ -33,11 +33,11 @@ check_port() {
 start_container() {
     if [ "$(docker ps -a -q -f name=^/${CONTAINER_NAME}$)" ]; then
         echo -e "${YELLOW}容器 ${CONTAINER_NAME} 已存在${RESET}"
-        echo "请选择操作："
-        echo "1) 重启容器"
-        echo "2) 更新镜像并重建容器"
-        echo "3) 删除容器并重新创建"
-        echo "0) 返回菜单"
+        echo "${GREEN}请选择操作：${RESET}"
+        echo "${GREEN}1) 重启容器${RESET}"
+        echo "${GREEN}2) 更新镜像并重建容器${RESET}"
+        echo "${GREEN}3) 删除容器并重新创建${RESET}"
+        echo "${GREEN}0) 返回菜单${RESET}"
         read -p "选择: " opt
         case $opt in
             1)
