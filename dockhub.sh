@@ -1,102 +1,106 @@
 #!/bin/bash
+set -e
+
 # ================== 颜色 ==================
 GREEN="\033[32m"
 RED="\033[31m"
 RESET="\033[0m"
 
-# ================== 配置 ==================
-CONTAINER_NAME="HubP"
-IMAGE_NAME="ymyuuu/hubp:latest"
+# ================== 默认配置 ==================
+HUBP_IMAGE="ymyuuu/hubp:latest"
+HUBP_CONTAINER="HubP"
+DEFAULT_PORT=18826
+DEFAULT_DISGUISE="onlinealarmkur.com"
+DEFAULT_LOG_LEVEL="debug"
 
-# ================== 函数 ==================
-start_container() {
-    read -p "请输入宿主机端口 (默认18184): " HOST_PORT
-    HOST_PORT=${HOST_PORT:-18184}
-    read -p "请输入 HubP DISGUISE (默认onlinealarmkur.com): " DISGUISE
-    DISGUISE=${DISGUISE:-onlinealarmkur.com}
+# ================== 工具函数 ==================
+pause() {
+    read -rp "按回车返回菜单..."
+}
+
+docker_insecure_registry() {
+    DAEMON_FILE="/etc/docker/daemon.json"
+    if [ -f "$DAEMON_FILE" ]; then
+        jq ".insecure-registries += [\"127.0.0.1:$1\"]" "$DAEMON_FILE" > "$DAEMON_FILE".tmp 2>/dev/null || true
+        mv "$DAEMON_FILE".tmp "$DAEMON_FILE"
+    else
+        echo "{\"insecure-registries\": [\"127.0.0.1:$1\"]}" > "$DAEMON_FILE"
+    fi
+    sudo systemctl restart docker
+}
+
+deploy_hubp() {
+    read -rp "请输入宿主机端口 (默认 $DEFAULT_PORT): " PORT
+    PORT=${PORT:-$DEFAULT_PORT}
+    read -rp "请输入 HubP DISGUISE (默认 $DEFAULT_DISGUISE): " DISGUISE
+    DISGUISE=${DISGUISE:-$DEFAULT_DISGUISE}
 
     echo -e "${GREEN}🚀 启动 HubP 容器...${RESET}"
-    docker run -d --restart unless-stopped --name $CONTAINER_NAME \
-      -p $HOST_PORT:$HOST_PORT \
-      -e HUBP_LOG_LEVEL=debug \
-      -e HUBP_DISGUISE=$DISGUISE \
-      $IMAGE_NAME
-    echo -e "${GREEN}✅ HubP 已启动，访问端口: $HOST_PORT, DISGUISE: $DISGUISE${RESET}"
-    read -p "按回车返回菜单..."
+    docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
+
+    sudo docker run -d --restart unless-stopped --name "$HUBP_CONTAINER" \
+        -p "$PORT:18826" \
+        -e HUBP_LOG_LEVEL="$DEFAULT_LOG_LEVEL" \
+        -e HUBP_DISGUISE="$DISGUISE" \
+        "$HUBP_IMAGE"
+
+    echo -e "${GREEN}✅ HubP 已启动，访问端口: $PORT, DISGUISE: $DISGUISE${RESET}"
+
+    echo -e "${GREEN}⚙️ 配置 Docker 允许 HTTP 不安全仓库...${RESET}"
+    docker_insecure_registry "$PORT"
+
+    echo -e "${GREEN}🔄 测试拉取 hello-world 镜像...${RESET}"
+    docker pull 127.0.0.1:"$PORT"/library/hello-world:latest && echo -e "${GREEN}✅ 镜像拉取成功${RESET}"
+    pause
 }
 
-stop_container() {
-    if ! docker ps | grep -q $CONTAINER_NAME; then
-        echo -e "${RED}❌ 容器未运行${RESET}"
-    else
-        echo -e "${GREEN}🛑 停止 HubP 容器...${RESET}"
-        docker stop $CONTAINER_NAME
-        echo -e "${GREEN}✅ HubP 已停止${RESET}"
-    fi
-    read -p "按回车返回菜单..."
+update_hubp() {
+    echo -e "${GREEN}🔄 拉取最新 HubP 镜像...${RESET}"
+    docker pull "$HUBP_IMAGE"
+
+    echo -e "${GREEN}♻️ 重启 HubP 容器...${RESET}"
+    docker restart "$HUBP_CONTAINER"
+
+    echo -e "${GREEN}✅ HubP 镜像已更新并重启容器成功${RESET}"
+    pause
 }
 
-uninstall_container() {
-    echo -e "${GREEN}❌ 卸载 HubP 容器...${RESET}"
-    docker stop $CONTAINER_NAME >/dev/null 2>&1
-    docker rm $CONTAINER_NAME >/dev/null 2>&1
-    echo -e "${GREEN}✅ HubP 已卸载${RESET}"
-    read -p "按回车返回菜单..."
+stop_hubp() {
+    docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
+    echo -e "${GREEN}✅ HubP 已停止${RESET}"
+    pause
 }
 
-update_container() {
-    if ! docker ps -a | grep -q $CONTAINER_NAME; then
-        echo -e "${RED}❌ 容器未运行，无法更新重启${RESET}"
-    else
-        echo -e "${GREEN}🔄 更新 HubP 镜像...${RESET}"
-        docker pull $IMAGE_NAME
-        echo -e "${GREEN}✅ 镜像已更新，重启容器...${RESET}"
-        docker restart $CONTAINER_NAME
-        echo -e "${GREEN}✅ HubP 已重启${RESET}"
-    fi
-    read -p "按回车返回菜单..."
+status_hubp() {
+    docker ps | grep "$HUBP_CONTAINER" || echo -e "${GREEN}HubP 容器未运行${RESET}"
+    pause
 }
 
-container_status() {
-    echo -e "${GREEN}ℹ️ HubP 容器状态:${RESET}"
-    docker ps -a | grep $CONTAINER_NAME || echo "容器未运行"
-    read -p "按回车返回菜单..."
+logs_hubp() {
+    echo -e "${GREEN}📄 查看 HubP 日志 (按 Ctrl+C 退出)...${RESET}"
+    docker logs -f "$HUBP_CONTAINER"
+    pause
 }
 
-view_logs() {
-    if ! docker ps | grep -q $CONTAINER_NAME; then
-        echo -e "${RED}❌ 容器未运行，无法查看日志${RESET}"
-    else
-        echo -e "${GREEN}📄 查看 HubP 日志 (按 Ctrl+C 退出)...${RESET}"
-        docker logs -f $CONTAINER_NAME
-    fi
-    read -p "按回车返回菜单..."
-}
-
-show_menu() {
+# ================== 菜单 ==================
+while true; do
     clear
     echo -e "${GREEN}================ HubP 管理菜单 ================${RESET}"
-    echo -e "${GREEN}1. 部署/启动 HubP (可自定义端口和DISGUISE)${RESET}"
-    echo -e "${GREEN}2. 停止 HubP${RESET}"
-    echo -e "${GREEN}3. 更新 HubP 镜像并重启容器${RESET}"
+    echo -e "${GREEN}1. 部署/启动 HubP${RESET}"
+    echo -e "${GREEN}2. 更新 HubP 镜像并重启容器${RESET}"
+    echo -e "${GREEN}3. 停止 HubP${RESET}"
     echo -e "${GREEN}4. 查看状态${RESET}"
-    echo -e "${GREEN}5. 卸载 HubP${RESET}"
-    echo -e "${GREEN}6. 查看日志${RESET}"
-    echo -e "${GREEN}7. 退出${RESET}"
+    echo -e "${GREEN}5. 查看日志${RESET}"
+    echo -e "${GREEN}6. 退出${RESET}"
     echo -e "${GREEN}==============================================${RESET}"
-    read -p "请选择操作 [1-7]: " choice
+    read -rp "请选择操作 [1-6]: " choice
     case $choice in
-        1) start_container ;;
-        2) stop_container ;;
-        3) update_container ;;
-        4) container_status ;;
-        5) uninstall_container ;;
-        6) view_logs ;;
-        7) exit 0 ;;
-        *) echo -e "${RED}❌ 无效选项${RESET}" ; read -p "按回车返回菜单..." ;;
+        1) deploy_hubp ;;
+        2) update_hubp ;;
+        3) stop_hubp ;;
+        4) status_hubp ;;
+        5) logs_hubp ;;
+        6) exit 0 ;;
+        *) echo -e "${RED}无效选项${RESET}"; pause ;;
     esac
-    show_menu
-}
-
-# ================== 主程序 ==================
-show_menu
+done
