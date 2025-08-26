@@ -7,8 +7,8 @@ ENV_FILE=".env"
 DEFAULT_CORE_PORT=3000
 CORE_CONTAINER="moontv-core"
 KV_CONTAINER="moontv-kvrocks"
-IMAGE_CORE="ghcr.io/moontechlab/lunatv:latest"
-IMAGE_KV="apache/kvrocks"
+CORE_IMAGE="ghcr.io/moontechlab/lunatv:latest"
+KV_IMAGE="apache/kvrocks"
 NETWORK="moontv-network"
 VOLUME="kvrocks-data"
 
@@ -29,29 +29,29 @@ pause() {
 # ================== 生成 docker-compose.yml ==================
 generate_compose() {
     if [ ! -f "$COMPOSE_FILE" ]; then
-        cat > $COMPOSE_FILE <<'EOF'
+        cat > $COMPOSE_FILE <<EOF
 version: '3.8'
 
 services:
   moontv-core:
-    image: ${IMAGE_CORE}
+    image: ${CORE_IMAGE}
     container_name: ${CORE_CONTAINER}
     restart: on-failure
     ports:
-      - "${MOONTV_CORE_PORT:-3000}:3000"
+      - "\${MOONTV_CORE_PORT:-${DEFAULT_CORE_PORT}}:3000"
     environment:
       - USERNAME=admin
       - PASSWORD=admin_password
       - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
       - KVROCKS_URL=redis://${KV_CONTAINER}:6666
-      - AUTH_TOKEN=${MOONTV_AUTH_TOKEN}
+      - AUTH_TOKEN=\${MOONTV_AUTH_TOKEN}
     networks:
       - ${NETWORK}
     depends_on:
       - ${KV_CONTAINER}
 
   moontv-kvrocks:
-    image: ${IMAGE_KV}
+    image: ${KV_IMAGE}
     container_name: ${KV_CONTAINER}
     restart: unless-stopped
     volumes:
@@ -72,8 +72,8 @@ EOF
 
 # ================== 功能函数 ==================
 deploy() {
-    read -p "请输入 MoonTV Core 映射端口(默认:3000): " port
-    port=${port:-3000}
+    read -p "请输入 MoonTV Core 映射端口(默认:${DEFAULT_CORE_PORT}): " port
+    port=${port:-$DEFAULT_CORE_PORT}
 
     read -p "请输入 AUTH_TOKEN: " auth_token
     auth_token=${auth_token:-"授权码"}
