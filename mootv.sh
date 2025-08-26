@@ -16,18 +16,37 @@ KV_VOLUME="kvrocks-data"
 
 # ================== 用户输入 ==================
 read_input() {
-    read -p "请输入 MoonTV 用户名 (默认 iucsy): " TV_USER
-    TV_USER=${TV_USER:-iucsy}
+    # 强制输入用户名
+    while true; do
+        read -p "请输入 MoonTV 用户名: " TV_USER
+        if [[ -n "$TV_USER" ]]; then
+            break
+        else
+            echo "用户名不能为空，请重新输入。"
+        fi
+    done
 
-    read -p "请输入 MoonTV 密码 (默认 Czh123456.): " TV_PASS
-    TV_PASS=${TV_PASS:-Czh123456.}
+    # 强制输入密码
+    while true; do
+        read -p "请输入 MoonTV 密码: " TV_PASS
+        if [[ -n "$TV_PASS" ]]; then
+            break
+        else
+            echo "密码不能为空，请重新输入。"
+        fi
+    done
 
-    read -p "请输入授权码 AUTH_TOKEN: " AUTH_TOKEN
-    if [[ -z "$AUTH_TOKEN" ]]; then
-        error "授权码不能为空！"
-        exit 1
-    fi
+    # 强制输入授权码
+    while true; do
+        read -p "请输入授权码 AUTH_TOKEN: " AUTH_TOKEN
+        if [[ -n "$AUTH_TOKEN" ]]; then
+            break
+        else
+            echo "授权码不能为空，请重新输入。"
+        fi
+    done
 
+    # 端口可以使用默认值
     read -p "请输入 MoonTV 访问端口 (默认 3000): " TV_PORT
     TV_PORT=${TV_PORT:-3000}
 
@@ -86,7 +105,7 @@ install() {
     docker-compose up -d
 
     # 获取公网 IP
-    SERVER_IP=$(curl -s https://ip.sb)
+    SERVER_IP=$(curl -s https://ifconfig.me)
 
     info "部署完成！访问: http://${SERVER_IP}:${TV_PORT} 用户名: ${TV_USER} 密码: ${TV_PASS}"
 }
