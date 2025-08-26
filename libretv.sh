@@ -37,14 +37,14 @@ get_ip() {
 print_menu() {
     clear
     echo -e "${YELLOW}=== LibreTV 容器管理菜单 ===${RESET}"
-    echo -e "${GREEN}1.${RESET} 启动/创建容器"
-    echo -e "${GREEN}2.${RESET} 停止容器"
-    echo -e "${GREEN}3.${RESET} 重启容器"
-    echo -e "${GREEN}4.${RESET} 查看容器状态"
-    echo -e "${GREEN}5.${RESET} 查看容器日志"
-    echo -e "${GREEN}6.${RESET} 删除容器"
-    echo -e "${GREEN}7.${RESET} 拉取最新镜像并重启容器"
-    echo -e "${GREEN}0.${RESET} 退出"
+    echo -e "${GREEN}1.启动/创建容器${RESET}"
+    echo -e "${GREEN}2.停止容器${RESET}"
+    echo -e "${GREEN}3.重启容器${RESET}"
+    echo -e "${GREEN}4.查看容器状态${RESET}"
+    echo -e "${GREEN}5.查看容器日志${RESET}"
+    echo -e "${GREEN}6.删除容器${RESET}"
+    echo -e "${GREEN}7.拉取最新镜像并重启容器${RESET}"
+    echo -e "${GREEN}0.退出${RESET}"
 }
 
 show_access_info() {
