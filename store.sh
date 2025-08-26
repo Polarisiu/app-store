@@ -31,7 +31,7 @@ fi
 
 if [ "$added" = true ]; then
     source ~/.bashrc 2>/dev/null || true
-    echo -e "${GREEN}已添加快捷键 d/D，可直接输入启动脚本！${RESET}"
+    echo -e "${GREEN}已添加快捷键 D/d，重启终端可直接输入启动脚本！${RESET}"
 fi
 
 # ================== 一级菜单分类 ==================
@@ -258,7 +258,7 @@ update_script() {
     echo -e "${YELLOW}正在更新脚本...${RESET}"
     curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
     chmod +x "$SCRIPT_PATH"
-    echo -e "${GREEN}更新完成! 可直接使用 d/D 启动脚本${RESET}"
+    echo -e "${GREEN}更新完成! 可直接使用 D/d 启动脚本${RESET}"
 }
 
 uninstall_script() {
@@ -271,7 +271,7 @@ uninstall_script() {
     sed -i "/alias D='bash .*store.sh'/d" ~/.zshrc 2>/dev/null || true
     source ~/.bashrc 2>/dev/null || true
 
-    echo -e "${RED}卸载完成! 已清理 d / D 快捷键${RESET}"
+    echo -e "${RED}卸载完成! 已清理 D/d 快捷键${RESET}"
     exit 0
 }
 
