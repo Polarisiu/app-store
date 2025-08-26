@@ -26,9 +26,13 @@ start_container() {
 }
 
 stop_container() {
-    echo -e "${GREEN}🛑 停止 HubP 容器...${RESET}"
-    docker stop $CONTAINER_NAME
-    echo -e "${GREEN}✅ HubP 已停止${RESET}"
+    if ! docker ps | grep -q $CONTAINER_NAME; then
+        echo -e "${RED}❌ 容器未运行${RESET}"
+    else
+        echo -e "${GREEN}🛑 停止 HubP 容器...${RESET}"
+        docker stop $CONTAINER_NAME
+        echo -e "${GREEN}✅ HubP 已停止${RESET}"
+    fi
     read -p "按回车返回菜单..."
 }
 
@@ -41,17 +45,31 @@ uninstall_container() {
 }
 
 update_container() {
-    echo -e "${GREEN}🔄 更新 HubP 容器镜像...${RESET}"
-    docker pull $IMAGE_NAME
-    echo -e "${GREEN}✅ 镜像已更新，重启容器...${RESET}"
-    docker restart $CONTAINER_NAME
-    echo -e "${GREEN}✅ HubP 已重启${RESET}"
+    if ! docker ps -a | grep -q $CONTAINER_NAME; then
+        echo -e "${RED}❌ 容器未运行，无法更新重启${RESET}"
+    else
+        echo -e "${GREEN}🔄 更新 HubP 镜像...${RESET}"
+        docker pull $IMAGE_NAME
+        echo -e "${GREEN}✅ 镜像已更新，重启容器...${RESET}"
+        docker restart $CONTAINER_NAME
+        echo -e "${GREEN}✅ HubP 已重启${RESET}"
+    fi
     read -p "按回车返回菜单..."
 }
 
 container_status() {
     echo -e "${GREEN}ℹ️ HubP 容器状态:${RESET}"
     docker ps -a | grep $CONTAINER_NAME || echo "容器未运行"
+    read -p "按回车返回菜单..."
+}
+
+view_logs() {
+    if ! docker ps | grep -q $CONTAINER_NAME; then
+        echo -e "${RED}❌ 容器未运行，无法查看日志${RESET}"
+    else
+        echo -e "${GREEN}📄 查看 HubP 日志 (按 Ctrl+C 退出)...${RESET}"
+        docker logs -f $CONTAINER_NAME
+    fi
     read -p "按回车返回菜单..."
 }
 
@@ -63,16 +81,18 @@ show_menu() {
     echo -e "${GREEN}3. 更新 HubP 镜像并重启容器${RESET}"
     echo -e "${GREEN}4. 查看状态${RESET}"
     echo -e "${GREEN}5. 卸载 HubP${RESET}"
-    echo -e "${GREEN}6. 退出${RESET}"
+    echo -e "${GREEN}6. 查看日志${RESET}"
+    echo -e "${GREEN}7. 退出${RESET}"
     echo -e "${GREEN}==============================================${RESET}"
-    read -p "请选择操作 [1-6]: " choice
+    read -p "请选择操作 [1-7]: " choice
     case $choice in
         1) start_container ;;
         2) stop_container ;;
         3) update_container ;;
         4) container_status ;;
         5) uninstall_container ;;
-        6) exit 0 ;;
+        6) view_logs ;;
+        7) exit 0 ;;
         *) echo -e "${RED}❌ 无效选项${RESET}" ; read -p "按回车返回菜单..." ;;
     esac
     show_menu
