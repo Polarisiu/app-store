@@ -89,6 +89,9 @@ EOF
     systemctl enable docker
     systemctl start docker
     echo -e "${GREEN}Docker 安装完成并已启动（已设置开机自启）${RESET}"
+    echo -e "${YELLOW}⚠️ 请切换到 iptables-legacy 以避免端口映射失败${RESET}"
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 }
 
 docker_update() {
@@ -111,30 +114,25 @@ docker_install_update() {
 }
 
 # -----------------------------
-# 卸载 Docker（彻底）
+# 卸载 Docker（含 Compose）
 # -----------------------------
 docker_uninstall() {
     root_use
-    echo -e "${RED}正在卸载 Docker...${RESET}"
-
-    # 停止服务
+    echo -e "${RED}正在卸载 Docker 和 Docker Compose...${RESET}"
     systemctl stop docker 2>/dev/null
     systemctl disable docker 2>/dev/null
     pkill dockerd 2>/dev/null
 
-    # 卸载各种包
     if command -v apt &>/dev/null; then
-        apt remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
-        apt purge -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
+        apt remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io docker-compose-plugin || true
+        apt purge -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io docker-compose-plugin || true
         apt autoremove -y
     elif command -v yum &>/dev/null; then
-        yum remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io || true
+        yum remove -y docker docker-engine docker.io containerd runc docker-ce docker-ce-cli containerd.io docker-compose-plugin || true
     fi
 
-    # 删除 Docker 文件
-    rm -rf /var/lib/docker /etc/docker /var/lib/containerd /var/run/docker.sock
-
-    echo -e "${GREEN}Docker 已卸载干净${RESET}"
+    rm -rf /var/lib/docker /etc/docker /var/lib/containerd /var/run/docker.sock /usr/local/bin/docker-compose
+    echo -e "${GREEN}Docker 和 Docker Compose 已卸载干净${RESET}"
 }
 
 # -----------------------------
@@ -201,7 +199,24 @@ open_all_ports() {
 }
 
 # -----------------------------
-# 容器管理
+# iptables 切换
+# -----------------------------
+switch_iptables_legacy() {
+    root_use
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    echo -e "${GREEN}已切换到 iptables-legacy${RESET}"
+}
+
+switch_iptables_nft() {
+    root_use
+    update-alternatives --set iptables /usr/sbin/iptables-nft
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
+    echo -e "${GREEN}已切换到 iptables-nft${RESET}"
+}
+
+# -----------------------------
+# Docker 容器管理
 # -----------------------------
 docker_ps() {
     if ! check_docker_running; then return; fi
@@ -218,10 +233,6 @@ docker_ps() {
         echo -e "${GREEN}07. 停止所有容器${RESET}"
         echo -e "${GREEN}08. 删除所有容器${RESET}"
         echo -e "${GREEN}09. 重启所有容器${RESET}"
-        echo -e "${GREEN}11. 进入容器${RESET}"
-        echo -e "${GREEN}12. 查看日志${RESET}"
-        echo -e "${GREEN}13. 查看网络信息${RESET}"
-        echo -e "${GREEN}14. 查看占用资源${RESET}"
         echo -e "${GREEN}0.  返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
@@ -234,10 +245,6 @@ docker_ps() {
             07|7) containers=$(docker ps -q); [ -n "$containers" ] && docker stop $containers || echo "无容器正在运行" ;;
             08|8) read -p "确定删除所有容器? (Y/N): " c; [[ $c =~ [Yy] ]] && docker rm -f $(docker ps -a -q) ;;
             09|9) containers=$(docker ps -q); [ -n "$containers" ] && docker restart $containers || echo "无容器正在运行" ;;
-            11) read -p "请输入容器名: " name; docker exec -it $name sh || docker exec -it $name bash ;;
-            12) read -p "请输入容器名: " name; docker logs $name ;;
-            13) docker ps -q | while read cid; do docker inspect --format '{{.Name}} {{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{$v.IPAddress}}{{end}}' $cid; done ;;
-            14) docker stats --no-stream ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
@@ -246,7 +253,7 @@ docker_ps() {
 }
 
 # -----------------------------
-# 镜像管理
+# Docker 镜像管理
 # -----------------------------
 docker_image() {
     if ! check_docker_running; then return; fi
@@ -258,7 +265,7 @@ docker_image() {
         echo -e "${GREEN}02. 更新镜像${RESET}"
         echo -e "${GREEN}03. 删除镜像${RESET}"
         echo -e "${GREEN}04. 删除所有镜像${RESET}"
-        echo -e "${GREEN}0.  返回主菜单${RESET}"
+        echo -e "${GREEN}0. 返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入镜像名: " imgs; for img in $imgs; do docker pull $img; done ;;
@@ -273,7 +280,42 @@ docker_image() {
 }
 
 # -----------------------------
-# 网络管理
+# Docker 卷管理
+# -----------------------------
+docker_volume() {
+    if ! check_docker_running; then return; fi
+    while true; do
+        clear
+        echo -e "${BOLD}${CYAN}===== Docker 卷管理 =====${RESET}"
+        docker volume ls
+        echo -e "${GREEN}1. 创建卷${RESET}"
+        echo -e "${GREEN}2. 删除卷${RESET}"
+        echo -e "${GREEN}3. 删除所有无用卷${RESET}"
+        echo -e "${GREEN}0. 返回上一级菜单${RESET}"
+        read -p "请输入选择: " choice
+        case $choice in
+            1) read -p "请输入卷名: " v; docker volume create $v ;;
+            2) read -p "请输入卷名: " v; docker volume rm $v ;;
+            3) docker volume prune -f ;;
+            0) break ;;
+            *) echo "无效选择" ;;
+        esac
+        read -p "按回车继续..."
+    done
+}
+
+# -----------------------------
+# 清理所有未使用资源
+# -----------------------------
+docker_cleanup() {
+    root_use
+    echo -e "${YELLOW}清理所有未使用容器、镜像、卷...${RESET}"
+    docker system prune -af --volumes
+    echo -e "${GREEN}清理完成${RESET}"
+}
+
+# -----------------------------
+# Docker 网络管理
 # -----------------------------
 docker_network() {
     if ! check_docker_running; then return; fi
@@ -291,12 +333,57 @@ docker_network() {
             1) read -p "设置新网络名: " dockernetwork; docker network create $dockernetwork ;;
             2) read -p "加入网络名: " dockernetwork; read -p "容器名: " dockername; docker network connect $dockernetwork $dockername ;;
             3) read -p "退出网络名: " dockernetwork; read -p "容器名: " dockername; docker network disconnect $dockernetwork $dockername ;;
-            4) read -p "请输入要删除的网络名: " dockernetwork; docker network rm $dockernetwork ;;
+            4) read -p "请输入要删除的网络名: " dockernetwork; docker network rm $dockernetwork || echo -e "${RED}删除失败，网络可能被容器占用${RESET}" ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
         read -p "按回车继续..."
     done
+}
+
+# -----------------------------
+# Docker 备份与恢复
+# -----------------------------
+docker_backup() {
+    root_use
+    read -p "请输入备份文件名（默认 docker_backup_$(date +%F).tar.gz）: " backup_name
+    backup_name=${backup_name:-docker_backup_$(date +%F).tar.gz}
+    echo -e "${YELLOW}正在备份所有容器、镜像和卷...${RESET}"
+    mkdir -p /tmp/docker_backup
+    docker ps -a -q | xargs -I{} docker export {} -o /tmp/docker_backup/container_{}.tar
+    docker images -q | xargs -I{} docker save {} -o /tmp/docker_backup/image_{}.tar
+    docker volume ls -q | xargs -I{} tar -czf /tmp/docker_backup/volume_{}.tar.gz -C /var/lib/docker/volumes/ {}
+    tar -czf $backup_name -C /tmp docker_backup
+    rm -rf /tmp/docker_backup
+    echo -e "${GREEN}备份完成: $backup_name${RESET}"
+}
+
+docker_restore() {
+    root_use
+    read -p "请输入备份文件路径: " backup_file
+    if [[ ! -f "$backup_file" ]]; then
+        echo -e "${RED}备份文件不存在${RESET}"
+        return
+    fi
+    echo -e "${YELLOW}正在恢复 Docker 数据...${RESET}"
+    mkdir -p /tmp/docker_restore
+    tar -xzf "$backup_file" -C /tmp/docker_restore
+    for vol in /tmp/docker_restore/docker_backup/volume_*.tar.gz; do
+        [[ -f "$vol" ]] || continue
+        vol_name=$(basename "$vol" | sed 's/volume_\(.*\).tar.gz/\1/')
+        docker volume create "$vol_name"
+        tar -xzf "$vol" -C /var/lib/docker/volumes/"$vol_name"/_data
+    done
+    for img in /tmp/docker_restore/docker_backup/image_*.tar; do
+        [[ -f "$img" ]] || continue
+        docker load -i "$img"
+    done
+    for cont in /tmp/docker_restore/docker_backup/container_*.tar; do
+        [[ -f "$cont" ]] || continue
+        docker import "$cont"
+    done
+    rm -rf /tmp/docker_restore
+    echo -e "${GREEN}恢复完成${RESET}"
 }
 
 # -----------------------------
@@ -315,13 +402,19 @@ main_menu() {
         echo -e "\033[33m🐳 一键 VPS Docker 管理工具${RESET}"
         echo -e "${GREEN}01. 安装/更新 Docker（自动检测国内/国外源）${RESET}"
         echo -e "${GREEN}02. 安装/更新 Docker Compose${RESET}"
-        echo -e "${GREEN}03. 卸载 Docker${RESET}"
+        echo -e "${GREEN}03. 卸载 Docker & Compose${RESET}"
         echo -e "${GREEN}04. 容器管理${RESET}"
         echo -e "${GREEN}05. 镜像管理${RESET}"
         echo -e "${GREEN}06. 开启 IPv6${RESET}"
         echo -e "${GREEN}07. 关闭 IPv6${RESET}"
         echo -e "${GREEN}08. 开放所有端口${RESET}"
         echo -e "${GREEN}09. 网络管理${RESET}"
+        echo -e "${GREEN}10. 切换 iptables-legacy${RESET}"
+        echo -e "${GREEN}11. 切换 iptables-nft${RESET}"
+        echo -e "${GREEN}12. Docker 备份${RESET}"
+        echo -e "${GREEN}13. Docker 恢复${RESET}"
+        echo -e "${GREEN}14. 卷管理（创建/删除/删除所有无用卷）${RESET}"
+        echo -e "${GREEN}15. 一键清理所有未使用容器/镜像/卷${RESET}"
         echo -e "${GREEN}0. 退出${RESET}"
 
         read -p "请选择: " choice
@@ -335,6 +428,12 @@ main_menu() {
             07|7) docker_ipv6_off ;;
             08|8) open_all_ports ;;
             09|9) docker_network ;;
+            10) switch_iptables_legacy ;;
+            11) switch_iptables_nft ;;
+            12) docker_backup ;;
+            13) docker_restore ;;
+            14) docker_volume ;;
+            15) docker_cleanup ;;
             0) exit 0 ;;
             *) echo "无效选择" ;;
         esac
