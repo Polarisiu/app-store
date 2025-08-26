@@ -413,7 +413,7 @@ main_menu() {
         echo -e "${GREEN}11. 切换 iptables-nft${RESET}"
         echo -e "${GREEN}12. Docker 备份${RESET}"
         echo -e "${GREEN}13. Docker 恢复${RESET}"
-        echo -e "${GREEN}14. 卷管理（创建/删除/删除所有无用卷）${RESET}"
+        echo -e "${GREEN}14. 卷管理 ${RESET}"
         echo -e "${GREEN}15. 一键清理所有未使用容器/镜像/卷${RESET}"
         echo -e "${GREEN}0. 退出${RESET}"
 
