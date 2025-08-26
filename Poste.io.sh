@@ -100,11 +100,14 @@ main_menu_action() {
             echo "正在启动服务..."
             docker-compose up -d || { echo -e "${RED}启动失败！${NC}"; exit 1; }
             show_dns_info "$domain"
+            local ip=$(curl -s ifconfig.me)  # 获取服务器公网IP
+
             echo -e "\n\033[38;5;81m────────────────────────\033[0m"
             echo -e "${GREEN}▶ 安装完成！${NC}"
             echo -e "${GREEN}▶ 首次配置页面: https://${domain}${NC}"
             echo -e "${GREEN}▶ 管理后台: https://${domain}/admin${NC}"
             echo -e "${GREEN}▶ 默认管理员账号: admin@${domain#mail.}${NC}"
+            echo -e "${GREEN}▶ 访问地址(IP:8808): http://${ip}:8808${NC}" 
             echo -e "\033[38;5;81m────────────────────────\033[0m"
             ;;
         2)
