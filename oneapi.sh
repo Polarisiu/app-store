@@ -8,7 +8,7 @@ RESET="\033[0m"
 # ================== 默认配置 ==================
 COMPOSE_FILE="docker-compose.yml"
 DEFAULT_PORT=3000
-DEFAULT_DB_ROOT_PASS="test2024"
+DEFAULT_DB_ROOT_PASS="123456"
 
 # 获取服务器IP
 get_ip() {
@@ -20,7 +20,7 @@ get_ip() {
 install_mysql() {
     # 检测是否已有 mysql 容器
     if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
-        echo -e "${GREEN}⚠️ 已存在名为 mysql 的容器，正在删除旧容器...${RESET}"
+        echo -e "${GREEN}⚠️ 已存在 mysql 容器，自动删除旧容器...${RESET}"
         docker rm -f mysql
     fi
 
@@ -39,7 +39,6 @@ install_mysql() {
 
     echo -e "${GREEN}✅ MySQL 已启动，地址: mysql:3306  Root密码: ${DB_ROOT_PASS}${RESET}"
 }
-
 
 # ================== 部署 One-API ==================
 deploy() {
@@ -70,9 +69,9 @@ deploy() {
 
     echo -e "${GREEN}🔧 正在初始化数据库...${RESET}"
     docker exec -i mysql mysql -uroot -p${DB_ROOT_PASS} --protocol=socket <<EOF
-CREATE DATABASE IF NOT EXISTS oneapi DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE USER IF NOT EXISTS 'oneapi_user'@'%' IDENTIFIED BY 'oneapi_pass';
-GRANT ALL PRIVILEGES ON oneapi.* TO 'oneapi_user'@'%';
+CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
+GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
 FLUSH PRIVILEGES;
 EOF
 
@@ -123,7 +122,6 @@ EOF
 
     docker compose up -d
     echo -e "${GREEN}🎉 部署完成! 访问地址: http://$(get_ip):${PORT}${RESET}"
-    echo -e "${GREEN}🎉 部署完成! 初始账号用户名为 root，密码为 123456${RESET}"
 }
 
 # ================== 菜单 ==================
