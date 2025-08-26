@@ -9,18 +9,11 @@ RESET="\033[0m"
 COMPOSE_FILE="docker-compose.yml"
 DEFAULT_PORT=3000
 DEFAULT_DB_ROOT_PASS="test2024"
-DEFAULT_DB_HOST="127.0.0.1"
 
 # 获取服务器IP
 get_ip() {
     IP=$(curl -s ifconfig.me || curl -s ip.sb || hostname -I | awk '{print $1}')
     echo "$IP"
-}
-
-# 检查 MySQL 是否可用
-check_mysql() {
-    mysql -h${1} -uroot -p${2} -e "SELECT 1;" >/dev/null 2>&1
-    return $?
 }
 
 # ================== 安装 MySQL 容器 ==================
@@ -38,7 +31,7 @@ install_mysql() {
         -v ./volumes/mysql/data:/var/lib/mysql \
         mysql:8.0
 
-    echo -e "${GREEN}✅ MySQL 已启动，地址: 127.0.0.1:3306  Root密码: ${DB_ROOT_PASS}${RESET}"
+    echo -e "${GREEN}✅ MySQL 已启动，地址: mysql:3306  Root密码: ${DB_ROOT_PASS}${RESET}"
 }
 
 # ================== 部署 One-API ==================
@@ -47,24 +40,16 @@ deploy() {
     read PORT
     PORT=${PORT:-$DEFAULT_PORT}
 
-    echo -e "${GREEN}请输入数据库地址 (默认: ${DEFAULT_DB_HOST}): ${RESET}"
-    read DB_HOST
-    DB_HOST=${DB_HOST:-$DEFAULT_DB_HOST}
-
     echo -e "${GREEN}请输入 MySQL root 密码 (默认: ${DEFAULT_DB_ROOT_PASS}): ${RESET}"
     read DB_ROOT_PASS
     DB_ROOT_PASS=${DB_ROOT_PASS:-$DEFAULT_DB_ROOT_PASS}
 
-    # 检查数据库可用性
-    echo -e "${GREEN}🔍 正在检测数据库连接...${RESET}"
-    if check_mysql ${DB_HOST} ${DB_ROOT_PASS}; then
-        echo -e "${GREEN}✅ 数据库可用，跳过安装${RESET}"
-    else
-        echo -e "${GREEN}⚠️  数据库不可用，是否安装 MySQL 容器？(y/n): ${RESET}"
-        read install_choice
-        if [[ "$install_choice" == "y" ]]; then
+    # 检查 MySQL 容器是否在运行
+    if ! docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
+        echo -e "${GREEN}⚠️ 未检测到 MySQL 容器，是否安装？(y/n): ${RESET}"
+        read choice
+        if [[ "$choice" == "y" ]]; then
             install_mysql
-            DB_HOST="127.0.0.1"
             sleep 15
         else
             echo -e "${GREEN}❌ 未安装 MySQL，部署中止${RESET}"
@@ -77,7 +62,7 @@ deploy() {
     DB_PASS="oneapi_pass"
 
     echo -e "${GREEN}🔧 正在初始化数据库...${RESET}"
-    mysql -h${DB_HOST} -uroot -p${DB_ROOT_PASS} <<EOF
+    docker exec -i mysql mysql -uroot -p${DB_ROOT_PASS} <<EOF
 CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
 GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
@@ -86,7 +71,7 @@ EOF
 
     echo -e "${GREEN}✅ 数据库初始化完成${RESET}"
 
-    SQL_DSN="${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:3306)/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local"
+    SQL_DSN="${DB_USER}:${DB_PASS}@tcp(mysql:3306)/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local"
     SESSION_SECRET=$(openssl rand -hex 32)
 
     mkdir -p ./volumes/one-api/data ./volumes/one-api/logs ./volumes/data-gym-cache
@@ -109,11 +94,24 @@ services:
       - SQL_DSN=${SQL_DSN}
       - SESSION_SECRET=${SESSION_SECRET}
       - TZ=Asia/Shanghai
+    depends_on:
+      - mysql
     healthcheck:
       test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep '\"success\":true' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./volumes/mysql/data:/var/lib/mysql
 EOF
 
     docker compose up -d
