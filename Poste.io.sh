@@ -6,7 +6,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# ================== 检查是否为root用户 ==================
 check_root() {
     if [ "$(id -u)" != "0" ]; then
         echo -e "${RED}错误: 请使用root用户运行此脚本${NC}"
@@ -14,14 +13,12 @@ check_root() {
     fi
 }
 
-# ================== 检查并安装 Docker 与 Docker Compose ==================
 check_docker() {
     export PATH=$PATH:/usr/local/bin
     if ! command -v docker &> /dev/null; then
         echo "正在安装 Docker..."
         curl -fsSL https://get.docker.com | sh || { echo "Docker 安装失败"; exit 1; }
     fi
-
     if ! command -v docker-compose &> /dev/null; then
         echo "正在安装 Docker Compose..."
         curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || { echo "Docker Compose 下载失败"; exit 1; }
@@ -29,7 +26,6 @@ check_docker() {
     fi
 }
 
-# ================== 检测本地端口 ==================
 check_port() {
     local port=$1
     if lsof -i:$port &> /dev/null; then
@@ -39,7 +35,6 @@ check_port() {
     fi
 }
 
-# ================== 创建docker-compose.yml ==================
 create_docker_compose() {
     local domain=$1
     local root_domain=$(echo "$domain" | awk -F. '{print $(NF-1)"."$NF}')
@@ -78,7 +73,6 @@ services:
 EOF
 }
 
-# ================== 显示DNS配置信息 ==================
 show_dns_info() {
     local domain=$1
     local ip=$(curl -s ifconfig.me)
@@ -96,7 +90,6 @@ show_dns_info() {
     echo -e "\033[38;5;81m────────────────────────\033[0m"
 }
 
-# ================== 菜单操作 ==================
 main_menu_action() {
     local choice=$1
     case $choice in
@@ -106,9 +99,7 @@ main_menu_action() {
             cd /root/data/docker_data/posteio
             echo "正在启动服务..."
             docker-compose up -d || { echo -e "${RED}启动失败！${NC}"; exit 1; }
-
             show_dns_info "$domain"
-
             echo -e "\n\033[38;5;81m────────────────────────\033[0m"
             echo -e "${GREEN}▶ 安装完成！${NC}"
             echo -e "${GREEN}▶ 首次配置页面: https://${domain}${NC}"
@@ -122,7 +113,6 @@ main_menu_action() {
                 echo "正在更新服务..."
                 docker-compose pull
                 docker-compose up -d
-
                 echo -e "\n\033[38;5;81m────────────────────────\033[0m"
                 echo -e "${GREEN}▶ 更新完成！${NC}"
                 echo -e "\033[38;5;81m────────────────────────\033[0m"
@@ -138,7 +128,6 @@ main_menu_action() {
                 docker images | awk '/poste\.io/ {print $3}' | xargs -r docker rmi -f
                 cd /root/data/docker_data
                 rm -rf posteio
-
                 echo -e "\n\033[38;5;81m────────────────────────\033[0m"
                 echo -e "${GREEN}▶ 已完全卸载服务、数据和镜像！${NC}"
                 echo -e "\033[38;5;81m────────────────────────\033[0m"
@@ -153,7 +142,6 @@ main_menu_action() {
     initial_check
 }
 
-# ================== 初始菜单 ==================
 initial_check() {
     clear
     check_docker
@@ -202,14 +190,18 @@ initial_check() {
     case $choice in
         1|2|3)
             main_menu_action $choice
-           ;;
+            ;;
         4)
-           echo -e "\n${GREEN}感谢使用，再见！${NC}"
-           exit 0
-           ;;
+            echo -e "\n${GREEN}感谢使用，再见！${NC}"
+            exit 0
+            ;;
         *)
-           echo -e "\n${RED}无效选项，请重新选择${NC}"
-           sleep 2
-           initial_check
-           ;;
-esac
+            echo -e "\n${RED}无效选项，请重新选择${NC}"
+            sleep 2
+            initial_check
+            ;;
+    esac
+}
+
+check_root
+initial_check
