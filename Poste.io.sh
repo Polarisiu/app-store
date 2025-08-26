@@ -100,14 +100,14 @@ main_menu_action() {
             echo "正在启动服务..."
             docker-compose up -d || { echo -e "${RED}启动失败！${NC}"; exit 1; }
             show_dns_info "$domain"
-            local ip=$(curl -s ifconfig.me)  # 获取服务器公网IP
+            local ip=$(curl -s ifconfig.me)
 
             echo -e "\n\033[38;5;81m────────────────────────\033[0m"
             echo -e "${GREEN}▶ 安装完成！${NC}"
             echo -e "${GREEN}▶ 首次配置页面: https://${domain}${NC}"
             echo -e "${GREEN}▶ 管理后台: https://${domain}/admin${NC}"
             echo -e "${GREEN}▶ 默认管理员账号: admin@${domain#mail.}${NC}"
-            echo -e "${GREEN}▶ 访问地址(IP:8808): http://${ip}:8808${NC}" 
+            echo -e "${GREEN}▶ 访问地址(IP:8808): http://${ip}:8808${NC}"
             echo -e "\033[38;5;81m────────────────────────\033[0m"
             ;;
         2)
@@ -173,7 +173,19 @@ initial_check() {
 
     echo -e "\n\033[1;36m端口检测\033[0m"
     echo -e "\033[38;5;81m────────────────────────\033[0m"
-    for port in 25 587 110 143 993 995 465 80 443; do
+
+    # 远程25端口检测
+    port=25
+    timeout=3
+    telnet_output=$(echo "quit" | timeout $timeout telnet smtp.qq.com $port 2>&1)
+    if echo "$telnet_output" | grep -q "Connected"; then
+        echo -e "✓ 端口 $port........ ${GREEN}可访问外网SMTP${NC}"
+    else
+        echo -e "✗ 端口 $port........ ${RED}不可访问外网SMTP${NC}"
+    fi
+
+    # 其他端口检查
+    for port in 587 110 143 993 995 465 80 443; do
         check_port $port
     done
 
