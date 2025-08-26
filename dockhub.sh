@@ -24,12 +24,21 @@ set_proxy() {
     export HTTP_PROXY="http://127.0.0.1:$PORT"
     export HTTPS_PROXY="http://127.0.0.1:$PORT"
     echo -e "${GREEN}✅ 已设置 HTTP_PROXY 和 HTTPS_PROXY 指向 HubP:${PORT}${RESET}"
+    pause
 }
 
 remove_proxy() {
     unset HTTP_PROXY
     unset HTTPS_PROXY
     echo -e "${GREEN}✅ 已移除 HTTP_PROXY 和 HTTPS_PROXY${RESET}"
+    pause
+}
+
+show_proxy() {
+    echo -e "${GREEN}当前代理环境变量:${RESET}"
+    echo "HTTP_PROXY=${HTTP_PROXY:-未设置}"
+    echo "HTTPS_PROXY=${HTTPS_PROXY:-未设置}"
+    pause
 }
 
 # ================== HubP 功能函数 ==================
@@ -49,6 +58,7 @@ deploy_hubp() {
         "$HUBP_IMAGE"
 
     echo -e "${GREEN}✅ HubP 已启动，访问端口: $PORT, DISGUISE: $DISGUISE${RESET}"
+    pause
 }
 
 update_hubp() {
@@ -89,7 +99,6 @@ uninstall_hubp() {
 
 # ================== 菜单 ==================
 while true; do
-    clear
     echo -e "${GREEN}================ HubP 管理菜单 ================${RESET}"
     echo -e "${GREEN}1. 部署/启动 HubP${RESET}"
     echo -e "${GREEN}2. 更新 HubP 镜像并重启容器${RESET}"
@@ -98,10 +107,11 @@ while true; do
     echo -e "${GREEN}5. 查看日志${RESET}"
     echo -e "${GREEN}6. 设置 Docker 代理环境 (HTTP_PROXY/HTTPS_PROXY)${RESET}"
     echo -e "${GREEN}7. 移除 Docker 代理环境${RESET}"
-    echo -e "${GREEN}8. 卸载 HubP${RESET}"
-    echo -e "${GREEN}9. 退出${RESET}"
+    echo -e "${GREEN}8. 查看当前代理环境变量${RESET}"
+    echo -e "${GREEN}9. 卸载 HubP${RESET}"
+    echo -e "${GREEN}10. 退出${RESET}"
     echo -e "${GREEN}==============================================${RESET}"
-    read -rp "请选择操作 [1-9]: " choice
+    read -rp "请选择操作 [1-10]: " choice
     case $choice in
         1) deploy_hubp ;;
         2) update_hubp ;;
@@ -110,8 +120,9 @@ while true; do
         5) logs_hubp ;;
         6) set_proxy ;;
         7) remove_proxy ;;
-        8) uninstall_hubp ;;
-        9) exit 0 ;;
+        8) show_proxy ;;
+        9) uninstall_hubp ;;
+        10) exit 0 ;;
         *) echo -e "${RED}无效选项${RESET}"; pause ;;
     esac
 done
