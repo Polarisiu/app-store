@@ -61,6 +61,7 @@ status_hubp() {
 logs_hubp() {
     echo -e "${GREEN}📄 查看 HubP 日志 (按 Ctrl+C 退出)...${RESET}"
     docker logs -f "$HUBP_CONTAINER"
+    pause
 }
 
 uninstall_hubp() {
