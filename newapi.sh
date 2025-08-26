@@ -70,11 +70,22 @@ volumes:
 EOF
 }
 
+check_port() {
+    if lsof -i:"$API_PORT" &>/dev/null; then
+        echo -e "${GREEN}端口 $API_PORT 已被占用，请选择其他端口${RESET}"
+        return 1
+    fi
+    return 0
+}
+
 init_database() {
     echo -e "${GREEN}等待 MySQL 启动...${RESET}"
     docker-compose -f "$COMPOSE_FILE" up -d mysql
-    sleep 15
     echo -e "${GREEN}初始化数据库...${RESET}"
+    # 等待数据库就绪
+    while ! docker exec -i mysql mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; do
+        sleep 2
+    done
     docker exec -i mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<EOF
 CREATE DATABASE IF NOT EXISTS $MYSQL_DB;
 CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
@@ -85,6 +96,16 @@ EOF
 }
 
 start_service() {
+    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
+    API_PORT=${PORT:-$DEFAULT_PORT}
+    if ! check_port; then
+        return
+    fi
+
+    mkdir -p "$BASE_DIR"
+    generate_env
+    generate_compose
+    init_database
     docker-compose -f "$COMPOSE_FILE" up -d
     show_ip_port
 }
@@ -129,17 +150,7 @@ set_port() {
     restart_service
 }
 
-read -p "请输入部署端口(默认 $DEFAULT_PORT): " PORT
-API_PORT=${PORT:-$DEFAULT_PORT}
-
-mkdir -p "$BASE_DIR"
-generate_env
-generate_compose
-init_database
-
-# 首次启动自动运行
-start_service
-
+# 菜单循环
 while true; do
     echo -e "${GREEN}====== New API 管理菜单 ======${RESET}"
     echo -e "${GREEN}1. 启动服务${RESET}"
@@ -150,7 +161,7 @@ while true; do
     echo -e "${GREEN}6. 查看 New API 日志${RESET}"
     echo -e "${GREEN}7. 查看 MySQL 日志${RESET}"
     echo -e "${GREEN}8. 修改访问端口${RESET}"
-    echo -e "${GREEN}9. 显示访问 IP:端口${RESET}"
+    echo -e "${GREEN}9. 显示访问地址${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     read -p "请选择操作: " choice
     case $choice in
