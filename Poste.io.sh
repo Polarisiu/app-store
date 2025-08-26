@@ -202,5 +202,14 @@ initial_check() {
     case $choice in
         1|2|3)
             main_menu_action $choice
-            ;;
-        4
+           ;;
+        4)
+           echo -e "\n${GREEN}感谢使用，再见！${NC}"
+           exit 0
+           ;;
+        *)
+           echo -e "\n${RED}无效选项，请重新选择${NC}"
+           sleep 2
+           initial_check
+           ;;
+esac
