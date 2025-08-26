@@ -143,31 +143,36 @@ logs_mysql() {
 }
 
 # ================== 菜单 ==================
-while true; do
-  echo -e "${GREEN}===== New API 管理脚本 =====${RESET}"
-  echo -e "${YELLOW}1. 安装 API${RESET}"
-  echo -e "${YELLOW}2. 卸载 API${RESET}"
-  echo -e "${YELLOW}3. 更新 API${RESET}"
-  echo -e "${YELLOW}4. 启动服务${RESET}"
-  echo -e "${YELLOW}5. 停止服务${RESET}"
-  echo -e "${YELLOW}6. 重启服务${RESET}"
-  echo -e "${YELLOW}7. 查看 API 日志${RESET}"
-  echo -e "${YELLOW}8. 查看数据库日志${RESET}"
-  echo -e "${YELLOW}9. 显示访问地址${RESET}"
-  echo -e "${YELLOW}0. 退出${RESET}"
+menu() {
+  while true; do
+    echo -e "${GREEN}===== New API 管理脚本 =====${RESET}"
+    echo -e "${YELLOW}1. 安装 API${RESET}"
+    echo -e "${YELLOW}2. 卸载 API${RESET}"
+    echo -e "${YELLOW}3. 更新 API${RESET}"
+    echo -e "${YELLOW}4. 启动服务${RESET}"
+    echo -e "${YELLOW}5. 停止服务${RESET}"
+    echo -e "${YELLOW}6. 重启服务${RESET}"
+    echo -e "${YELLOW}7. 查看 API 日志${RESET}"
+    echo -e "${YELLOW}8. 查看数据库日志${RESET}"
+    echo -e "${YELLOW}9. 显示访问地址${RESET}"
+    echo -e "${YELLOW}0. 退出${RESET}"
 
-  read -rp "请输入编号: " choice
-  case $choice in
-    1) install_api ;;
-    2) uninstall_api ;;
-    3) update_api ;;
-    4) start_api ;;
-    5) stop_api ;;
-    6) restart_api ;;
-    7) logs_api ;;
-    8) logs_mysql ;;
-    9) show_ip_port ;;
-    0) exit 0 ;;
-    *) echo -e "${RED}无效选项${RESET}" ;;
-  esac
-done
+    read -rp "请输入编号: " choice
+    case $choice in
+      1) install_api ;;
+      2) uninstall_api ;;
+      3) update_api ;;
+      4) start_api ;;
+      5) stop_api ;;
+      6) restart_api ;;
+      7) logs_api ;;
+      8) logs_mysql ;;
+      9) show_ip_port ;;
+      0) exit 0 ;;
+      *) echo -e "${RED}无效选项${RESET}" ;;
+    esac
+  done
+}
+
+# ================== 一键执行 ==================
+menu
