@@ -1,7 +1,6 @@
 #!/bin/bash
 # ================== 颜色 ==================
 GREEN="\033[32m"
-YELLOW="\033[33m"
 RED="\033[31m"
 RESET="\033[0m"
 
@@ -44,9 +43,9 @@ uninstall_container() {
 update_container() {
     echo -e "${GREEN}🔄 更新 HubP 容器镜像...${RESET}"
     docker pull $IMAGE_NAME
-    stop_container
-    start_container
-    echo -e "${GREEN}✅ HubP 已更新并重启${RESET}"
+    echo -e "${GREEN}✅ 镜像已更新，重启容器...${RESET}"
+    docker restart $CONTAINER_NAME
+    echo -e "${GREEN}✅ HubP 已重启${RESET}"
     read -p "按回车返回菜单..."
 }
 
@@ -61,7 +60,7 @@ show_menu() {
     echo -e "${GREEN}================ HubP 管理菜单 ================${RESET}"
     echo -e "${GREEN}1. 部署/启动 HubP (可自定义端口和DISGUISE)${RESET}"
     echo -e "${GREEN}2. 停止 HubP${RESET}"
-    echo -e "${GREEN}3. 更新 HubP${RESET}"
+    echo -e "${GREEN}3. 更新 HubP 镜像并重启容器${RESET}"
     echo -e "${GREEN}4. 查看状态${RESET}"
     echo -e "${GREEN}5. 卸载 HubP${RESET}"
     echo -e "${GREEN}6. 退出${RESET}"
