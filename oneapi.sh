@@ -18,6 +18,12 @@ get_ip() {
 
 # ================== 安装 MySQL 容器 ==================
 install_mysql() {
+    # 检测是否已有 mysql 容器
+    if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
+        echo -e "${GREEN}⚠️ 已存在名为 mysql 的容器，正在删除旧容器...${RESET}"
+        docker rm -f mysql
+    fi
+
     echo -e "${GREEN}请输入 MySQL root 密码 (默认: ${DEFAULT_DB_ROOT_PASS}): ${RESET}"
     read DB_ROOT_PASS
     DB_ROOT_PASS=${DB_ROOT_PASS:-$DEFAULT_DB_ROOT_PASS}
@@ -33,6 +39,7 @@ install_mysql() {
 
     echo -e "${GREEN}✅ MySQL 已启动，地址: mysql:3306  Root密码: ${DB_ROOT_PASS}${RESET}"
 }
+
 
 # ================== 部署 One-API ==================
 deploy() {
