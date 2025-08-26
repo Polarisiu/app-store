@@ -28,17 +28,31 @@ check_port() {
     fi
 }
 
+get_ip() {
+    # 获取本机外网或内网 IP
+    IP=$(hostname -I | awk '{print $1}')
+    echo "$IP"
+}
+
 print_menu() {
     clear
     echo -e "${YELLOW}=== LibreTV 容器管理菜单 ===${RESET}"
-    echo -e "${GREEN}1.启动/创建容器${RESET}"
-    echo -e "${GREEN}2.停止容器${RESET}"
-    echo -e "${GREEN}3.重启容器${RESET}"
-    echo -e "${GREEN}4.查看容器状态${RESET}"
-    echo -e "${GREEN}5.查看容器日志${RESET}"
-    echo -e "${GREEN}6.删除容器${RESET}"
-    echo -e "${GREEN}7.拉取最新镜像并重启容器${RESET}"
-    echo -e "${GREEN}0.退出${RESET}"
+    echo -e "${GREEN}1.${RESET} 启动/创建容器"
+    echo -e "${GREEN}2.${RESET} 停止容器"
+    echo -e "${GREEN}3.${RESET} 重启容器"
+    echo -e "${GREEN}4.${RESET} 查看容器状态"
+    echo -e "${GREEN}5.${RESET} 查看容器日志"
+    echo -e "${GREEN}6.${RESET} 删除容器"
+    echo -e "${GREEN}7.${RESET} 拉取最新镜像并重启容器"
+    echo -e "${GREEN}0.${RESET} 退出"
+}
+
+show_access_info() {
+    local host_port=$1
+    local ip
+    ip=$(get_ip)
+    echo -e "${GREEN}访问地址: http://${ip}:${host_port}${RESET}"
+    echo -e "${GREEN}容器密码: ${PASSWORD}${RESET}"
 }
 
 start_container() {
@@ -71,6 +85,7 @@ start_container() {
           "$IMAGE_NAME"
     fi
     echo -e "${GREEN}容器启动完成${RESET}"
+    show_access_info "$HOST_PORT"
     pause
 }
 
@@ -126,6 +141,9 @@ update_and_restart_container() {
         echo -e "${YELLOW}镜像更新完成，正在重启容器...${RESET}"
         docker restart "$CONTAINER_NAME"
         echo -e "${GREEN}容器已重启${RESET}"
+        # 获取原端口
+        HOST_PORT=$(docker port "$CONTAINER_NAME" $CONTAINER_PORT | cut -d: -f2)
+        show_access_info "$HOST_PORT"
     else
         echo -e "${RED}容器未运行，启动新容器...${RESET}"
         start_container
