@@ -1,154 +1,243 @@
 #!/bin/bash
 set -e
 
-# ================== 颜色 ==================
+# ================== 颜色定义 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
 
-# ================== 默认配置 ==================
-COMPOSE_FILE="docker-compose.yml"
-DEFAULT_PORT=3000
-DEFAULT_DB_ROOT_PASS="123456"
+# ================== 固定目录 ==================
+WORKDIR="$HOME/oneapi"
+COMPOSE_FILE="$WORKDIR/docker-compose.yml"
+BACKUP_DIR="$WORKDIR/backup"
+DATE=$(date +%Y%m%d_%H%M%S)
 
-# 获取服务器IP
-get_ip() {
-    IP=$(curl -s ifconfig.me || curl -s ip.sb || hostname -I | awk '{print $1}')
-    echo "$IP"
+DB_CONTAINER="mysql"
+ONEAPI_CONTAINER="oneapi"
+DB_USER="oneapi"
+DB_PASSWORD="123456"
+DB_NAME="oneapi"
+
+mkdir -p "$WORKDIR" "$BACKUP_DIR"
+cd "$WORKDIR"
+
+# ================== 检查依赖 ==================
+check_env() {
+    if ! command -v docker &>/dev/null; then
+        echo -e "${GREEN}错误: 未安装 Docker${RESET}"
+        exit 1
+    fi
+    if ! command -v docker-compose &>/dev/null; then
+        echo -e "${GREEN}错误: 未安装 docker-compose${RESET}"
+        exit 1
+    fi
 }
 
-# ================== 安装 MySQL 容器 ==================
-install_mysql() {
-    # 检测是否已有 mysql 容器
-    if docker ps -a --format '{{.Names}}' | grep -q '^mysql$'; then
-        echo -e "${GREEN}⚠️ 已存在 mysql 容器，自动删除旧容器...${RESET}"
-        docker rm -f mysql
+# ================== 生成 Compose 文件 ==================
+generate_compose() {
+    echo -e "${GREEN}请输入 OneAPI 映射端口 (默认 3001): ${RESET}"
+    read ONEAPI_PORT
+    ONEAPI_PORT=${ONEAPI_PORT:-3001}
+
+    echo -e "${GREEN}请输入 MySQL 映射端口 (默认 3306): ${RESET}"
+    read MYSQL_PORT
+    MYSQL_PORT=${MYSQL_PORT:-3306}
+
+    echo -e "${GREEN}请输入 SESSION_SECRET (直接回车则自动生成随机值): ${RESET}"
+    read SESSION_SECRET
+    if [ -z "$SESSION_SECRET" ]; then
+        SESSION_SECRET=$(openssl rand -hex 32)
+        echo -e "${GREEN}已生成随机 SESSION_SECRET: $SESSION_SECRET${RESET}"
     fi
 
-    echo -e "${GREEN}请输入 MySQL root 密码 (默认: ${DEFAULT_DB_ROOT_PASS}): ${RESET}"
-    read DB_ROOT_PASS
-    DB_ROOT_PASS=${DB_ROOT_PASS:-$DEFAULT_DB_ROOT_PASS}
+    mkdir -p "$WORKDIR/data" "$WORKDIR/mysql"
 
-    echo -e "${GREEN}📦 正在安装 MySQL 容器...${RESET}"
-    docker run -d \
-        --name mysql \
-        --restart always \
-        -e MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS} \
-        -p 3306:3306 \
-        -v ./volumes/mysql/data:/var/lib/mysql \
-        mysql:8.0
-
-    echo -e "${GREEN}✅ MySQL 已启动，地址: mysql:3306  Root密码: ${DB_ROOT_PASS}${RESET}"
-}
-
-# ================== 部署 One-API ==================
-deploy() {
-    echo -e "${GREEN}请输入 One-API 端口 (默认: ${DEFAULT_PORT}): ${RESET}"
-    read PORT
-    PORT=${PORT:-$DEFAULT_PORT}
-
-    echo -e "${GREEN}请输入 MySQL root 密码 (默认: ${DEFAULT_DB_ROOT_PASS}): ${RESET}"
-    read DB_ROOT_PASS
-    DB_ROOT_PASS=${DB_ROOT_PASS:-$DEFAULT_DB_ROOT_PASS}
-
-    # 检查 MySQL 容器是否在运行
-    if ! docker ps --format '{{.Names}}' | grep -q '^mysql$'; then
-        echo -e "${GREEN}⚠️ 未检测到 MySQL 容器，是否安装？(y/n): ${RESET}"
-        read choice
-        if [[ "$choice" == "y" ]]; then
-            install_mysql
-            sleep 15
-        else
-            echo -e "${GREEN}❌ 未安装 MySQL，部署中止${RESET}"
-            return
-        fi
-    fi
-
-    DB_NAME="oneapi"
-    DB_USER="oneapi_user"
-    DB_PASS="oneapi_pass"
-
-    echo -e "${GREEN}🔧 正在初始化数据库...${RESET}"
-    docker exec -i mysql mysql -uroot -p${DB_ROOT_PASS} --protocol=socket <<EOF
-CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
-FLUSH PRIVILEGES;
-EOF
-
-    echo -e "${GREEN}✅ 数据库初始化完成${RESET}"
-
-    SQL_DSN="${DB_USER}:${DB_PASS}@tcp(mysql:3306)/${DB_NAME}?charset=utf8mb4&parseTime=True&loc=Local"
-    SESSION_SECRET=$(openssl rand -hex 32)
-
-    mkdir -p ./volumes/one-api/data ./volumes/one-api/logs ./volumes/data-gym-cache
-    chmod -R 777 ./volumes
-
-    cat > ${COMPOSE_FILE} <<EOF
+    cat > $COMPOSE_FILE <<EOF
 services:
   one-api:
-    container_name: one-api
-    image: justsong/one-api:latest
+    image: "justsong/one-api:latest"
+    container_name: $ONEAPI_CONTAINER
     restart: always
-    command: --log-dir /app/logs
+    networks: 
+      - oneapi
     ports:
-      - "${PORT}:3000"
+      - "${ONEAPI_PORT}:3000"
     volumes:
-      - ./volumes/one-api/data:/data
-      - ./volumes/one-api/logs:/app/logs
-      - ./volumes/data-gym-cache:/tmp/data-gym-cache
+      - $WORKDIR/data:/data
     environment:
-      - SQL_DSN=${SQL_DSN}
+      - SQL_DSN="oneapi:${DB_PASSWORD}@tcp(db:3306)/${DB_NAME}"
       - SESSION_SECRET=${SESSION_SECRET}
       - TZ=Asia/Shanghai
     depends_on:
-      - mysql
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status | grep '\"success\":true' || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - db
 
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  db:
+    image: mysql:8.4
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
-    ports:
-      - "3306:3306"
+    networks: 
+      - oneapi
+    container_name: $DB_CONTAINER
     volumes:
-      - ./volumes/mysql/data:/var/lib/mysql
+      - $WORKDIR/mysql:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT}:3306"
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: "OneAPI@justsongStrong"
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: ${DB_NAME}
+
+networks: 
+  oneapi:
 EOF
 
-    docker compose up -d
-    echo -e "${GREEN}🎉 部署完成! 访问地址: http://$(get_ip):${PORT}${RESET}"
+    echo "$ONEAPI_PORT" > "$WORKDIR/.oneapi_port"
+    echo "$MYSQL_PORT" > "$WORKDIR/.mysql_port"
+    echo "$SESSION_SECRET" > "$WORKDIR/.session_secret"
+
+    echo -e "${GREEN}docker-compose.yml 已生成${RESET}"
+    echo -e "${GREEN}OneAPI 端口: $ONEAPI_PORT, MySQL 端口: $MYSQL_PORT${RESET}"
+}
+
+# ================== 功能函数 ==================
+deploy_services() {
+    generate_compose
+    docker-compose -f $COMPOSE_FILE up -d
+
+    IP=$(hostname -I | awk '{print $1}')
+    ONEAPI_PORT=$(cat "$WORKDIR/.oneapi_port")
+    echo -e "${GREEN}服务已部署并启动${RESET}"
+    echo -e "${GREEN}OneAPI 访问地址: http://${IP}:${ONEAPI_PORT}${RESET}"
+    echo -e "${GREEN}OneAPI 初始账号用户名为 root，密码为 123456${RESET}"
+}
+
+start_services() {
+    docker-compose -f $COMPOSE_FILE up -d
+    echo -e "${GREEN}服务已启动${RESET}"
+}
+
+stop_services() {
+    docker-compose -f $COMPOSE_FILE down
+    echo -e "${GREEN}服务已停止${RESET}"
+}
+
+restart_services() {
+    docker-compose -f $COMPOSE_FILE down
+    docker-compose -f $COMPOSE_FILE up -d
+    echo -e "${GREEN}服务已重启${RESET}"
+}
+
+update_services() {
+    echo -e "${GREEN}正在拉取最新镜像...${RESET}"
+    docker-compose -f $COMPOSE_FILE pull
+    docker-compose -f $COMPOSE_FILE up -d
+    echo -e "${GREEN}镜像已更新并重启服务${RESET}"
+}
+
+show_config() {
+    if [ -f "$WORKDIR/.oneapi_port" ]; then
+        ONEAPI_PORT=$(cat "$WORKDIR/.oneapi_port")
+        MYSQL_PORT=$(cat "$WORKDIR/.mysql_port")
+        SESSION_SECRET=$(cat "$WORKDIR/.session_secret")
+        IP=$(hostname -I | awk '{print $1}')
+        echo -e "${GREEN}====== 当前配置 ======${RESET}"
+        echo -e "${GREEN}OneAPI 地址: http://${IP}:${ONEAPI_PORT}${RESET}"
+        echo -e "${GREEN}MySQL 地址: ${IP}:${MYSQL_PORT}${RESET}"
+        echo -e "${GREEN}SESSION_SECRET: ${SESSION_SECRET}${RESET}"
+        echo -e "${GREEN}======================${RESET}"
+    else
+        echo -e "${GREEN}未找到配置，请先部署服务${RESET}"
+    fi
+}
+
+logs_oneapi() {
+    docker logs -f $ONEAPI_CONTAINER
+}
+
+logs_db() {
+    docker logs -f $DB_CONTAINER
+}
+
+enter_oneapi() {
+    docker exec -it $ONEAPI_CONTAINER /bin/sh
+}
+
+enter_db() {
+    docker exec -it $DB_CONTAINER /bin/bash
+}
+
+backup_db() {
+    mkdir -p $BACKUP_DIR
+    FILE="$BACKUP_DIR/${DB_NAME}_${DATE}.sql"
+    docker exec $DB_CONTAINER mysqldump -u$DB_USER -p$DB_PASSWORD $DB_NAME > $FILE
+    echo -e "${GREEN}数据库已备份: $FILE${RESET}"
+}
+
+restore_db() {
+    echo -e "${GREEN}请输入要恢复的备份文件路径:${RESET}"
+    read FILE
+    if [ ! -f "$FILE" ]; then
+        echo -e "${GREEN}文件不存在${RESET}"
+        return
+    fi
+    docker exec -i $DB_CONTAINER mysql -u$DB_USER -p$DB_PASSWORD $DB_NAME < "$FILE"
+    echo -e "${GREEN}数据库已恢复${RESET}"
+}
+
+remove_all() {
+    echo -e "${GREEN}警告: 将删除所有容器和数据！是否继续？(y/n)${RESET}"
+    read confirm
+    if [ "$confirm" == "y" ]; then
+        docker-compose -f $COMPOSE_FILE down -v
+        rm -rf "$WORKDIR/data" "$WORKDIR/mysql" "$WORKDIR/backup" "$WORKDIR/.oneapi_port" "$WORKDIR/.mysql_port" "$WORKDIR/.session_secret"
+        echo -e "${GREEN}容器和数据已删除${RESET}"
+    else
+        echo "已取消操作"
+    fi
 }
 
 # ================== 菜单 ==================
-while true; do
-    echo -e "\n${GREEN}========= One-API 管理菜单 =========${RESET}"
-    echo -e "${GREEN}1. 部署 One-API${RESET}"
-    echo -e "${GREEN}2. 启动 One-API${RESET}"
-    echo -e "${GREEN}3. 停止 One-API${RESET}"
-    echo -e "${GREEN}4. 重启 One-API${RESET}"
-    echo -e "${GREEN}5. 更新并重启 One-API${RESET}"
-    echo -e "${GREEN}6. 查看日志${RESET}"
-    echo -e "${GREEN}7. 查看状态${RESET}"
-    echo -e "${GREEN}8. 删除 One-API${RESET}"
+menu() {
+    clear
+    echo -e "${GREEN}====== OneAPI 一键部署管理菜单 ======${RESET}"
+    echo -e "${GREEN}1. 部署并启动服务 (自定义端口/SESSION_SECRET)${RESET}"
+    echo -e "${GREEN}2. 启动服务${RESET}"
+    echo -e "${GREEN}3. 停止服务${RESET}"
+    echo -e "${GREEN}4. 重启服务${RESET}"
+    echo -e "${GREEN}5. 更新镜像并重启服务${RESET}"
+    echo -e "${GREEN}6. 查看当前配置${RESET}"
+    echo -e "${GREEN}7. 查看 OneAPI 日志${RESET}"
+    echo -e "${GREEN}8. 查看 MySQL 日志${RESET}"
+    echo -e "${GREEN}9. 进入 OneAPI 容器${RESET}"
+    echo -e "${GREEN}10. 进入 MySQL 容器${RESET}"
+    echo -e "${GREEN}11. 备份数据库${RESET}"
+    echo -e "${GREEN}12. 恢复数据库${RESET}"
+    echo -e "${GREEN}13. 删除所有容器和数据${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${GREEN}请选择操作: ${RESET}"
-    read choice
+    echo "================================="
+}
 
+# ================== 主循环 ==================
+check_env
+while true; do
+    menu
+    read -p "请选择操作: " choice
     case $choice in
-        1) deploy ;;
-        2) docker compose up -d ;;
-        3) docker compose down ;;
-        4) docker compose down && docker compose up -d ;;
-        5) docker compose pull one-api || docker pull justsong/one-api:latest && docker compose down && docker compose up -d ;;
-        6) echo -e "${GREEN}📜 正在查看日志，按回车返回菜单${RESET}"; ( docker logs -f one-api & pid=$! ; read; kill $pid ) ;;
-        7) docker ps --filter "name=one-api"; echo -e "${GREEN}🌍 访问地址: http://$(get_ip):$(grep -E '^[[:space:]]*-[[:space:]]*[0-9]+:3000' ${COMPOSE_FILE} | sed -E 's/.*- ([0-9]+):3000/\1/')${RESET}" ;;
-        8) docker compose down -v && rm -f ${COMPOSE_FILE} && echo -e "${GREEN}❌ One-API 已删除${RESET}" ;;
+        1) deploy_services ;;
+        2) start_services ;;
+        3) stop_services ;;
+        4) restart_services ;;
+        5) update_services ;;
+        6) show_config ;;
+        7) logs_oneapi ;;
+        8) logs_db ;;
+        9) enter_oneapi ;;
+        10) enter_db ;;
+        11) backup_db ;;
+        12) restore_db ;;
+        13) remove_all ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选项，请重新输入${RESET}" ;;
+        *) echo -e "${GREEN}无效选项${RESET}" ;;
     esac
+    read -p "按回车键返回菜单..."
 done
