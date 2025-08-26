@@ -18,6 +18,21 @@ pause() {
     read -rp "按回车返回菜单..."
 }
 
+set_proxy() {
+    read -rp "请输入 HubP 容器端口 (默认 $DEFAULT_PORT): " PORT
+    PORT=${PORT:-$DEFAULT_PORT}
+    export HTTP_PROXY="http://127.0.0.1:$PORT"
+    export HTTPS_PROXY="http://127.0.0.1:$PORT"
+    echo -e "${GREEN}✅ 已设置 HTTP_PROXY 和 HTTPS_PROXY 指向 HubP:${PORT}${RESET}"
+}
+
+remove_proxy() {
+    unset HTTP_PROXY
+    unset HTTPS_PROXY
+    echo -e "${GREEN}✅ 已移除 HTTP_PROXY 和 HTTPS_PROXY${RESET}"
+}
+
+# ================== HubP 功能函数 ==================
 deploy_hubp() {
     read -rp "请输入宿主机端口 (默认 $DEFAULT_PORT): " PORT
     PORT=${PORT:-$DEFAULT_PORT}
@@ -81,18 +96,22 @@ while true; do
     echo -e "${GREEN}3. 停止 HubP${RESET}"
     echo -e "${GREEN}4. 查看状态${RESET}"
     echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 卸载 HubP${RESET}"
-    echo -e "${GREEN}7. 退出${RESET}"
+    echo -e "${GREEN}6. 设置 Docker 代理环境 (HTTP_PROXY/HTTPS_PROXY)${RESET}"
+    echo -e "${GREEN}7. 移除 Docker 代理环境${RESET}"
+    echo -e "${GREEN}8. 卸载 HubP${RESET}"
+    echo -e "${GREEN}9. 退出${RESET}"
     echo -e "${GREEN}==============================================${RESET}"
-    read -rp "请选择操作 [1-7]: " choice
+    read -rp "请选择操作 [1-9]: " choice
     case $choice in
         1) deploy_hubp ;;
         2) update_hubp ;;
         3) stop_hubp ;;
         4) status_hubp ;;
         5) logs_hubp ;;
-        6) uninstall_hubp ;;
-        7) exit 0 ;;
+        6) set_proxy ;;
+        7) remove_proxy ;;
+        8) uninstall_hubp ;;
+        9) exit 0 ;;
         *) echo -e "${RED}无效选项${RESET}"; pause ;;
     esac
 done
