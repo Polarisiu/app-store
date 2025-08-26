@@ -233,7 +233,11 @@ docker_ps() {
         echo -e "${GREEN}07. 停止所有容器${RESET}"
         echo -e "${GREEN}08. 删除所有容器${RESET}"
         echo -e "${GREEN}09. 重启所有容器${RESET}"
-        echo -e "${GREEN}0.  返回主菜单${RESET}"
+        echo -e "${GREEN}10. 进入容器${RESET}"
+        echo -e "${GREEN}11. 查看日志${RESET}"
+        echo -e "${GREEN}12. 查看网络信息${RESET}"
+        echo -e "${GREEN}13. 查看占用资源${RESET}"
+        echo -e "${GREEN}0. 返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入创建命令: " cmd; $cmd ;;
@@ -245,12 +249,17 @@ docker_ps() {
             07|7) containers=$(docker ps -q); [ -n "$containers" ] && docker stop $containers || echo "无容器正在运行" ;;
             08|8) read -p "确定删除所有容器? (Y/N): " c; [[ $c =~ [Yy] ]] && docker rm -f $(docker ps -a -q) ;;
             09|9) containers=$(docker ps -q); [ -n "$containers" ] && docker restart $containers || echo "无容器正在运行" ;;
+            10) read -p "请输入容器名: " name; docker exec -it $name /bin/bash ;;
+            11) read -p "请输入容器名: " name; docker logs -f $name ;;
+            12) read -p "请输入容器名: " name; docker inspect $name | jq '.' ;;
+            13) read -p "请输入容器名: " name; docker stats $name ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
         read -p "按回车继续..."
     done
 }
+
 
 # -----------------------------
 # Docker 镜像管理
