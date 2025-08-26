@@ -16,11 +16,11 @@ KV_VOLUME="kvrocks-data"
 
 # ================== 用户输入 ==================
 read_input() {
-    read -p "请输入 MoonTV 用户名 (默认 admin): " TV_USER
-    TV_USER=${TV_USER:-admin}
+    read -p "请输入 MoonTV 用户名 (默认 iucsy): " TV_USER
+    TV_USER=${TV_USER:-iucsy}
 
-    read -p "请输入 MoonTV 密码 (默认 admin_password): " TV_PASS
-    TV_PASS=${TV_PASS:-admin_password}
+    read -p "请输入 MoonTV 密码 (默认 Czh123456.): " TV_PASS
+    TV_PASS=${TV_PASS:-Czh123456.}
 
     read -p "请输入授权码 AUTH_TOKEN: " AUTH_TOKEN
     if [[ -z "$AUTH_TOKEN" ]]; then
@@ -39,7 +39,6 @@ read_input() {
 generate_compose() {
     info "正在生成 docker-compose.yml 文件..."
     cat > $COMPOSE_FILE <<EOF
-version: "3.8"
 services:
   moontv-core:
     image: ghcr.io/moontechlab/lunatv:latest
@@ -85,7 +84,11 @@ install() {
     generate_compose
     info "启动容器中..."
     docker-compose up -d
-    info "部署完成！访问: http://localhost:${TV_PORT} 用户名: ${TV_USER} 密码: ${TV_PASS}"
+
+    # 获取公网 IP
+    SERVER_IP=$(curl -s https://ip.sb)
+
+    info "部署完成！访问: http://${SERVER_IP}:${TV_PORT} 用户名: ${TV_USER} 密码: ${TV_PASS}"
 }
 
 # ================== 卸载 ==================
@@ -119,15 +122,16 @@ update() {
 
 # ================== 查看日志 ==================
 show_logs() {
-    info "显示 MoonTV 和 KVrocks 日志..."
+    info "显示 MoonTV 和 KVrocks 日志，按 Ctrl+C 停止查看..."
     docker-compose logs -f
+    read -p "按回车返回主菜单..." dummy
 }
 
 # ================== 主菜单 ==================
 while true; do
     echo -e "${GREEN}================ MoonTV 管理脚本 ================${RESET}"
     echo -e "${GREEN}1. 安装/部署${RESET}"
-    echo -e "${GREEN}2. 卸载/清除${RESET}"
+    echo -e "${GREEN}2. 卸载/清理${RESET}"
     echo -e "${GREEN}3. 更新（拉取最新镜像并重启）${RESET}"
     echo -e "${GREEN}4. 查看日志${RESET}"
     echo -e "${GREEN}5. 退出${RESET}"
