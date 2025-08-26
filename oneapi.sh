@@ -69,10 +69,10 @@ deploy() {
     DB_PASS="oneapi_pass"
 
     echo -e "${GREEN}🔧 正在初始化数据库...${RESET}"
-    docker exec -i mysql mysql -uroot -p${DB_ROOT_PASS} <<EOF
-CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE USER IF NOT EXISTS '${DB_USER}'@'%' IDENTIFIED BY '${DB_PASS}';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'%';
+    docker exec -i mysql mysql -uroot -p${DB_ROOT_PASS} --protocol=socket <<EOF
+CREATE DATABASE IF NOT EXISTS oneapi DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE USER IF NOT EXISTS 'oneapi_user'@'%' IDENTIFIED BY 'oneapi_pass';
+GRANT ALL PRIVILEGES ON oneapi.* TO 'oneapi_user'@'%';
 FLUSH PRIVILEGES;
 EOF
 
