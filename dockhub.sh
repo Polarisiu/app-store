@@ -18,27 +18,6 @@ pause() {
     read -rp "按回车返回菜单..."
 }
 
-docker_insecure_registry_add() {
-    DAEMON_FILE="/etc/docker/daemon.json"
-    if [ -f "$DAEMON_FILE" ]; then
-        jq ".insecure-registries += [\"127.0.0.1:$1\"]" "$DAEMON_FILE" > "$DAEMON_FILE".tmp 2>/dev/null || true
-        mv "$DAEMON_FILE".tmp "$DAEMON_FILE"
-    else
-        echo "{\"insecure-registries\": [\"127.0.0.1:$1\"]}" > "$DAEMON_FILE"
-    fi
-    sudo systemctl restart docker
-}
-
-docker_insecure_registry_remove() {
-    DAEMON_FILE="/etc/docker/daemon.json"
-    if [ -f "$DAEMON_FILE" ]; then
-        # 删除127.0.0.1:<port>条目
-        jq "del(.\"insecure-registries\"[] | select(.==\"127.0.0.1:$1\"))" "$DAEMON_FILE" > "$DAEMON_FILE".tmp 2>/dev/null || true
-        mv "$DAEMON_FILE".tmp "$DAEMON_FILE"
-        sudo systemctl restart docker
-    fi
-}
-
 deploy_hubp() {
     read -rp "请输入宿主机端口 (默认 $DEFAULT_PORT): " PORT
     PORT=${PORT:-$DEFAULT_PORT}
@@ -48,19 +27,16 @@ deploy_hubp() {
     echo -e "${GREEN}🚀 启动 HubP 容器...${RESET}"
     docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
 
-    sudo docker run -d --restart unless-stopped --name "$HUBP_CONTAINER" \
-        -p "$PORT:$PORT" \
+    docker run -d --restart unless-stopped --name "$HUBP_CONTAINER" \
+        -p "$PORT:18826" \
         -e HUBP_LOG_LEVEL="$DEFAULT_LOG_LEVEL" \
         -e HUBP_DISGUISE="$DISGUISE" \
         "$HUBP_IMAGE"
 
     echo -e "${GREEN}✅ HubP 已启动，访问端口: $PORT, DISGUISE: $DISGUISE${RESET}"
 
-    echo -e "${GREEN}⚙️ 配置 Docker 允许 HTTP 不安全仓库...${RESET}"
-    docker_insecure_registry_add "$PORT"
-
     echo -e "${GREEN}🔄 测试拉取 hello-world 镜像...${RESET}"
-    docker pull 127.0.0.1:"$PORT"/library/hello-world:latest && echo -e "${GREEN}✅ 镜像拉取成功${RESET}"
+    docker pull hello-world:latest && echo -e "${GREEN}✅ 测试拉取镜像成功${RESET}" || echo -e "${RED}❌ 拉取镜像失败${RESET}"
     pause
 }
 
@@ -76,7 +52,7 @@ update_hubp() {
 }
 
 stop_hubp() {
-    docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
+    docker stop "$HUBP_CONTAINER" >/dev/null 2>&1 || true
     echo -e "${GREEN}✅ HubP 已停止${RESET}"
     pause
 }
@@ -89,21 +65,13 @@ status_hubp() {
 logs_hubp() {
     echo -e "${GREEN}📄 查看 HubP 日志 (按 Ctrl+C 退出)...${RESET}"
     docker logs -f "$HUBP_CONTAINER"
-    pause
 }
 
 uninstall_hubp() {
-    read -rp "请输入 HubP 所用端口 (默认 $DEFAULT_PORT，用于清理 Docker 不安全仓库): " PORT
-    PORT=${PORT:-$DEFAULT_PORT}
-
     echo -e "${GREEN}🗑️ 卸载 HubP 容器及镜像...${RESET}"
     docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
     docker rmi "$HUBP_IMAGE" >/dev/null 2>&1 || true
-
-    echo -e "${GREEN}⚙️ 清理 Docker 不安全仓库配置...${RESET}"
-    docker_insecure_registry_remove "$PORT"
-
-    echo -e "${GREEN}✅ HubP 已卸载并清理完成${RESET}"
+    echo -e "${GREEN}✅ HubP 已卸载完成${RESET}"
     pause
 }
 
