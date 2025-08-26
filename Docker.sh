@@ -89,7 +89,7 @@ EOF
     systemctl enable docker
     systemctl start docker
     echo -e "${GREEN}Docker 安装完成并已启动（已设置开机自启）${RESET}"
-    echo -e "${YELLOW}⚠️ 请切换到 iptables-legacy 以避免端口映射失败${RESET}"
+    echo -e "${YELLOW}⚠️ 切换到 iptables-legacy 以避免端口映射失败${RESET}"
     update-alternatives --set iptables /usr/sbin/iptables-legacy
     update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 }
@@ -399,7 +399,7 @@ main_menu() {
         echo " | | | |/ _ \ / __| |/ / _ \ '__|"
         echo " | |_| | (_) | (__|   <  __/ |   "
         echo " |____/ \___/ \___|_|\_\___|_|   "
-        echo -e "\033[33m🐳 VPS Docker 管理工具${RESET}"
+        echo -e "\033[33m🐳 一键 VPS Docker 管理工具${RESET}"
         echo -e "${GREEN}01. 安装/更新 Docker（自动检测国内/国外源）${RESET}"
         echo -e "${GREEN}02. 安装/更新 Docker Compose${RESET}"
         echo -e "${GREEN}03. 卸载 Docker & Compose${RESET}"
