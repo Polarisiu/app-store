@@ -19,9 +19,7 @@ API_CONTAINER="new-api"
 API_IMAGE="calciumion/new-api:latest"
 
 # ================== 工具函数 ==================
-pause() {
-    read -rp "按回车键继续..."
-}
+pause() { read -rp "按回车键继续..."; }
 
 show_ip_port() {
     IP=$(hostname -I | awk '{print $1}')
@@ -50,6 +48,19 @@ EOF
     fi
 }
 
+start_mysql() {
+    if ! docker ps -a --format '{{.Names}}' | grep -q "$MYSQL_CONTAINER"; then
+        docker run -d --name $MYSQL_CONTAINER --restart always \
+            -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+            -p 3306:3306 \
+            mysql:8
+        echo -e "${GREEN}MySQL 已启动${RESET}"
+    else
+        docker start $MYSQL_CONTAINER
+        echo -e "${GREEN}MySQL 容器已启动${RESET}"
+    fi
+}
+
 init_database() {
     echo -e "${GREEN}检测 MySQL 数据库是否已初始化...${RESET}"
     docker exec -i $MYSQL_CONTAINER mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "USE $MYSQL_DB;" 2>/dev/null || {
@@ -62,19 +73,6 @@ FLUSH PRIVILEGES;
 EOF
         echo -e "${GREEN}数据库初始化完成${RESET}"
     }
-}
-
-start_mysql() {
-    if ! docker ps -a --format '{{.Names}}' | grep -q "$MYSQL_CONTAINER"; then
-        docker run -d --name $MYSQL_CONTAINER --restart always \
-            -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
-            -p 3306:3306 \
-            mysql:8
-        echo -e "${GREEN}MySQL 已启动${RESET}"
-    else
-        docker start $MYSQL_CONTAINER
-        echo -e "${GREEN}MySQL 容器已启动${RESET}"
-    fi
 }
 
 start_api() {
@@ -94,13 +92,9 @@ start_api() {
     show_ip_port
 }
 
-stop_api() {
-    docker stop $API_CONTAINER && echo -e "${GREEN}New API 已停止${RESET}"
-}
+stop_api() { docker stop $API_CONTAINER && echo -e "${GREEN}New API 已停止${RESET}"; }
 
-restart_api() {
-    docker restart $API_CONTAINER && echo -e "${GREEN}New API 已重启${RESET}"
-}
+restart_api() { docker restart $API_CONTAINER && echo -e "${GREEN}New API 已重启${RESET}"; }
 
 update_api() {
     docker pull $API_IMAGE
@@ -117,13 +111,9 @@ uninstall() {
     echo -e "${GREEN}卸载完成${RESET}"
 }
 
-view_logs() {
-    docker logs -f $API_CONTAINER
-}
+view_logs() { docker logs -f $API_CONTAINER; }
 
-view_mysql_logs() {
-    docker logs -f $MYSQL_CONTAINER
-}
+view_mysql_logs() { docker logs -f $MYSQL_CONTAINER; }
 
 # ================== 菜单 ==================
 while true; do
@@ -147,37 +137,14 @@ while true; do
             start_api
             pause
             ;;
-        2)
-            stop_api
-            pause
-            ;;
-        3)
-            restart_api
-            pause
-            ;;
-        4)
-            update_api
-            pause
-            ;;
-        5)
-            uninstall
-            pause
-            ;;
-        6)
-            view_logs
-            ;;
-        7)
-            view_mysql_logs
-            ;;
-        8)
-            show_ip_port
-            pause
-            ;;
-        0)
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}无效输入${RESET}"
-            ;;
+        2) stop_api; pause ;;
+        3) restart_api; pause ;;
+        4) update_api; pause ;;
+        5) uninstall; pause ;;
+        6) view_logs ;;
+        7) view_mysql_logs ;;
+        8) show_ip_port; pause ;;
+        0) exit 0 ;;
+        *) echo -e "${RED}无效输入${RESET}" ;;
     esac
 done
