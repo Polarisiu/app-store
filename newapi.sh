@@ -1,125 +1,151 @@
 #!/bin/bash
 set -e
 
-# 颜色
+# ================== 颜色 ==================
 GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
 RESET="\033[0m"
 
-# 固定目录
-BASE_DIR="/opt/newapi"
-DATA_DIR="$BASE_DIR/data"
-
-# MySQL 配置
-MYSQL_CONTAINER="newapi-mysql"
-MYSQL_ROOT="root"
-MYSQL_ROOT_PASSWORD="OneAPI@justsong"
-MYSQL_USER="oneapi"
-MYSQL_PASSWORD="123456"
-MYSQL_DB="oneapi"
-
-# API 配置
-API_CONTAINER="new-api"
+# ================== 默认配置 ==================
+DATA_DIR="/opt/newapi"
 API_IMAGE="calciumion/new-api:latest"
+API_CONTAINER="new-api"
+MYSQL_CONTAINER="newapi-mysql"
+MYSQL_ROOT_PASSWORD="123456"
+MYSQL_DB="newapi"
+MYSQL_USER="newapi"
+MYSQL_PASSWORD="123456"
 API_PORT=3000
-SESSION_SECRET_FILE="$BASE_DIR/session_secret.txt"
 
-mkdir -p "$DATA_DIR/mysql"
+# ================== 工具函数 ==================
+pause() { read -p "按回车键继续..." }
 
-pause() {
-    read -rp "按回车键继续..."
+show_ip_port() {
+    IP=$(hostname -I | awk '{print $1}')
+    echo -e "${GREEN}访问地址: http://${IP}:${API_PORT}${RESET}"
 }
 
-get_ip() {
-    ip addr show | awk '/inet / && !/127.0.0.1/ {sub(/\/.*/,"",$2); print $2; exit}'
+generate_env() {
+    mkdir -p $DATA_DIR
+    cat > $DATA_DIR/.env <<EOF
+MYSQL_HOST=$MYSQL_CONTAINER
+MYSQL_PORT=3306
+MYSQL_USER=$MYSQL_USER
+MYSQL_PASSWORD=$MYSQL_PASSWORD
+MYSQL_DB=$MYSQL_DB
+TZ=Asia/Shanghai
+EOF
+    echo -e "${GREEN}.env 文件已生成${RESET}"
 }
 
-generate_secret() {
-    if [ ! -f "$SESSION_SECRET_FILE" ]; then
-        SESSION_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d "=+/")
-        echo "$SESSION_SECRET" > "$SESSION_SECRET_FILE"
-        echo -e "${GREEN}生成随机 SESSION_SECRET: $SESSION_SECRET${RESET}"
-    else
-        SESSION_SECRET=$(cat "$SESSION_SECRET_FILE")
-    fi
+init_database() {
+    echo -e "${GREEN}检测 MySQL 数据库是否已初始化...${RESET}"
+    docker exec -i $MYSQL_CONTAINER mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "USE $MYSQL_DB;" 2>/dev/null || {
+        echo -e "${GREEN}数据库未初始化，正在初始化...${RESET}"
+        docker exec -i $MYSQL_CONTAINER mysql -uroot -p$MYSQL_ROOT_PASSWORD <<EOF
+CREATE DATABASE IF NOT EXISTS $MYSQL_DB;
+CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+GRANT ALL PRIVILEGES ON $MYSQL_DB.* TO '$MYSQL_USER'@'%';
+FLUSH PRIVILEGES;
+EOF
+        echo -e "${GREEN}数据库初始化完成${RESET}"
+    }
 }
 
-wait_mysql() {
-    echo -e "${GREEN}等待 MySQL 完全启动...${RESET}"
-    until docker exec $MYSQL_CONTAINER mysqladmin ping -h "127.0.0.1" --silent; do
-        sleep 2
-    done
-    echo -e "${GREEN}MySQL 已就绪${RESET}"
-}
+install_api() {
+    read -p "请输入 New API 端口(默认 $API_PORT): " port
+    API_PORT=${port:-$API_PORT}
 
-deploy_mysql() {
-    if docker ps -a --format '{{.Names}}' | grep -Eq "^${MYSQL_CONTAINER}\$"; then
-        echo -e "${GREEN}检测到 MySQL 容器已存在，跳过部署${RESET}"
-        docker start $MYSQL_CONTAINER
-        wait_mysql
-    else
-        echo -e "${GREEN}正在部署 MySQL 容器...${RESET}"
-        docker run -d --name $MYSQL_CONTAINER \
-            --restart always \
-            -p 3306:3306 \
-            -e MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD" \
-            -e MYSQL_USER="$MYSQL_USER" \
-            -e MYSQL_PASSWORD="$MYSQL_PASSWORD" \
-            -e MYSQL_DATABASE="$MYSQL_DB" \
-            -v "$DATA_DIR/mysql":/var/lib/mysql \
-            mysql:9.0.1
-        wait_mysql
-        echo -e "${GREEN}MySQL 容器已启动并就绪${RESET}"
-    fi
-}
+    generate_env
 
-deploy_api() {
-    read -rp "请输入 API 端口（默认 3000）: " input_port
-    API_PORT=${input_port:-3000}
+    echo -e "${GREEN}正在启动 MySQL 容器...${RESET}"
+    docker run --name $MYSQL_CONTAINER -d --restart always \
+        -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+        -e MYSQL_DATABASE=$MYSQL_DB \
+        -e MYSQL_USER=$MYSQL_USER \
+        -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
+        -v $DATA_DIR/mysql:/var/lib/mysql \
+        mysql:8
 
-    generate_secret
+    echo -e "${GREEN}等待 MySQL 启动...${RESET}"
+    sleep 15
 
-    echo -e "${GREEN}正在部署 New API 容器...${RESET}"
-    docker run -d --name $API_CONTAINER \
-        --restart always \
-        -p $API_PORT:3000 \
-        -e TZ=Asia/Shanghai \
-        -e SQL_DSN="${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_CONTAINER}:3306)/${MYSQL_DB}" \
-        -e SESSION_SECRET="$SESSION_SECRET" \
-        -v "$DATA_DIR":/data \
+    init_database
+
+    echo -e "${GREEN}正在启动 New API 容器...${RESET}"
+    docker run --name $API_CONTAINER -d --restart always \
+        --env-file $DATA_DIR/.env \
+        -p ${API_PORT}:${API_PORT} \
+        -v $DATA_DIR:/data \
         $API_IMAGE
-    echo -e "${GREEN}New API 容器已启动${RESET}"
+
+    echo -e "${GREEN}安装完成${RESET}"
+    show_ip_port
+    pause
+}
+
+uninstall_api() {
+    echo -e "${RED}停止并删除 New API 容器...${RESET}"
+    docker rm -f $API_CONTAINER || true
+    docker rm -f $MYSQL_CONTAINER || true
+    echo -e "${RED}删除数据目录 ${DATA_DIR} ? (y/n)${RESET}"
+    read ans
+    if [[ $ans == [Yy] ]]; then
+        rm -rf $DATA_DIR
+        echo -e "${RED}数据已删除${RESET}"
+    fi
+    pause
 }
 
 update_api() {
-    echo -e "${GREEN}拉取最新镜像并重启容器...${RESET}"
+    echo -e "${GREEN}拉取最新镜像...${RESET}"
     docker pull $API_IMAGE
-    docker stop $API_CONTAINER || true
-    docker rm $API_CONTAINER || true
-    deploy_api
+    docker stop $API_CONTAINER
+    docker rm $API_CONTAINER
+    docker run --name $API_CONTAINER -d --restart always \
+        --env-file $DATA_DIR/.env \
+        -p ${API_PORT}:${API_PORT} \
+        -v $DATA_DIR:/data \
+        $API_IMAGE
     echo -e "${GREEN}更新完成${RESET}"
+    pause
 }
 
-show_info() {
-    IP=$(get_ip)
-    echo -e "${GREEN}访问地址: http://$IP:$API_PORT${RESET}"
-}
+start_api() { docker start $API_CONTAINER && echo -e "${GREEN}已启动${RESET}" && pause }
+stop_api() { docker stop $API_CONTAINER && echo -e "${RED}已停止${RESET}" && pause }
+restart_api() { stop_api; start_api; }
+
+view_api_logs() { docker logs -f $API_CONTAINER; pause }
+view_mysql_logs() { docker logs -f $MYSQL_CONTAINER; pause }
 
 menu() {
     while true; do
-        echo -e "${GREEN}================ New API 管理菜单 ================${RESET}"
-        echo -e "${GREEN}1. 部署 MySQL（检测已存在）${RESET}"
-        echo -e "${GREEN}2. 部署 New API（可自定义端口）${RESET}"
-        echo -e "${GREEN}3. 更新 API 镜像并重启${RESET}"
-        echo -e "${GREEN}4. 显示访问地址${RESET}"
-        echo -e "${GREEN}0. 退出${RESET}"
-        read -rp "请选择操作: " choice
+        clear
+        echo -e "${GREEN}===== New API 管理菜单 =====${RESET}"
+        echo -e "${GREEN}1.${RESET} 安装 New API"
+        echo -e "${GREEN}2.${RESET} 卸载 New API"
+        echo -e "${GREEN}3.${RESET} 更新 New API"
+        echo -e "${GREEN}4.${RESET} 启动 New API"
+        echo -e "${GREEN}5.${RESET} 停止 New API"
+        echo -e "${GREEN}6.${RESET} 重启 New API"
+        echo -e "${GREEN}7.${RESET} 查看 New API 日志"
+        echo -e "${GREEN}8.${RESET} 查看 MySQL 日志"
+        echo -e "${GREEN}9.${RESET} 显示访问 IP + 端口"
+        echo -e "${GREEN}0.${RESET} 退出"
+        read -p "请输入编号: " choice
         case $choice in
-            1) deploy_mysql; pause ;;
-            2) deploy_api; pause ;;
-            3) update_api; pause ;;
-            4) show_info; pause ;;
-            0) exit 0 ;;
-            *) echo -e "${GREEN}无效选项${RESET}";;
+            1) install_api ;;
+            2) uninstall_api ;;
+            3) update_api ;;
+            4) start_api ;;
+            5) stop_api ;;
+            6) restart_api ;;
+            7) view_api_logs ;;
+            8) view_mysql_logs ;;
+            9) show_ip_port ;;
+            0) exit ;;
+            *) echo -e "${RED}输入错误${RESET}" && pause ;;
         esac
     done
 }
