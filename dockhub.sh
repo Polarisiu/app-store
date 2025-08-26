@@ -34,10 +34,6 @@ deploy_hubp() {
         "$HUBP_IMAGE"
 
     echo -e "${GREEN}✅ HubP 已启动，访问端口: $PORT, DISGUISE: $DISGUISE${RESET}"
-
-    echo -e "${GREEN}🔄 测试拉取 hello-world 镜像...${RESET}"
-    docker pull hello-world:latest && echo -e "${GREEN}✅ 测试拉取镜像成功${RESET}" || echo -e "${RED}❌ 拉取镜像失败${RESET}"
-    pause
 }
 
 update_hubp() {
