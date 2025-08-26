@@ -1,63 +1,61 @@
 #!/bin/bash
 set -e
 
+# ================== 颜色 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
-BASE_DIR="/opt/newapi"
-DATA_DIR="$BASE_DIR/data"
-LOG_DIR="$BASE_DIR/logs"
-COMPOSE_FILE="$BASE_DIR/docker-compose.yml"
-ENV_FILE="$DATA_DIR/.env"
 
-MYSQL_CONTAINER="newapi-mysql"
+# ================== 默认配置 ==================
+NEWAPI_DIR="/opt/newapi"
+MYSQL_CONTAINER="mysql"
 MYSQL_ROOT_PASSWORD="123456"
-MYSQL_DB="newapi"
+MYSQL_DB="new-api"
 MYSQL_USER="newapi"
-MYSQL_PASSWORD="newapi123"
-
+MYSQL_PASSWORD="123456"
+REDIS_CONTAINER="redis"
+NEWAPI_CONTAINER="new-api"
 DEFAULT_PORT=3000
-API_PORT=$DEFAULT_PORT
 
-mkdir -p "$DATA_DIR" "$LOG_DIR"
-
+# ================== 工具函数 ==================
 generate_env() {
-    echo -e "${GREEN}生成 .env 文件...${RESET}"
-    cat > "$ENV_FILE" <<EOF
+    mkdir -p "$NEWAPI_DIR"
+    cat > "$NEWAPI_DIR/.env" <<EOF
 SQL_DSN=$MYSQL_USER:$MYSQL_PASSWORD@tcp(mysql:3306)/$MYSQL_DB
 REDIS_CONN_STRING=redis://redis
 TZ=Asia/Shanghai
 EOF
+    echo -e "${GREEN}.env 文件已生成${RESET}"
 }
 
 generate_compose() {
-    echo -e "${GREEN}生成 docker-compose.yml 文件...${RESET}"
-    cat > "$COMPOSE_FILE" <<EOF
-version: "3.8"
+    cat > "$NEWAPI_DIR/docker-compose.yml" <<EOF
 services:
   new-api:
     image: calciumion/new-api:latest
-    container_name: new-api
+    container_name: $NEWAPI_CONTAINER
     restart: always
     command: --log-dir /app/logs
     ports:
-      - "$API_PORT:3000"
+      - "$PORT:3000"
     volumes:
-      - ./data:/data
-      - ./logs:/app/logs
-    env_file:
-      - ./data/.env
+      - $NEWAPI_DIR/data:/data
+      - $NEWAPI_DIR/logs:/app/logs
+    environment:
+      - SQL_DSN=root:$MYSQL_ROOT_PASSWORD@tcp(mysql:3306)/$MYSQL_DB
+      - REDIS_CONN_STRING=redis://redis
+      - TZ=Asia/Shanghai
     depends_on:
       - redis
       - mysql
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: $REDIS_CONTAINER
     restart: always
 
   mysql:
-    image: mysql:8
-    container_name: mysql
+    image: mysql:8.2
+    container_name: $MYSQL_CONTAINER
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
@@ -68,92 +66,79 @@ services:
 volumes:
   mysql_data:
 EOF
-}
-
-check_port() {
-    if lsof -i:"$API_PORT" &>/dev/null; then
-        echo -e "${GREEN}端口 $API_PORT 已被占用，请选择其他端口${RESET}"
-        return 1
-    fi
-    return 0
+    echo -e "${GREEN}docker-compose.yml 文件已生成${RESET}"
 }
 
 init_database() {
-    echo -e "${GREEN}等待 MySQL 启动...${RESET}"
-    docker-compose -f "$COMPOSE_FILE" up -d mysql
-    echo -e "${GREEN}初始化数据库...${RESET}"
-    # 等待数据库就绪
-    while ! docker exec -i mysql mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent; do
-        sleep 2
-    done
-    docker exec -i mysql mysql -uroot -p"$MYSQL_ROOT_PASSWORD" <<EOF
+    echo -e "${GREEN}检测 MySQL 数据库是否已初始化...${RESET}"
+    docker exec -i $MYSQL_CONTAINER mysql -uroot -p$MYSQL_ROOT_PASSWORD -e "USE $MYSQL_DB;" 2>/dev/null || {
+        echo -e "${GREEN}数据库未初始化，正在初始化...${RESET}"
+        docker exec -i $MYSQL_CONTAINER mysql -uroot -p$MYSQL_ROOT_PASSWORD <<EOF
 CREATE DATABASE IF NOT EXISTS $MYSQL_DB;
 CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
 GRANT ALL PRIVILEGES ON $MYSQL_DB.* TO '$MYSQL_USER'@'%';
 FLUSH PRIVILEGES;
 EOF
-    echo -e "${GREEN}数据库初始化完成${RESET}"
+        echo -e "${GREEN}数据库初始化完成${RESET}"
+    }
+}
+
+get_ip_port() {
+    IP=$(hostname -I | awk '{print $1}')
+    echo -e "${GREEN}访问地址: http://$IP:$PORT${RESET}"
 }
 
 start_service() {
-    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
-    API_PORT=${PORT:-$DEFAULT_PORT}
-    if ! check_port; then
-        return
-    fi
-
-    mkdir -p "$BASE_DIR"
     generate_env
     generate_compose
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" up -d
+    echo -e "${GREEN}等待 MySQL 启动...${RESET}"
+    until docker exec $MYSQL_CONTAINER mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD --silent; do
+        sleep 2
+    done
     init_database
-    docker-compose -f "$COMPOSE_FILE" up -d
-    show_ip_port
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" up -d $NEWAPI_CONTAINER
+    get_ip_port
 }
 
 stop_service() {
-    docker-compose -f "$COMPOSE_FILE" down
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" down
 }
 
 restart_service() {
-    stop_service
-    start_service
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" restart
+}
+
+view_logs_newapi() {
+    docker logs -f $NEWAPI_CONTAINER
+}
+
+view_logs_mysql() {
+    docker logs -f $MYSQL_CONTAINER
 }
 
 update_service() {
-    docker-compose -f "$COMPOSE_FILE" pull
-    restart_service
+    docker pull calciumion/new-api:latest
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" up -d $NEWAPI_CONTAINER
 }
 
 uninstall_service() {
-    stop_service
-    rm -rf "$BASE_DIR"
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" down -v
+    rm -rf "$NEWAPI_DIR"
+    echo -e "${GREEN}New API 已卸载${RESET}"
 }
 
-show_logs_api() {
-    docker logs -f new-api
-}
-
-show_logs_mysql() {
-    docker logs -f mysql
-}
-
-show_ip_port() {
-    IP=$(hostname -I | awk '{print $1}')
-    echo -e "${GREEN}访问地址: http://$IP:$API_PORT${RESET}"
-}
-
-update_port() {
-    read -p "请输入访问端口(默认 3000): " PORT
-    PORT=${PORT:-3000}
-    echo -e "${GREEN}端口已设置为 $PORT，正在更新配置...${RESET}"
+modify_port() {
+    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
+    PORT=${PORT:-$DEFAULT_PORT}
+    echo -e "${GREEN}端口已设置为 $PORT，正在更新配置并重启 New API...${RESET}"
     generate_env
     generate_compose
-    docker-compose up -d new-api
-    echo -e "${GREEN}New API 已使用新端口 $PORT 重启完成${RESET}"
+    docker-compose -f "$NEWAPI_DIR/docker-compose.yml" up -d $NEWAPI_CONTAINER
+    get_ip_port
 }
 
-
-# 菜单循环
+# ================== 菜单 ==================
 while true; do
     echo -e "${GREEN}====== New API 管理菜单 ======${RESET}"
     echo -e "${GREEN}1. 启动服务${RESET}"
@@ -167,17 +152,17 @@ while true; do
     echo -e "${GREEN}9. 显示访问地址${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     read -p "请选择操作: " choice
-    case $choice in
+    case "$choice" in
         1) start_service ;;
         2) stop_service ;;
         3) restart_service ;;
         4) update_service ;;
-        5) uninstall_service; exit ;;
-        6) show_logs_api ;;
-        7) show_logs_mysql ;;
-        8) update_port ;;
-        9) show_ip_port ;;
-        0) exit ;;
-        *) echo "无效选项" ;;
+        5) uninstall_service ;;
+        6) view_logs_newapi ;;
+        7) view_logs_mysql ;;
+        8) modify_port ;;
+        9) get_ip_port ;;
+        0) exit 0 ;;
+        *) echo -e "${GREEN}无效选择${RESET}" ;;
     esac
 done
