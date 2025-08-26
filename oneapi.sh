@@ -45,12 +45,11 @@ deploy() {
     chmod -R 777 ./volumes
 
     cat > ${COMPOSE_FILE} <<EOF
-version: "3.8"
-
+    
 services:
   one-api:
     container_name: one-api
-    image: one-api:latest
+    image: justsong/one-api:latest
     restart: always
     command: --log-dir /app/logs
     ports:
