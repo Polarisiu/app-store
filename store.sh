@@ -66,6 +66,7 @@ declare -A apps=(
     [7,2]="SaveAnyBot(TG转存)"
     [7,3]="github镜像"
     [7,4]="Docker加速"
+    [7,5]="计算圆周率"
 
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
@@ -115,6 +116,7 @@ declare -A commands=(
     [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
     [7,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
     [7,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockhub.sh)'
+    [7,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/toy/main/pai.sh)'
 
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
