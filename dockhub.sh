@@ -18,7 +18,7 @@ pause() {
     read -rp "按回车返回菜单..."
 }
 
-docker_insecure_registry() {
+docker_insecure_registry_add() {
     DAEMON_FILE="/etc/docker/daemon.json"
     if [ -f "$DAEMON_FILE" ]; then
         jq ".insecure-registries += [\"127.0.0.1:$1\"]" "$DAEMON_FILE" > "$DAEMON_FILE".tmp 2>/dev/null || true
@@ -27,6 +27,16 @@ docker_insecure_registry() {
         echo "{\"insecure-registries\": [\"127.0.0.1:$1\"]}" > "$DAEMON_FILE"
     fi
     sudo systemctl restart docker
+}
+
+docker_insecure_registry_remove() {
+    DAEMON_FILE="/etc/docker/daemon.json"
+    if [ -f "$DAEMON_FILE" ]; then
+        # 删除127.0.0.1:<port>条目
+        jq "del(.\"insecure-registries\"[] | select(.==\"127.0.0.1:$1\"))" "$DAEMON_FILE" > "$DAEMON_FILE".tmp 2>/dev/null || true
+        mv "$DAEMON_FILE".tmp "$DAEMON_FILE"
+        sudo systemctl restart docker
+    fi
 }
 
 deploy_hubp() {
@@ -39,7 +49,7 @@ deploy_hubp() {
     docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
 
     sudo docker run -d --restart unless-stopped --name "$HUBP_CONTAINER" \
-        -p "$PORT:18826" \
+        -p "$PORT:$PORT" \
         -e HUBP_LOG_LEVEL="$DEFAULT_LOG_LEVEL" \
         -e HUBP_DISGUISE="$DISGUISE" \
         "$HUBP_IMAGE"
@@ -47,7 +57,7 @@ deploy_hubp() {
     echo -e "${GREEN}✅ HubP 已启动，访问端口: $PORT, DISGUISE: $DISGUISE${RESET}"
 
     echo -e "${GREEN}⚙️ 配置 Docker 允许 HTTP 不安全仓库...${RESET}"
-    docker_insecure_registry "$PORT"
+    docker_insecure_registry_add "$PORT"
 
     echo -e "${GREEN}🔄 测试拉取 hello-world 镜像...${RESET}"
     docker pull 127.0.0.1:"$PORT"/library/hello-world:latest && echo -e "${GREEN}✅ 镜像拉取成功${RESET}"
@@ -82,6 +92,21 @@ logs_hubp() {
     pause
 }
 
+uninstall_hubp() {
+    read -rp "请输入 HubP 所用端口 (默认 $DEFAULT_PORT，用于清理 Docker 不安全仓库): " PORT
+    PORT=${PORT:-$DEFAULT_PORT}
+
+    echo -e "${GREEN}🗑️ 卸载 HubP 容器及镜像...${RESET}"
+    docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
+    docker rmi "$HUBP_IMAGE" >/dev/null 2>&1 || true
+
+    echo -e "${GREEN}⚙️ 清理 Docker 不安全仓库配置...${RESET}"
+    docker_insecure_registry_remove "$PORT"
+
+    echo -e "${GREEN}✅ HubP 已卸载并清理完成${RESET}"
+    pause
+}
+
 # ================== 菜单 ==================
 while true; do
     clear
@@ -91,16 +116,18 @@ while true; do
     echo -e "${GREEN}3. 停止 HubP${RESET}"
     echo -e "${GREEN}4. 查看状态${RESET}"
     echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 退出${RESET}"
+    echo -e "${GREEN}6. 卸载 HubP${RESET}"
+    echo -e "${GREEN}7. 退出${RESET}"
     echo -e "${GREEN}==============================================${RESET}"
-    read -rp "请选择操作 [1-6]: " choice
+    read -rp "请选择操作 [1-7]: " choice
     case $choice in
         1) deploy_hubp ;;
         2) update_hubp ;;
         3) stop_hubp ;;
         4) status_hubp ;;
         5) logs_hubp ;;
-        6) exit 0 ;;
+        6) uninstall_hubp ;;
+        7) exit 0 ;;
         *) echo -e "${RED}无效选项${RESET}"; pause ;;
     esac
 done
