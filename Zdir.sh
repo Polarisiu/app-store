@@ -76,18 +76,27 @@ remove() {
 update() {
     echo -e "${GREEN}>>> 正在拉取最新 zdir 镜像...${RESET}"
     docker pull $IMAGE
-    echo -e "${GREEN}>>> 重启容器以应用最新镜像...${RESET}"
-    docker stop $CONTAINER && docker rm $CONTAINER
-    # 获取原端口映射
-    local port=$(docker ps -a --filter "name=$CONTAINER" --format "{{.Ports}}" | grep -oP '0.0.0.0:\K[0-9]+(?=->6080)')
+    echo -e "${GREEN}>>> 使用新镜像重启容器...${RESET}"
+    docker stop $CONTAINER
+    docker rm $CONTAINER
+
+    read -p "请输入映射端口(默认:${DEFAULT_PORT}): " port
     port=${port:-$DEFAULT_PORT}
-    install <<< "$port"
-    echo -e "${GREEN}zdir 已更新并重启完成${RESET}"
+
+    docker run -d --name $CONTAINER \
+        -v ${DATA_DIR}:/opt/zdir/data \
+        -v ${PUBLIC_DIR}:/opt/zdir/data/public \
+        -v ${PRIVATE_DIR}:/opt/zdir/data/private \
+        -p ${port}:6080 \
+        --restart=always \
+        $IMAGE
+
+    local ip=$(get_ip)
+    echo -e "${GREEN}zdir 已更新完成，访问: http://${ip}:${port}${RESET}"
 }
 
 # ================== 菜单 ==================
 menu() {
-    clear
     echo -e "${GREEN}========= Zdir 容器管理 =========${RESET}"
     echo -e "${GREEN}1. 部署 Zdir${RESET}"
     echo -e "${GREEN}2. 启动${RESET}"
