@@ -142,13 +142,16 @@ show_ip_port() {
     echo -e "${GREEN}访问地址: http://$IP:$API_PORT${RESET}"
 }
 
-set_port() {
-    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
-    API_PORT=${PORT:-$DEFAULT_PORT}
-    echo -e "${GREEN}端口已设置为 $API_PORT，正在重新生成配置并重启服务...${RESET}"
+update_port() {
+    read -p "请输入访问端口(默认 3000): " PORT
+    PORT=${PORT:-3000}
+    echo -e "${GREEN}端口已设置为 $PORT，正在更新配置...${RESET}"
+    generate_env
     generate_compose
-    restart_service
+    docker-compose up -d new-api
+    echo -e "${GREEN}New API 已使用新端口 $PORT 重启完成${RESET}"
 }
+
 
 # 菜单循环
 while true; do
@@ -172,7 +175,7 @@ while true; do
         5) uninstall_service; exit ;;
         6) show_logs_api ;;
         7) show_logs_mysql ;;
-        8) set_port ;;
+        8) update_port ;;
         9) show_ip_port ;;
         0) exit ;;
         *) echo "无效选项" ;;
