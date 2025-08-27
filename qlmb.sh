@@ -119,3 +119,8 @@ manage_qinglong() {
         echo
     done
 }
+
+# ================== 执行 ==================
+check_docker
+deploy_qinglong
+manage_qinglong
