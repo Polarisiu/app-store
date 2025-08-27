@@ -1,0 +1,143 @@
+#!/bin/bash
+# EmbyServer 一键部署菜单脚本（绿色菜单 + 每次部署可自定义目录+端口 + 公网IP + 更新镜像）
+
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
+CONTAINER_NAME="amilys_embyserver"
+IMAGE_NAME="amilys/embyserver"
+CONFIG_FILE="$HOME/.emby_config"
+
+DATA_DIR=""
+HTTP_PORT=""
+
+check_docker() {
+    if ! command -v docker &>/dev/null; then
+        echo -e "${GREEN}错误: Docker 未安装，请先安装 Docker${RESET}"
+        exit 1
+    fi
+}
+
+load_or_set_config() {
+    # 如果存在旧配置文件，则读取默认值
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+    # 提示输入目录和端口，提供默认值供回车使用
+    read -p "请输入统一存放目录（配置+媒体） [${DATA_DIR:-/data/emby}]: " input_dir
+    DATA_DIR=${input_dir:-${DATA_DIR:-/data/emby}}
+    read -p "请输入宿主机 HTTP 映射端口 [${HTTP_PORT:-7568}]: " input_port
+    HTTP_PORT=${input_port:-${HTTP_PORT:-7568}}
+    # 保存当前配置
+    echo "DATA_DIR=\"$DATA_DIR\"" > "$CONFIG_FILE"
+    echo "HTTP_PORT=\"$HTTP_PORT\"" >> "$CONFIG_FILE"
+}
+
+create_dirs() {
+    [ ! -d "$DATA_DIR" ] && mkdir -p "$DATA_DIR"
+}
+
+get_public_ip() {
+    PUBLIC_IP=$(curl -s https://api.ip.sb/ip)
+    [ -z "$PUBLIC_IP" ] && PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
+    echo "$PUBLIC_IP"
+}
+
+deploy_emby() {
+    load_or_set_config
+    create_dirs
+    echo -e "${GREEN}正在部署 EmbyServer 容器...${RESET}"
+    docker run -d \
+        --name $CONTAINER_NAME \
+        --network bridge \
+        -e UID=0 \
+        -e GID=0 \
+        -e GIDLIST=0 \
+        -e TZ=Asia/Shanghai \
+        -v $DATA_DIR:/data \
+        -p $HTTP_PORT:8096 \
+        --restart unless-stopped \
+        $IMAGE_NAME
+    PUBLIC_IP=$(get_public_ip)
+    if [ -n "$PUBLIC_IP" ]; then
+        echo -e "${GREEN}部署完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
+    else
+        echo -e "${GREEN}部署完成，但未能获取公网 IP，请确认端口映射或使用内网访问${RESET}"
+    fi
+}
+
+start_emby() { docker start $CONTAINER_NAME && echo -e "${GREEN}容器已启动${RESET}"; }
+stop_emby() { docker stop $CONTAINER_NAME && echo -e "${GREEN}容器已停止${RESET}"; }
+remove_emby() { docker rm -f $CONTAINER_NAME && echo -e "${GREEN}容器已删除${RESET}"; }
+view_logs() { docker logs -f $CONTAINER_NAME; }
+
+uninstall_all() {
+    stop_emby
+    remove_emby
+    if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ]; then
+        echo -e "${GREEN}正在删除统一数据目录: $DATA_DIR ...${RESET}"
+        rm -rf "$DATA_DIR"
+        echo -e "${GREEN}全部数据已卸载完成${RESET}"
+    fi
+    [ -f "$CONFIG_FILE" ] && rm -f "$CONFIG_FILE"
+    echo -e "${GREEN}配置文件已删除${RESET}"
+}
+
+update_image() {
+    load_or_set_config
+    echo -e "${GREEN}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
+    docker pull $IMAGE_NAME
+    if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+        echo -e "${GREEN}停止正在运行的容器...${RESET}"
+        docker stop $CONTAINER_NAME
+    fi
+    echo -e "${GREEN}使用最新镜像重启容器...${RESET}"
+    docker run -d \
+        --name $CONTAINER_NAME \
+        --network bridge \
+        -e UID=0 \
+        -e GID=0 \
+        -e GIDLIST=0 \
+        -e TZ=Asia/Shanghai \
+        -v $DATA_DIR:/data \
+        -p $HTTP_PORT:8096 \
+        --restart unless-stopped \
+        $IMAGE_NAME
+    PUBLIC_IP=$(get_public_ip)
+    if [ -n "$PUBLIC_IP" ]; then
+        echo -e "${GREEN}更新完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
+    else
+        echo -e "${GREEN}更新完成，但未能获取公网 IP，请确认端口映射或使用内网访问${RESET}"
+    fi
+}
+
+show_menu() {
+    echo -e "${GREEN}===== EmbyServer 一键部署菜单 =====${RESET}"
+    echo -e "${GREEN}1.${RESET} 部署 EmbyServer"
+    echo -e "${GREEN}2.${RESET} 启动容器"
+    echo -e "${GREEN}3.${RESET} 停止容器"
+    echo -e "${GREEN}4.${RESET} 删除容器"
+    echo -e "${GREEN}5.${RESET} 查看日志"
+    echo -e "${GREEN}6.${RESET} 卸载全部数据（容器+统一目录+配置文件）"
+    echo -e "${GREEN}7.${RESET} 更新镜像并重启容器"
+    echo -e "${GREEN}0.${RESET} 退出"
+    echo -n "请输入编号: "
+}
+
+check_docker
+
+while true; do
+    show_menu
+    read choice
+    case $choice in
+        1) deploy_emby ;;
+        2) start_emby ;;
+        3) stop_emby ;;
+        4) remove_emby ;;
+        5) view_logs ;;
+        6) uninstall_all ;;
+        7) update_image ;;
+        0) echo "退出脚本"; exit 0 ;;
+        *) echo -e "${GREEN}无效选项${RESET}" ;;
+    esac
+done
