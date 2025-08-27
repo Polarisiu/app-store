@@ -136,7 +136,6 @@ update_image() {
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
         -v $DATA_DIR/media:/mnt/share1 \
-        --device /dev/dri:/dev/dri \
         $IMAGE_NAME
 
     PUBLIC_IP=$(get_public_ip)
