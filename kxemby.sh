@@ -99,7 +99,11 @@ uninstall_all() {
 }
 
 update_image() {
-    load_or_input_config
+    # 不再调用 load_or_input_config，直接用已有配置或默认值
+    CONTAINER_NAME=${CONTAINER_NAME:-amilys_embyserver}
+    DATA_DIR=${DATA_DIR:-/data/emby}
+    HTTP_PORT=${HTTP_PORT:-7568}
+
     echo -e "${GREEN}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
     docker pull $IMAGE_NAME
 
@@ -133,6 +137,7 @@ update_image() {
         echo -e "${GREEN}更新完成，但未能获取公网 IP，请使用内网访问${RESET}"
     fi
 }
+
 
 show_menu() {
     echo -e "${GREEN}===== EmbyServer 一键部署与更新菜单 =====${RESET}"
