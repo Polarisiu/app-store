@@ -36,16 +36,6 @@ read_input() {
         fi
     done
 
-    # 强制输入授权码
-    while true; do
-        read -p "请输入授权码 AUTH_TOKEN: " AUTH_TOKEN
-        if [[ -n "$AUTH_TOKEN" ]]; then
-            break
-        else
-            echo "授权码不能为空，请重新输入。"
-        fi
-    done
-
     # 端口可以使用默认值
     read -p "请输入 MoonTV 访问端口 (默认 3000): " TV_PORT
     TV_PORT=${TV_PORT:-3000}
@@ -70,7 +60,6 @@ services:
       - PASSWORD=${TV_PASS}
       - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
       - KVROCKS_URL=redis://moontv-kvrocks:${KV_PORT}
-      - AUTH_TOKEN=${AUTH_TOKEN}
     networks:
       - moontv-network
     depends_on:
