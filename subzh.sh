@@ -78,28 +78,21 @@ deploy() {
   read -rp "按回车返回菜单..." _
 }
 
-start_c() {
-  docker start "$CONTAINER_NAME" && log "已启动。" || err "启动失败。"
+start_c() { docker start "$CONTAINER_NAME" && log "已启动。" || err "启动失败。"; read -rp "按回车返回菜单..." _; }
+stop_c() { docker stop "$CONTAINER_NAME" && log "已停止。" || err "停止失败。"; read -rp "按回车返回菜单..." _; }
+restart_c() { docker restart "$CONTAINER_NAME" && log "已重启。" || err "重启失败。"; read -rp "按回车返回菜单..." _; }
+logs_c() { docker logs -f --tail=200 "$CONTAINER_NAME"; read -rp "按回车返回菜单..." _; }
+
+update_c() {
+  ensure_docker
+  load_or_init_conf
+  log "拉取最新镜像..."
+  docker pull "$IMAGE_NAME"
+  warn "重启容器应用最新镜像..."
+  docker restart "$CONTAINER_NAME"
+  show_status
   read -rp "按回车返回菜单..." _
 }
-
-stop_c() {
-  docker stop "$CONTAINER_NAME" && log "已停止。" || err "停止失败。"
-  read -rp "按回车返回菜单..." _
-}
-
-restart_c() {
-  docker restart "$CONTAINER_NAME" && log "已重启。" || err "重启失败。"
-  read -rp "按回车返回菜单..." _
-}
-
-logs_c() {
-  docker logs -f --tail=200 "$CONTAINER_NAME"
-  read -rp "按回车返回菜单..." _
-}
-
-update_c() { deploy; }
-change_port() { deploy; }
 
 uninstall() {
   read -rp "确认卸载并删除容器？(y/N): " yn
@@ -117,7 +110,6 @@ uninstall() {
 
 # ================== 菜单 ==================
 menu() {
-  # 不清屏
   echo -e "${GREEN}=== Sub-Web-Modify 管理脚本 ===${RESET}"
   echo -e "${GREEN}容器名称:${RESET} ${CONTAINER_NAME}"
   [ -f "$CONF_FILE" ] && . "$CONF_FILE" || true
@@ -128,10 +120,9 @@ menu() {
   echo -e "${GREEN}3) 停止${RESET}"
   echo -e "${GREEN}4) 重启${RESET}"
   echo -e "${GREEN}5) 查看日志${RESET}"
-  echo -e "${GREEN}6) 更新${RESET}"
-  echo -e "${GREEN}7) 修改端口${RESET}"
-  echo -e "${GREEN}8) 状态${RESET}"
-  echo -e "${GREEN}9) 卸载${RESET}"
+  echo -e "${GREEN}6) 更新镜像并重启${RESET}"
+  echo -e "${GREEN}7) 状态${RESET}"
+  echo -e "${GREEN}8) 卸载${RESET}"
   echo -e "${GREEN}0) 退出${RESET}"
   echo
   read -rp "请选择: " opt
@@ -142,9 +133,8 @@ menu() {
     4) restart_c ;;
     5) logs_c ;;
     6) update_c ;;
-    7) change_port ;;
-    8) show_status ;;
-    9) uninstall ;;
+    7) show_status ;;
+    8) uninstall ;;
     0) exit 0 ;;
     *) warn "无效选项"; read -rp "按回车返回菜单..." _ ;;
   esac
