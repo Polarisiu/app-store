@@ -24,12 +24,12 @@ check_docker() {
 
 # 获取公网 IP
 get_public_ip() {
-    PUBLIC_IP=$(curl -s --max-time 5 https://ipinfo.io/ip)
+    PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
     if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        PUBLIC_IP=$(curl -s --max-time 5 https://ifconfig.me/ip)
+        PUBLIC_IP=$(curl -s https://ifconfig.me/ip)
     fi
-    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        PUBLIC_IP="无法获取公网 IP"
+    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        PUBLIC_IP=""
     fi
     echo "$PUBLIC_IP"
 }
