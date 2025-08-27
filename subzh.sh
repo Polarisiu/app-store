@@ -47,16 +47,17 @@ show_status() {
     docker ps -a --filter "name=^/${CONTAINER_NAME}$" --format \
 "容器: {{.Names}} | 镜像: {{.Image}} | 状态: {{.Status}} | 端口: {{.Ports}}"
   else warn "未发现容器 $CONTAINER_NAME"; fi
+  read -rp "按回车返回菜单..." _
 }
 
 # ================== 核心操作 ==================
 deploy() {
   load_or_init_conf
-  echo -e "${CYAN}当前端口: ${HOST_PORT}${RESET}"
+  echo -e "${GREEN}当前端口: ${HOST_PORT}${RESET}"
   read -rp "如需修改请输入新端口(留空保持 ${HOST_PORT}): " newp
   [ -n "$newp" ] && HOST_PORT="$newp"
 
-  if port_in_use "$HOST_PORT"; then err "端口 ${HOST_PORT} 已被占用。"; exit 1; fi
+  if port_in_use "$HOST_PORT"; then err "端口 ${HOST_PORT} 已被占用。"; read -rp "按回车返回菜单..." _; return; fi
   ensure_docker
 
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
@@ -70,41 +71,65 @@ deploy() {
   save_conf
   show_status
 
-  # 获取服务器 IP
   SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
   [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
-
   echo -e "${GREEN}访问地址: http://${SERVER_IP}:${HOST_PORT}${RESET}"
+
+  read -rp "按回车返回菜单..." _
 }
 
-start_c() { docker start "$CONTAINER_NAME" && log "已启动。"; }
-stop_c() { docker stop "$CONTAINER_NAME" && log "已停止。"; }
-restart_c() { docker restart "$CONTAINER_NAME" && log "已重启。"; }
-logs_c() { docker logs -f --tail=200 "$CONTAINER_NAME"; }
+start_c() {
+  docker start "$CONTAINER_NAME" && log "已启动。" || err "启动失败。"
+  read -rp "按回车返回菜单..." _
+}
+
+stop_c() {
+  docker stop "$CONTAINER_NAME" && log "已停止。" || err "停止失败。"
+  read -rp "按回车返回菜单..." _
+}
+
+restart_c() {
+  docker restart "$CONTAINER_NAME" && log "已重启。" || err "重启失败。"
+  read -rp "按回车返回菜单..." _
+}
+
+logs_c() {
+  docker logs -f --tail=200 "$CONTAINER_NAME"
+  read -rp "按回车返回菜单..." _
+}
+
 update_c() { deploy; }
 change_port() { deploy; }
+
 uninstall() {
-  docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
-  docker rmi "$IMAGE_NAME" || true
-  rm -f "$CONF_FILE"
-  log "已卸载。"
+  read -rp "确认卸载并删除容器？(y/N): " yn
+  if [[ "$yn" =~ ^[Yy]$ ]]; then
+    docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+    read -rp "是否同时删除镜像 ${IMAGE_NAME}？(y/N): " yn2
+    if [[ "$yn2" =~ ^[Yy]$ ]]; then
+      docker rmi "$IMAGE_NAME" || true
+    fi
+    rm -f "$CONF_FILE"
+    log "已卸载。"
+  else warn "已取消。"; fi
+  read -rp "按回车返回菜单..." _
 }
 
 # ================== 菜单 ==================
 menu() {
-  clear
+  # 不清屏
   echo -e "${GREEN}=== Sub-Web-Modify 管理脚本 ===${RESET}"
   echo -e "${GREEN}容器名称:${RESET} ${CONTAINER_NAME}"
   [ -f "$CONF_FILE" ] && . "$CONF_FILE" || true
   [ -n "$HOST_PORT" ] && echo -e "${GREEN}访问端口:${RESET} ${HOST_PORT}"
   echo
-  echo -e "${GREEN}1) 部署/重装${RESET}"
+  echo -e "${GREEN}1) 部署${RESET}"
   echo -e "${GREEN}2) 启动${RESET}"
   echo -e "${GREEN}3) 停止${RESET}"
   echo -e "${GREEN}4) 重启${RESET}"
   echo -e "${GREEN}5) 查看日志${RESET}"
   echo -e "${GREEN}6) 更新${RESET}"
-  echo -e "${GREEN}7) 修改端口并重建${RESET}"
+  echo -e "${GREEN}7) 修改端口${RESET}"
   echo -e "${GREEN}8) 状态${RESET}"
   echo -e "${GREEN}9) 卸载${RESET}"
   echo -e "${GREEN}0) 退出${RESET}"
@@ -118,10 +143,10 @@ menu() {
     5) logs_c ;;
     6) update_c ;;
     7) change_port ;;
-    8) show_status; read -rp "按回车返回菜单..." _ ;;
+    8) show_status ;;
     9) uninstall ;;
     0) exit 0 ;;
-    *) warn "无效选项" ;;
+    *) warn "无效选项"; read -rp "按回车返回菜单..." _ ;;
   esac
 }
 
