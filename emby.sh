@@ -1,5 +1,5 @@
 #!/bin/bash
-# EmbyServer 一键部署与更新菜单脚本（绿色菜单、官方镜像、自动权限修复、GPU加速、显示公网IP）
+# EmbyServer 一键部署与更新菜单脚本（绿色菜单、官方镜像、强制root、GPU加速、显示公网IP）
 
 GREEN='\033[0;32m'
 RESET='\033[0m'
@@ -28,7 +28,7 @@ get_public_ip() {
     if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         PUBLIC_IP=$(curl -s --max-time 5 https://ifconfig.me/ip)
     fi
-    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         PUBLIC_IP="无法获取公网 IP"
     fi
     echo "$PUBLIC_IP"
@@ -55,11 +55,10 @@ load_or_input_config() {
     echo "HTTP_PORT=\"$HTTP_PORT\"" >> "$CONFIG_FILE"
 }
 
-# 创建数据目录并修复权限
+# 创建数据目录
 create_dirs() {
     mkdir -p "$DATA_DIR/config" "$DATA_DIR/media"
-    echo -e "${GREEN}检测并修复目录权限...${RESET}"
-    chown -R 1000:1000 "$DATA_DIR"
+    echo -e "${GREEN}目录已创建: $DATA_DIR${RESET}"
     chmod -R 755 "$DATA_DIR"
 }
 
@@ -82,6 +81,9 @@ deploy_emby() {
         --name $CONTAINER_NAME \
         --restart unless-stopped \
         -e TZ=Asia/Shanghai \
+        -e UID=0 \
+        -e GID=0 \
+        -e GIDLIST=0 \
         -p $HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
@@ -144,6 +146,9 @@ update_image() {
         --name $CONTAINER_NAME \
         --restart unless-stopped \
         -e TZ=Asia/Shanghai \
+        -e UID=0 \
+        -e GID=0 \
+        -e GIDLIST=0 \
         -p $HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
