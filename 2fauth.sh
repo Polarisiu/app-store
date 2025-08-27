@@ -10,6 +10,7 @@ APP_URL_FILE=".app_url"
 PORT_FILE=".port"
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 DEFAULT_PORT=8000
+DEFAULT_IMAGE="2fauth/2fauth:latest"
 
 # ================== 工具函数 ==================
 check_prerequisites() {
@@ -38,21 +39,26 @@ set_app_url_and_port() {
     echo -e "${GREEN}APP_URL 已保存: $APP_URL${RESET}"
 }
 
+set_image_arch() {
+    read -rp "$(echo -e "${GREEN}请输入镜像版本/架构 (默认 $DEFAULT_IMAGE): ${RESET}")" IMAGE
+    IMAGE=${IMAGE:-$DEFAULT_IMAGE}
+    echo "$IMAGE" > ".image"
+}
+
 generate_compose_file() {
-    if [ -f "$APP_URL_FILE" ] && [ -f "$PORT_FILE" ]; then
+    if [ -f "$APP_URL_FILE" ] && [ -f "$PORT_FILE" ] && [ -f ".image" ]; then
         APP_URL=$(cat "$APP_URL_FILE")
         PORT=$(cat "$PORT_FILE")
+        IMAGE=$(cat ".image")
     else
-        echo -e "${RED}未设置 APP_URL 或端口，请先设置${RESET}"
+        echo -e "${RED}未设置 APP_URL、端口或镜像，请先设置${RESET}"
         return
     fi
 
     cat > $DOCKER_COMPOSE_FILE <<EOF
-version: '3.8'
-
 services:
   2fauth:
-    image: 2fauth/2fauth
+    image: $IMAGE
     container_name: 2fauth
     volumes:
       - ./2fauth:/2fauth
@@ -68,10 +74,14 @@ EOF
 install_service() {
     create_2fauth_dir
     set_app_url_and_port
+    set_image_arch
     generate_compose_file
     docker-compose up -d
     echo -e "${GREEN}2fauth 安装并启动完成，访问: $(cat $APP_URL_FILE)${RESET}"
 }
+
+# 其余功能（更新/卸载/日志）保持不变
+
 
 update_service() {
     echo -e "${GREEN}拉取最新镜像并重启服务...${RESET}"
