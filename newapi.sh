@@ -143,24 +143,11 @@ show_ip_port() {
 }
 
 set_port() {
-    read -rp "请输入访问端口(默认 $NEWAPI_PORT): " PORT
-    NEWAPI_PORT=${PORT:-$NEWAPI_PORT}
-
-    # 更新 .env 文件
-    sed -i "s/^NEWAPI_PORT=.*/NEWAPI_PORT=$NEWAPI_PORT/" "$ENV_FILE"
-
-    # 重新生成 docker-compose.yml 文件
+    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
+    API_PORT=${PORT:-$DEFAULT_PORT}
+    echo -e "${GREEN}端口已设置为 $API_PORT，正在重新生成配置并重启服务...${RESET}"
     generate_compose
-
-    # 重启 New API 容器，如果容器不存在则启动
-    if docker ps -a --format '{{.Names}}' | grep -Eq "^new-api\$"; then
-        docker-compose -f "$DOCKER_COMPOSE_FILE" restart new-api
-    else
-        docker-compose -f "$DOCKER_COMPOSE_FILE" up -d new-api
-    fi
-
-    IP=$(get_ip)
-    echo -e "${GREEN}端口已修改，访问地址: http://$IP:$NEWAPI_PORT${RESET}"
+    restart_service
 }
 
 # 菜单循环
