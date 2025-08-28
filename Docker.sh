@@ -24,15 +24,45 @@ root_use() {
 }
 
 # -----------------------------
-# 检测 Docker 是否运行
+# 重启 Docker 并恢复容器端口映射
+# -----------------------------
+restart_docker() {
+    root_use
+    echo -e "${YELLOW}正在重启 Docker...${RESET}"
+
+    if systemctl list-unit-files | grep -q "^docker.service"; then
+        systemctl restart docker
+    else
+        pkill dockerd 2>/dev/null
+        nohup dockerd >/dev/null 2>&1 &
+        sleep 5
+    fi
+
+    if docker info &>/dev/null; then
+        echo -e "${GREEN}✅ Docker 已成功重启${RESET}"
+        containers=$(docker ps -a -q)
+        if [ -n "$containers" ]; then
+            echo -e "${CYAN}正在重启所有容器以恢复端口映射...${RESET}"
+            docker restart $containers
+            echo -e "${GREEN}✅ 所有容器已重启并恢复端口映射${RESET}"
+        else
+            echo -e "${YELLOW}没有容器需要重启${RESET}"
+        fi
+    else
+        echo -e "${RED}❌ Docker 重启失败，请检查日志${RESET}"
+    fi
+}
+
+# -----------------------------
+# 检测 Docker 是否安装并运行
 # -----------------------------
 check_docker_running() {
     if ! command -v docker &>/dev/null; then
-        echo -e "${RED}Docker 未安装${RESET}"
+        echo -e "${RED}❌ Docker 未安装，请先安装 Docker${RESET}"
         return 1
     fi
     if ! docker info &>/dev/null; then
-        echo -e "${YELLOW}Docker 未运行，尝试启动...${RESET}"
+        echo -e "${YELLOW}⚠️ Docker 未运行，尝试启动...${RESET}"
         if systemctl list-unit-files | grep -q "^docker.service"; then
             systemctl start docker
         else
@@ -41,10 +71,9 @@ check_docker_running() {
         fi
     fi
     if ! docker info &>/dev/null; then
-        echo -e "${RED}Docker 启动失败，请检查日志${RESET}"
+        echo -e "${RED}❌ Docker 启动失败，请检查日志${RESET}"
         return 1
     fi
-    echo -e "${GREEN}Docker 已启动${RESET}"
     return 0
 }
 
@@ -89,9 +118,6 @@ EOF
     systemctl enable docker
     systemctl start docker
     echo -e "${GREEN}Docker 安装完成并已启动（已设置开机自启）${RESET}"
-    echo -e "${YELLOW}⚠️ 切换到 iptables-legacy 以避免端口映射失败${RESET}"
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
 }
 
 docker_update() {
@@ -114,7 +140,7 @@ docker_install_update() {
 }
 
 # -----------------------------
-# 卸载 Docker（含 Compose）
+# 卸载 Docker
 # -----------------------------
 docker_uninstall() {
     root_use
@@ -162,40 +188,59 @@ docker_ipv6_on() {
     root_use
     mkdir -p /etc/docker
     if [ -f /etc/docker/daemon.json ]; then
-        jq '. + {ipv6:true,"fixed-cidr-v6":"2001:db8:1::/64"}' /etc/docker/daemon.json 2>/dev/null \
-            >/etc/docker/daemon.json.tmp || echo '{"ipv6":true,"fixed-cidr-v6":"2001:db8:1::/64"}' > /etc/docker/daemon.json.tmp
+        jq '. + {ipv6:true,"fixed-cidr-v6":"fd00::/64"}' /etc/docker/daemon.json 2>/dev/null \
+            >/etc/docker/daemon.json.tmp || \
+            echo '{"ipv6":true,"fixed-cidr-v6":"fd00::/64"}' > /etc/docker/daemon.json.tmp
     else
-        echo '{"ipv6":true,"fixed-cidr-v6":"2001:db8:1::/64"}' > /etc/docker/daemon.json.tmp
+        echo '{"ipv6":true,"fixed-cidr-v6":"fd00::/64"}' > /etc/docker/daemon.json.tmp
     fi
     mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
-    systemctl restart docker 2>/dev/null || nohup dockerd >/dev/null 2>&1 &
-    echo -e "${GREEN}Docker IPv6 已开启${RESET}"
+    restart_docker
+    docker ps -a -q | xargs -r docker start
+    echo -e "${GREEN}✅ Docker IPv6 已开启，所有容器已恢复${RESET}"
 }
 
 docker_ipv6_off() {
     root_use
     if [ -f /etc/docker/daemon.json ]; then
-        jq 'del(.ipv6) | del(.["fixed-cidr-v6"])' /etc/docker/daemon.json > /etc/docker/daemon.json.tmp
+        jq 'del(.ipv6) | del(.["fixed-cidr-v6"])' /etc/docker/daemon.json \
+            >/etc/docker/daemon.json.tmp 2>/dev/null || \
+            cp /etc/docker/daemon.json /etc/docker/daemon.json.tmp
         mv /etc/docker/daemon.json.tmp /etc/docker/daemon.json
-        systemctl restart docker 2>/dev/null || nohup dockerd >/dev/null 2>&1 &
-        echo -e "${GREEN}Docker IPv6 已关闭${RESET}"
+        restart_docker
+        docker ps -a -q | xargs -r docker start
+        echo -e "${GREEN}✅ Docker IPv6 已关闭，所有容器已恢复${RESET}"
     else
-        echo -e "${YELLOW}Docker 配置文件不存在${RESET}"
+        echo -e "${YELLOW}⚠️ Docker 配置文件不存在，无法关闭 IPv6${RESET}"
     fi
 }
 
 # -----------------------------
-# 开放所有端口
+# 开放所有端口（IPv4 + IPv6 + nftables）
 # -----------------------------
 open_all_ports() {
     root_use
     read -p "⚠️ 确认要开放所有端口吗？(Y/N): " confirm
-    [[ $confirm =~ [Yy] ]] || return
-    iptables -P INPUT ACCEPT
-    iptables -P FORWARD ACCEPT
-    iptables -P OUTPUT ACCEPT
-    iptables -F
-    echo -e "${GREEN}已开放所有端口${RESET}"
+    [[ $confirm =~ [Yy] ]] || { echo -e "${YELLOW}操作已取消${RESET}"; return; }
+    echo -e "${YELLOW}正在检测可用防火墙工具...${RESET}"
+
+    if command -v iptables &>/dev/null; then
+        iptables -P INPUT ACCEPT
+        iptables -P FORWARD ACCEPT
+        iptables -P OUTPUT ACCEPT
+        iptables -F
+    fi
+    if command -v ip6tables &>/dev/null; then
+        ip6tables -P INPUT ACCEPT
+        ip6tables -P FORWARD ACCEPT
+        ip6tables -P OUTPUT ACCEPT
+        ip6tables -F
+    fi
+    if command -v nft &>/dev/null; then
+        nft flush ruleset 2>/dev/null || true
+    fi
+    echo -e "${GREEN}✅ 已开放所有端口${RESET}"
+    restart_docker
 }
 
 # -----------------------------
@@ -203,17 +248,62 @@ open_all_ports() {
 # -----------------------------
 switch_iptables_legacy() {
     root_use
-    update-alternatives --set iptables /usr/sbin/iptables-legacy
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
-    echo -e "${GREEN}已切换到 iptables-legacy${RESET}"
+    if [ -x /usr/sbin/iptables-legacy ] && [ -x /usr/sbin/ip6tables-legacy ]; then
+        iptables-save > /tmp/iptables_backup_$(date +%F_%H%M%S).v4
+        ip6tables-save > /tmp/ip6tables_backup_$(date +%F_%H%M%S).v6
+        update-alternatives --set iptables /usr/sbin/iptables-legacy
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+        restart_docker
+        iptables-restore < /tmp/iptables_backup_$(ls /tmp | grep iptables_backup_ | sort | tail -n1)
+        ip6tables-restore < /tmp/ip6tables_backup_$(ls /tmp | grep ip6tables_backup_ | sort | tail -n1)
+        echo -e "${GREEN}✅ 已切换到 iptables-legacy 并恢复规则${RESET}"
+    else
+        echo -e "${RED}系统未安装 iptables-legacy，无法切换${RESET}"
+    fi
 }
 
 switch_iptables_nft() {
     root_use
-    update-alternatives --set iptables /usr/sbin/iptables-nft
-    update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
-    echo -e "${GREEN}已切换到 iptables-nft${RESET}"
+    if [ -x /usr/sbin/iptables-nft ] && [ -x /usr/sbin/ip6tables-nft ]; then
+        iptables-save > /tmp/iptables_backup_$(date +%F_%H%M%S).v4
+        ip6tables-save > /tmp/ip6tables_backup_$(date +%F_%H%M%S).v6
+        update-alternatives --set iptables /usr/sbin/iptables-nft
+        update-alternatives --set ip6tables /usr/sbin/ip6tables-nft
+        restart_docker
+        iptables-restore < /tmp/iptables_backup_$(ls /tmp | grep iptables_backup_ | sort | tail -n1)
+        ip6tables-restore < /tmp/ip6tables_backup_$(ls /tmp | grep ip6tables_backup_ | sort | tail -n1)
+        echo -e "${GREEN}✅ 已切换到 iptables-nft 并恢复规则${RESET}"
+    else
+        echo -e "${RED}系统未安装 iptables-nft，无法切换${RESET}"
+    fi
 }
+
+# -----------------------------
+# Docker 状态
+# -----------------------------
+docker_status() {
+    if docker info &>/dev/null; then
+        echo "运行中"
+    else
+        echo "未运行"
+    fi
+}
+
+current_iptables() {
+    ipt=$(update-alternatives --query iptables 2>/dev/null | grep 'Value:' | awk '{print $2}')
+    if [[ $ipt == *legacy ]]; then
+        echo "legacy"
+    else
+        echo "nft"
+    fi
+}
+
+docker_container_info() {
+    total=$(docker ps -a -q | wc -l)
+    running=$(docker ps -q | wc -l)
+    echo "总容器: $total | 运行中: $running"
+}
+
 
 # -----------------------------
 # Docker 容器管理
@@ -461,7 +551,7 @@ docker_backup_menu() {
 
 
 # -----------------------------
-# 主菜单
+# 主菜单显示状态
 # -----------------------------
 main_menu() {
     root_use
@@ -470,10 +560,22 @@ main_menu() {
         echo -e "\033[36m"
         echo "  ____             _             "
         echo " |  _ \  ___   ___| | _____ _ __ "
-        echo " | | | |/ _ \ / __| |/ / _ \ '__|"
+        echo " | | |/ _ \ / __| |/ / _ \ '__|"
         echo " | |_| | (_) | (__|   <  __/ |   "
         echo " |____/ \___/ \___|_|\_\___|_|   "
         echo -e "\033[33m🐳 一键 VPS Docker 管理工具${RESET}"
+
+        # 检测 Docker 状态
+        if command -v docker &>/dev/null; then
+            docker_status=$(docker info &>/dev/null && echo "运行中" || echo "未运行")
+            total=$(docker ps -a -q 2>/dev/null | wc -l)
+            running=$(docker ps -q 2>/dev/null | wc -l)
+            echo -e "${YELLOW}iptables: $(current_iptables) | Docker: $docker_status | 总容器: $total | 运行中: $running${RESET}"
+        else
+            # Docker 未安装时只显示 iptables 状态
+            echo -e "${YELLOW}iptables: $(current_iptables)${RESET}"
+        fi
+        echo ""
         echo -e "${GREEN}01. 安装/更新 Docker（自动检测国内/国外源）${RESET}"
         echo -e "${GREEN}02. 安装/更新 Docker Compose${RESET}"
         echo -e "${GREEN}03. 卸载 Docker & Compose${RESET}"
@@ -488,30 +590,35 @@ main_menu() {
         echo -e "${GREEN}12. Docker 备份/恢复${RESET}"
         echo -e "${GREEN}13. 卷管理 ${RESET}"
         echo -e "${GREEN}14. 一键清理所有未使用容器/镜像/卷${RESET}"
-        echo -e "${GREEN}0. 退出${RESET}"
+        echo -e "${YELLOW}15. 重启 Docker${RESET}"
+        echo -e "${GREEN}0.  退出${RESET}"
 
         read -p "请选择: " choice
         case $choice in
             01|1) docker_install_update ;;
             02|2) docker_compose_install_update ;;
             03|3) docker_uninstall ;;
-            04|4) docker_ps ;;
-            05|5) docker_image ;;
-            06|6) docker_ipv6_on ;;
-            07|7) docker_ipv6_off ;;
+            04|4) check_docker_running && docker_ps ;;
+            05|5) check_docker_running && docker_image ;;
+            06|6) check_docker_running && docker_ipv6_on ;;
+            07|7) check_docker_running && docker_ipv6_off ;;
             08|8) open_all_ports ;;
-            09|9) docker_network ;;
+            09|9) check_docker_running && docker_network ;;
             10) switch_iptables_legacy ;;
             11) switch_iptables_nft ;;
-            12) docker_backup_menu ;;
-            13) docker_volume ;;
-            14) docker_cleanup ;;
+            12) check_docker_running && docker_backup_menu ;;
+            13|13) check_docker_running && docker_volume ;;
+            14|14) check_docker_running && docker_cleanup ;;
+            15|15) check_docker_running && restart_docker ;;
             0) exit 0 ;;
             *) echo "无效选择" ;;
         esac
         read -p "按回车继续..."
     done
 }
+
+
+
 
 # 启动脚本
 main_menu
