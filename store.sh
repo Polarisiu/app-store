@@ -172,22 +172,22 @@ declare -A commands=(
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
-    clear
+    printf '\033c'  # 替代 clear，避免闪屏
     echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${GREEN}${BOLD}         应用分类菜单${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
 
     for i in $(seq 1 ${#categories[@]}); do
-        echo -e "${GREEN}[$i] ${categories[$i]}${RESET}"
+        printf "${GREEN}[%02d] %-20s${RESET}\n" "$i" "${categories[$i]}"
     done
-    echo -e "${GREEN}[88] 更新脚本${RESET}"
-    echo -e "${GREEN}[99] 卸载脚本${RESET}"
-    echo -e "${GREEN}[0] 退出脚本${RESET}"
+    printf "${GREEN}[88] %-20s${RESET}\n" "更新脚本"
+    printf "${GREEN}[99] %-20s${RESET}\n" "卸载脚本"
+    printf "${GREEN}[0 ] %-20s${RESET}\n" "退出脚本"
 }
 
 show_app_menu() {
     local cat=$1
-    clear
+    printf '\033c'
     echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${GREEN}${BOLD}        ${categories[$cat]}${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
@@ -208,12 +208,14 @@ show_app_menu() {
 
     for key in "${sorted_keys[@]}"; do
         menu_map[$i]=$key
-        echo -e "${GREEN}[$i] ${apps[$key]}${RESET}"
+        printf "${GREEN}[%02d] %-25s${RESET}\n" "$i" "${apps[$key]}"
         ((i++))
     done
 
-    echo -e "${GREEN}[0] 返回上一级${RESET}"
+    printf "${GREEN}[0 ] %-25s${RESET}\n" "返回上一级"
 }
+
+
 
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
