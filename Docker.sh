@@ -327,7 +327,7 @@ docker_ps() {
         echo -e "${GREEN}11. 查看日志${RESET}"
         echo -e "${GREEN}12. 查看网络信息${RESET}"
         echo -e "${GREEN}13. 查看占用资源${RESET}"
-        echo -e "${GREEN}0. 返回主菜单${RESET}"
+        echo -e "${GREEN} 0. 返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入创建命令: " cmd; $cmd ;;
@@ -364,7 +364,7 @@ docker_image() {
         echo -e "${GREEN}02. 更新镜像${RESET}"
         echo -e "${GREEN}03. 删除镜像${RESET}"
         echo -e "${GREEN}04. 删除所有镜像${RESET}"
-        echo -e "${GREEN}0. 返回主菜单${RESET}"
+        echo -e "${GREEN} 0. 返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) read -p "请输入镜像名: " imgs; for img in $imgs; do docker pull $img; done ;;
@@ -533,11 +533,11 @@ docker_backup_menu() {
                 # -----------------------------
                 while true; do
                     echo -e "${YELLOW}选择备份类型:${RESET}"
-                    echo "1. 容器"
-                    echo "2. 镜像"
-                    echo "3. 卷"
-                    echo "4. 全量"
-                    echo "0. 返回上一级"
+                    echo -e "${GREEN}1. 容器${RESET}"
+                    echo -e "${GREEN}2. 镜像${RESET}"
+                    echo -e "${GREEN}3. 卷${RESET}"
+                    echo -e "${GREEN}4. 全量${RESET}"
+                    echo -e "${GREEN}0. 返回上一级${RESET}"
                     read -p "请输入选择: " btype
                     [[ "$btype" == "0" ]] && break
 
@@ -603,11 +603,11 @@ docker_backup_menu() {
                 # -----------------------------
                 while true; do
                     echo -e "${YELLOW}选择恢复类型:${RESET}"
-                    echo "1. 容器"
-                    echo "2. 镜像"
-                    echo "3. 卷"
-                    echo "4. 全量"
-                    echo "0. 返回上一级"
+                    echo -e "${GREEN}1. 容器${RESET}"
+                    echo -e "${GREEN}2. 镜像${RESET}"
+                    echo -e "${GREEN}3. 卷${RESET}"
+                    echo -e "${GREEN}4. 全量${RESET}"
+                    echo -e "${GREEN}0. 返回上一级${RESET}"
                     read -p "请输入选择: " rtype
                     [[ "$rtype" == "0" ]] && break
 
@@ -710,11 +710,12 @@ main_menu() {
             docker_status=$(docker info &>/dev/null && echo "运行中" || echo "未运行")
             total=$(docker ps -a -q 2>/dev/null | wc -l)
             running=$(docker ps -q 2>/dev/null | wc -l)
-            echo -e "${YELLOW}🐳iptables: $(current_iptables) | Docker: $docker_status | 总容器: $total | 运行中: $running${RESET}"
+            echo -e "${YELLOW}🐳 iptables: $(current_iptables) | Docker: $docker_status | 总容器: $total | 运行中: $running${RESET}"
         else
             # Docker 未安装时只显示 iptables 状态
-            echo -e "${YELLOW}🐳iptables: $(current_iptables)${RESET}"
+            echo -e "${YELLOW}🐳 iptables: $(current_iptables)${RESET}"
         fi
+
         echo -e "${GREEN}01. 安装/更新 Docker（自动检测国内/国外源）${RESET}"
         echo -e "${GREEN}02. 安装/更新 Docker Compose${RESET}"
         echo -e "${GREEN}03. 卸载 Docker & Compose${RESET}"
@@ -730,7 +731,7 @@ main_menu() {
         echo -e "${GREEN}13. 卷管理 ${RESET}"
         echo -e "${GREEN}14. 一键清理所有未使用容器/镜像/卷${RESET}"
         echo -e "${GREEN}15.${RESET} ${YELLOW}重启 Docker${RESET}"
-        echo -e "${GREEN}0.  退出${RESET}"
+        echo -e "${GREEN} 0. 退出${RESET}"
 
         read -p "请选择: " choice
         case $choice in
