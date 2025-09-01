@@ -36,7 +36,7 @@ fi
 
 # ================== 一级菜单分类 ==================
 declare -A categories=(
-    [1]="Docker及数据库"
+    [1]="Docker管理"
     [2]="订阅服务"
     [3]="监控通知"
     [4]="管理面板"
@@ -52,6 +52,8 @@ declare -A apps=(
     [1,2]="MySQL数据管理"
     [1,3]="Docker备份恢复"
     [1,4]="Docker容器迁移"
+    [1,5]="NGINX反代"
+    [1,6]="Docker反代"
     [2,1]="Wallos订阅"
     [2,2]="Vaultwarden (密码管理)"
     [2,3]="2FBA"
@@ -115,6 +117,8 @@ declare -A commands=(
     [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh)'
     [1,3]='curl -fsSL https://raw.githubusercontent.com/xymn2023/DMR/main/docker_back.sh -o docker_back.sh && chmod +x docker_back.sh && ./docker_back.sh'
     [1,4]='curl -sL https://raw.githubusercontent.com/ceocok/Docker_container_migration/refs/heads/main/Docker_container_migration.sh -o Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
+    [1,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)'
+    [1,6]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/dockerss.sh)'
     [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
     [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
     [2,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/2fauth.sh)'
