@@ -21,7 +21,7 @@ menu() {
             ;;
         2)
             echo -e "${GREEN}正在安装 NGINX反代...${RESET}"
-            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Webssl.sh)
+            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)
             pause
             ;;
         3)
