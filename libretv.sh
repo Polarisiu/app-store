@@ -29,10 +29,10 @@ check_port() {
 }
 
 get_ip() {
-    # 获取本机外网或内网 IP
-    IP=$(hostname -I | awk '{print $1}')
+    IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me)
     echo "$IP"
 }
+
 
 print_menu() {
     clear
