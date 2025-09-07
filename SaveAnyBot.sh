@@ -169,21 +169,56 @@ uninstall_bot() {
         echo "已取消卸载。"
     fi
 }
+# ======== 更新容器 ========
+update_bot() {
+    echo -e "${GREEN}>>> 拉取最新镜像...${RESET}"
+    docker pull $IMAGE_NAME
+
+    echo -e "${GREEN}>>> 删除旧容器（如存在）...${RESET}"
+    docker rm -f $CONTAINER_NAME >/dev/null 2>&1 || true
+
+    # 读取挂载目录
+    if [ -f "$CONFIG_PATH_FILE" ]; then
+        BASE_DIR=$(cat "$CONFIG_PATH_FILE")
+        DATA_DIR="$BASE_DIR/data"
+        DOWNLOADS_DIR="$BASE_DIR/downloads"
+        CACHE_DIR="$BASE_DIR/cache"
+        CONFIG_FILE="$BASE_DIR/$CONFIG_FILE_NAME"
+    else
+        echo -e "${RED}未找到挂载目录记录，请先执行启动容器${RESET}"
+        return
+    fi
+
+    echo -e "${GREEN}>>> 使用最新镜像重新创建并启动容器...${RESET}"
+    docker run -d \
+        --name $CONTAINER_NAME \
+        --restart unless-stopped \
+        --network host \
+        -v "$DATA_DIR:/app/data" \
+        -v "$CONFIG_FILE:/app/config.toml" \
+        -v "$DOWNLOADS_DIR:/app/downloads" \
+        -v "$CACHE_DIR:/app/cache" \
+        $IMAGE_NAME
+
+    echo -e "${GREEN}更新完成，容器已使用最新镜像运行！${RESET}"
+}
+
 
 # ======== 菜单 ========
 while true; do
     clear
     echo -e "${GREEN}====== SaveAny-Bot 管理菜单 ======${RESET}"
-    echo -e "${GREEN}1. 启动容器${RESET}"
-    echo -e "${GREEN}2. 停止容器${RESET}"
-    echo -e "${GREEN}3. 重启容器${RESET}"
-    echo -e "${GREEN}4. 查看日志${RESET}"
-    echo -e "${GREEN}5. 编辑配置文件 (config.toml)${RESET}"
-    echo -e "${GREEN}6. 删除容器${RESET}"
-    echo -e "${GREEN}7. 修改挂载目录${RESET}"
-    echo -e "${GREEN}8. 添加 Telegram 用户${RESET}"
-    echo -e "${GREEN}9. 卸载并删除所有数据${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
+    echo -e "${GREEN}1.  启动容器${RESET}"
+    echo -e "${GREEN}2.  停止容器${RESET}"
+    echo -e "${GREEN}3.  重启容器${RESET}"
+    echo -e "${GREEN}4.  查看日志${RESET}"
+    echo -e "${GREEN}5.  编辑配置文件 (config.toml)${RESET}"
+    echo -e "${GREEN}6.  删除容器${RESET}"
+    echo -e "${GREEN}7.  修改挂载目录${RESET}"
+    echo -e "${GREEN}8.  添加 Telegram 用户${RESET}"
+    echo -e "${GREEN}9.  更新容器${RESET}"
+    echo -e "${GREEN}10. 卸载并删除所有数据${RESET}"
+    echo -e "${GREEN}0.  退出${RESET}"
     echo -e "${GREEN}=================================${RESET}"
     read -p "请选择操作: " choice
     case $choice in
@@ -195,7 +230,8 @@ while true; do
         6) remove_bot ;;
         7) set_mount_path ;;
         8) add_users ;;
-        9) uninstall_bot ;;
+        9) update_bot ;;
+       10) uninstall_bot ;;
         0) exit 0 ;;
         *) echo -e "${GREEN}无效选项${RESET}" ;;
     esac
