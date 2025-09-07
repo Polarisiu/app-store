@@ -75,6 +75,28 @@ uninstall_wallos() {
         echo -e "${GREEN}✅ 数据目录已删除${RESET}"
     fi
 }
+update_wallos() {
+    echo -e "${CYAN}⬇️ 正在拉取最新镜像...${RESET}"
+    docker pull "$IMAGE_NAME"
+
+    echo -e "${YELLOW}⚠️ 停止并删除旧容器...${RESET}"
+    docker stop "$APP_NAME" &> /dev/null
+    docker rm "$APP_NAME" &> /dev/null
+
+    echo -e "${CYAN}🚀 使用新镜像启动容器...${RESET}"
+    docker run -d \
+        --restart unless-stopped \
+        --name "$APP_NAME" \
+        -p ${APP_PORT}:80 \
+        -v "$DATA_DIR":/var/www/html/db \
+        -v "$LOGO_DIR":/var/www/html/images/uploads/logos \
+        -e TZ="$TIMEZONE" \
+        "$IMAGE_NAME"
+
+    echo -e "${GREEN}✅ Wallos 已更新完成${RESET}"
+    echo -e "${GREEN}访问地址：http://$(curl -s ifconfig.me):${APP_PORT}${RESET}"
+}
+
 
 # 查看容器状态
 check_status() {
@@ -100,7 +122,7 @@ while true; do
 
     case $CHOICE in
         1) install_or_update_wallos ;;
-        2) install_or_update_wallos ;;
+        2) update_wallos ;;
         3) uninstall_wallos ;;
         4) check_status ;;
         5) echo -e "${CYAN}退出脚本${RESET}"; exit 0 ;;
