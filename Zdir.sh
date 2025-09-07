@@ -74,13 +74,24 @@ remove() {
 }
 
 update() {
-    echo -e "${GREEN}>>> 正在拉取最新 zdir 镜像...${RESET}"
+    echo -e "${GREEN}>>> 拉取最新 zdir 镜像...${RESET}"
     docker pull $IMAGE
-    echo -e "${GREEN}>>> 重启容器以应用最新镜像...${RESET}"
-    docker stop $CONTAINER
-    docker start $CONTAINER
-    echo -e "${GREEN}zdir 已更新并重启完成${RESET}"
+
+    echo -e "${GREEN}>>> 删除旧容器...${RESET}"
+    docker rm -f $CONTAINER 2>/dev/null || true
+
+    echo -e "${GREEN}>>> 使用新镜像重新创建容器...${RESET}"
+    docker run -d --name $CONTAINER \
+        -v ${DATA_DIR}:/opt/zdir/data \
+        -v ${PUBLIC_DIR}:/opt/zdir/data/public \
+        -v ${PRIVATE_DIR}:/opt/zdir/data/private \
+        -p ${DEFAULT_PORT}:6080 \
+        --restart=always \
+        $IMAGE
+
+    echo -e "${GREEN}zdir 已更新完成${RESET}"
 }
+
 
 # ================== 菜单 ==================
 menu() {
