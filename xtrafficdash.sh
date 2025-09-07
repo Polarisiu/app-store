@@ -1,33 +1,29 @@
 #!/bin/bash
-# ========================================
-# xTrafficDash 一键部署 & 管理脚本（最终版）
-# 作者: Linai Li
-# ========================================
+# ==========================================
+# XTrafficDash Docker 管理脚本
+# ==========================================
 
-# ================== 颜色定义 ==================
-RED="\033[31m"
+set -e
+
+# 颜色定义
 GREEN="\033[32m"
 YELLOW="\033[33m"
-BLUE="\033[34m"
 CYAN="\033[36m"
 RESET="\033[0m"
 
-# ================== 基本变量 ==================
 APP_NAME="xtrafficdash"
-DATA_DIR="/usr/xtrafficdash/data"
-PORT=37022
-PASSWORD="2635382860"
 IMAGE="sanqi37/xtrafficdash"
+DATA_DIR="/usr/xtrafficdash/data"
 TZ="Asia/Shanghai"
-BACKUP_DIR="/usr/xtrafficdash/backup"
+PORT=37022
+DEFAULT_PASSWORD="admin123"
 
-# ================== 检查 Docker ==================
-if ! command -v docker >/dev/null 2>&1; then
-    echo -e "${RED}Docker 未安装，请先安装 Docker！${RESET}"
-    exit 1
-fi
+pause() {
+    read -p "按回车返回菜单..."
+}
 
 # ================== 功能函数 ==================
+
 create_data_dir() {
     if [ ! -d "$DATA_DIR" ]; then
         mkdir -p "$DATA_DIR"
@@ -36,16 +32,14 @@ create_data_dir() {
     fi
 }
 
-show_access_url() {
-    HOST_IP=$(curl -s https://api.ipify.org)
-    if [ -z "$HOST_IP" ]; then
-        HOST_IP="本地IP或域名"
-    fi
-    echo -e "${GREEN}访问地址: http://${HOST_IP}:$PORT${RESET}"
+read_password() {
+    read -p "请输入管理密码 [默认 $DEFAULT_PASSWORD]: " PASSWORD
+    PASSWORD=${PASSWORD:-$DEFAULT_PASSWORD}
 }
 
 start_container() {
     create_data_dir
+    read_password
     if [ "$(docker ps -aq -f name=$APP_NAME)" ]; then
         echo -e "${YELLOW}容器已存在，尝试启动...${RESET}"
         docker start $APP_NAME
@@ -64,53 +58,43 @@ start_container() {
     fi
     echo -e "${GREEN}容器状态:${RESET}"
     docker ps -f name=$APP_NAME
-    show_access_url
-}
-
-stop_container() {
-    if [ "$(docker ps -q -f name=$APP_NAME)" ]; then
-        docker stop $APP_NAME
-        echo -e "${GREEN}容器已停止${RESET}"
-    else
-        echo -e "${YELLOW}容器未运行${RESET}"
-    fi
-}
-
-restart_container() {
-    stop_container
-    start_container
+    echo -e "${GREEN}✅ 容器已启动，访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
+    pause
 }
 
 view_logs() {
     if [ "$(docker ps -q -f name=$APP_NAME)" ]; then
-        echo -e "${CYAN}显示最近 100 行日志：${RESET}"
+        echo -e "${CYAN}显示最近 100 行日志，按 Ctrl+C 退出:${RESET}"
         docker logs --tail 100 -f $APP_NAME
     else
         echo -e "${YELLOW}容器未运行${RESET}"
     fi
+    pause
 }
 
 delete_container() {
-    stop_container
+    if [ "$(docker ps -q -f name=$APP_NAME)" ]; then
+        docker stop $APP_NAME
+    fi
     if [ "$(docker ps -aq -f name=$APP_NAME)" ]; then
         docker rm $APP_NAME
         echo -e "${GREEN}容器已删除${RESET}"
     else
         echo -e "${YELLOW}容器不存在${RESET}"
     fi
+    pause
 }
 
 update_image() {
     echo -e "${CYAN}拉取最新镜像...${RESET}"
     docker pull $IMAGE
     echo -e "${GREEN}镜像更新完成${RESET}"
-    
-    echo -e "${YELLOW}备份当前数据...${RESET}"
-    backup_data
+
+    read_password
 
     echo -e "${YELLOW}重启容器以应用新镜像...${RESET}"
-    docker stop $APP_NAME
-    docker rm $APP_NAME
+    docker stop $APP_NAME 2>/dev/null || true
+    docker rm $APP_NAME 2>/dev/null || true
 
     docker run -d \
         --name $APP_NAME \
@@ -124,57 +108,26 @@ update_image() {
         $IMAGE
 
     echo -e "${GREEN}✅ 容器已更新并启动，访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
-}
-
-backup_data() {
-    if [ ! -d "$BACKUP_DIR" ]; then
-        mkdir -p "$BACKUP_DIR"
-    fi
-    TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-    BACKUP_FILE="$BACKUP_DIR/xtrafficdash_data_$TIMESTAMP.tar.gz"
-    tar -czf $BACKUP_FILE -C $DATA_DIR .
-    echo -e "${GREEN}数据已备份到: $BACKUP_FILE${RESET}"
-}
-
-modify_config() {
-    echo -ne "${YELLOW}请输入新的访问端口（当前: $PORT）: ${RESET}"
-    read new_port
-    if [ -n "$new_port" ]; then
-        PORT=$new_port
-    fi
-    echo -ne "${YELLOW}请输入新的访问密码（当前: $PASSWORD）: ${RESET}"
-    read new_pass
-    if [ -n "$new_pass" ]; then
-        PASSWORD=$new_pass
-    fi
-    echo -e "${GREEN}配置已更新: 端口=$PORT, 密码=$PASSWORD${RESET}"
-    restart_container
+    pause
 }
 
 # ================== 菜单 ==================
 while true; do
-    echo -e "\n${GREEN}================ xTrafficDash 管理菜单 ================${RESET}"
-    echo -e "${GREEN}1. 启动容器${RESET}"
-    echo -e "${GREEN}2. 停止容器${RESET}"
-    echo -e "${GREEN}3. 重启容器${RESET}"
-    echo -e "${GREEN}4. 查看日志${RESET}"
-    echo -e "${GREEN}5. 删除容器${RESET}"
-    echo -e "${GREEN}6. 更新镜像并重启${RESET}"
-    echo -e "${GREEN}7. 备份数据${RESET}"
-    echo -e "${GREEN}8. 修改端口和密码${RESET}"
-    echo -e "${GREEN}0. 退出脚本${RESET}"
-    echo -ne "${YELLOW}请输入选项 [0-8]: ${RESET}"
-    read choice
+    echo
+    echo -e "${GREEN}=== XTrafficDash 管理菜单 ===${RESET}"
+    echo -e "${GREEN}[1] 启动容器${RESET}"
+    echo -e "${GREEN}[2] 删除容器${RESET}"
+    echo -e "${GREEN}[3] 更新镜像并启动容器${RESET}"
+    echo -e "${GREEN}[4] 查看日志${RESET}"
+    echo -e "${GREEN}[0] 退出${RESET}"
+    echo -e "${GREEN}=============================${RESET}"
+    read -p "请选择操作 [0-4]: " choice
     case $choice in
         1) start_container ;;
-        2) stop_container ;;
-        3) restart_container ;;
+        2) delete_container ;;
+        3) update_image ;;
         4) view_logs ;;
-        5) delete_container ;;
-        6) update_image ;;
-        7) backup_data ;;
-        8) modify_config ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项，请重新输入！${RESET}" ;;
+        *) echo -e "${YELLOW}无效选项，请重新选择${RESET}" ;;
     esac
 done
