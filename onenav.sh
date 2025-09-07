@@ -73,15 +73,21 @@ update() {
     echo -e "${GREEN}>>> 正在拉取最新 OneNav 镜像...${RESET}"
     docker pull $IMAGE
 
-    echo -e "${GREEN}>>> 重启容器以应用最新镜像...${RESET}"
-    docker stop $CONTAINER
-    docker start $CONTAINER
+    if [ "$(docker ps -aq -f name=$CONTAINER)" ]; then
+        echo -e "${GREEN}>>> 删除旧容器以应用新镜像...${RESET}"
+        docker rm -f $CONTAINER
+    fi
+
+    echo -e "${GREEN}>>> 使用新镜像启动容器...${RESET}"
+    docker run -itd --name $CONTAINER \
+        -p ${DEFAULT_PORT}:80 \
+        -v ${DATA_DIR}:/data/wwwroot/default/data \
+        --restart always \
+        $IMAGE
 
     local ip=$(get_ip)
-    local port=$(docker inspect --format='{{(index (index .HostConfig.PortBindings "80/tcp") 0).HostPort}}' $CONTAINER)
-
-    echo -e "${GREEN}OneNav 已更新并重启完成${RESET}"
-    echo -e "${GREEN}访问地址: http://${ip}:${port}${RESET}"
+    echo -e "${GREEN}✅ OneNav 已更新并启动完成${RESET}"
+    echo -e "${GREEN}访问地址: http://${ip}:${DEFAULT_PORT}${RESET}"
 }
 
 # ================== 菜单 ==================
