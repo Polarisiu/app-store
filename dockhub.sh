@@ -65,12 +65,24 @@ update_hubp() {
     echo -e "${GREEN}🔄 拉取最新 HubP 镜像...${RESET}"
     docker pull "$HUBP_IMAGE"
 
-    echo -e "${GREEN}♻️ 重启 HubP 容器...${RESET}"
-    docker restart "$HUBP_CONTAINER"
+    echo -e "${GREEN}♻️ 删除旧容器并重新创建...${RESET}"
+    docker rm -f "$HUBP_CONTAINER" >/dev/null 2>&1 || true
 
-    echo -e "${GREEN}✅ HubP 镜像已更新并重启容器成功${RESET}"
+    read -rp "请输入宿主机端口 (默认 $DEFAULT_PORT): " PORT
+    PORT=${PORT:-$DEFAULT_PORT}
+    read -rp "请输入 HubP DISGUISE (默认 $DEFAULT_DISGUISE): " DISGUISE
+    DISGUISE=${DISGUISE:-$DEFAULT_DISGUISE}
+
+    docker run -d --restart unless-stopped --name "$HUBP_CONTAINER" \
+        -p "$PORT:18826" \
+        -e HUBP_LOG_LEVEL="$DEFAULT_LOG_LEVEL" \
+        -e HUBP_DISGUISE="$DISGUISE" \
+        "$HUBP_IMAGE"
+
+    echo -e "${GREEN}✅ HubP 已更新到最新镜像并重新启动${RESET}"
     pause
 }
+
 
 stop_hubp() {
     docker stop "$HUBP_CONTAINER" >/dev/null 2>&1 || true
