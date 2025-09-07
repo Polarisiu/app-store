@@ -82,6 +82,21 @@ function remove_mysql_and_data() {
     echo $'\033[32m✅ 容器和数据已删除\033[0m'
 }
 
+function update_mysql() {
+    echo $'\033[33m🔄 正在拉取最新 MySQL 镜像...\033[0m'
+    docker pull mysql:$MYSQL_VERSION
+
+    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+        echo $'\033[33m⚠️ 容器已存在，正在重启以应用新镜像...\033[0m'
+        docker rm -f $CONTAINER_NAME
+        install_mysql
+    else
+        echo $'\033[33m⚠️ 容器不存在，直接启动新容器...\033[0m'
+        install_mysql
+    fi
+    echo $'\033[32m✅ MySQL 已更新并启动完成\033[0m'
+}
+
 function create_database() {
     read -p $'\033[32m请输入新数据库名:\033[0m' new_db
     read -p $'\033[32m请输入字符集(默认utf8mb4):\033[0m' charset
@@ -142,6 +157,7 @@ while true; do
     echo $'\033[32m9. 创建用户并授权\033[0m'
     echo $'\033[32m10. 一键创建数据库+用户+授权\033[0m'
     echo $'\033[32m11. 查看访问地址\033[0m'
+    echo $'\033[32m12. 更新 MySQL 镜像并重启容器\033[0m'
     echo $'\033[32m0. 退出\033[0m'
     echo $'\033[32m===========================\033[0m'
 
@@ -159,6 +175,7 @@ while true; do
         9) create_user_and_grant ;;
         10) create_db_user_grant_all ;;
         11) show_access_info ;;
+        12) update_mysql ;;
         0) exit 0 ;;
         *) echo "❌ 无效选项" ;;
     esac
