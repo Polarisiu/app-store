@@ -28,6 +28,7 @@ menu() {
     echo -e "${GREEN}5) 查看日志${RESET}"
     echo -e "${GREEN}6) 卸载 API${RESET}"
     echo -e "${GREEN}7) 查看访问方式${RESET}"
+    echo -e "${GREEN}8) 更新 API${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo
     read -p "请输入选项: " choice
@@ -87,6 +88,14 @@ uninstall_api() {
         echo -e "${YELLOW}已取消卸载${RESET}"
     fi
 }
+update_api() {
+    echo -e "${GREEN}>>> 正在拉取最新镜像...${RESET}"
+    docker compose pull
+    echo -e "${GREEN}>>> 正在重启服务...${RESET}"
+    docker compose up -d
+    echo -e "${GREEN}API 已更新完成${RESET}"
+}
+
 
 show_access() {
     IP=$(get_ip)
@@ -106,6 +115,7 @@ while true; do
         5) view_logs ;;
         6) uninstall_api ;;
         7) show_access ;;
+        8) update_api ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选项，请重新选择${RESET}" ;;
     esac
