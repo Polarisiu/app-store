@@ -86,13 +86,26 @@ logs_c() { docker logs -f --tail=200 "$CONTAINER_NAME"; read -rp "按回车返�
 update_c() {
   ensure_docker
   load_or_init_conf
-  log "拉取最新镜像..."
+  log "拉取最新镜像: $IMAGE_NAME"
   docker pull "$IMAGE_NAME"
-  warn "重启容器应用最新镜像..."
-  docker restart "$CONTAINER_NAME"
+
+  if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    warn "删除旧容器..."
+    docker stop "$CONTAINER_NAME"
+    docker rm "$CONTAINER_NAME"
+  fi
+
+  log "使用新镜像重建容器..."
+  docker run -d --restart unless-stopped --name "$CONTAINER_NAME" \
+    -p "${HOST_PORT}:${CONTAINER_PORT}" "$IMAGE_NAME"
+
   show_status
+  SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+  [ -z "$SERVER_IP" ] && SERVER_IP="127.0.0.1"
+  echo -e "${GREEN}✅ 更新完成，访问地址: http://${SERVER_IP}:${HOST_PORT}${RESET}"
   read -rp "按回车返回菜单..." _
 }
+
 
 uninstall() {
   read -rp "确认卸载并删除容器？(y/N): " yn
