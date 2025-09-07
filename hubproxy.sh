@@ -73,16 +73,24 @@ remove() {
 }
 
 update() {
-    echo -e "${GREEN}>>> 拉取最新镜像并重启容器...${RESET}"
+    echo -e "${GREEN}>>> 拉取最新镜像...${RESET}"
     docker pull $IMAGE
-    docker stop $CONTAINER
-    docker start $CONTAINER
+
+    echo -e "${GREEN}>>> 删除旧容器并重新创建...${RESET}"
+    local port=$(docker inspect --format='{{(index (index .HostConfig.PortBindings "5000/tcp") 0).HostPort}}' $CONTAINER 2>/dev/null || echo $DEFAULT_PORT)
+
+    docker rm -f $CONTAINER >/dev/null 2>&1 || true
+
+    docker run -d --name $CONTAINER \
+        -p ${port}:5000 \
+        --restart always \
+        $IMAGE
 
     local ip=$(get_ip)
-    local port=$(docker inspect --format='{{(index (index .HostConfig.PortBindings "5000/tcp") 0).HostPort}}' $CONTAINER)
     echo -e "${GREEN}hubproxy 已更新并重启完成！访问: http://${ip}:${port}${RESET}"
     pause
 }
+
 
 # ================== 菜单 ==================
 menu() {
