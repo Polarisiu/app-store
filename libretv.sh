@@ -12,7 +12,7 @@ CONTAINER_NAME="libretv"
 IMAGE_NAME="bestzwei/libretv:latest"
 DEFAULT_HOST_PORT=8899
 CONTAINER_PORT=8080
-DEFAULT_PASSWORD="your_password"
+DEFAULT_PASSWORD="123456"
 
 # ================== 工具函数 ==================
 pause() {
