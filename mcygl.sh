@@ -22,7 +22,7 @@ menu() {
             ;;
         2)
             echo -e "${GREEN}正在运行 NGINX 反代脚本...${RESET}"
-            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/nigxssl.sh)
+            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)
             pause
             ;;
         3)
