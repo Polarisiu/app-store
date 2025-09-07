@@ -137,19 +137,33 @@ delete_container() {
 update_and_restart_container() {
     echo -e "${YELLOW}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
     docker pull "$IMAGE_NAME"
-    if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
-        echo -e "${YELLOW}镜像更新完成，正在重启容器...${RESET}"
-        docker restart "$CONTAINER_NAME"
-        echo -e "${GREEN}容器已重启${RESET}"
-        # 获取原端口
-        HOST_PORT=$(docker port "$CONTAINER_NAME" $CONTAINER_PORT | cut -d: -f2)
-        show_access_info "$HOST_PORT"
-    else
-        echo -e "${RED}容器未运行，启动新容器...${RESET}"
-        start_container
+
+    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+        echo -e "${YELLOW}正在删除旧容器...${RESET}"
+        docker rm -f "$CONTAINER_NAME"
     fi
+
+    # 获取原端口（如果容器存在过）
+    if docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+        HOST_PORT=$(docker port "$CONTAINER_NAME" $CONTAINER_PORT | cut -d: -f2)
+    else
+        HOST_PORT=$DEFAULT_HOST_PORT
+    fi
+
+    # 重新创建容器
+    echo -e "${YELLOW}正在使用新镜像创建容器...${RESET}"
+    docker run -d \
+        --name "$CONTAINER_NAME" \
+        --restart unless-stopped \
+        -p "$HOST_PORT:$CONTAINER_PORT" \
+        -e PASSWORD="${PASSWORD:-$DEFAULT_PASSWORD}" \
+        "$IMAGE_NAME"
+
+    echo -e "${GREEN}✅ LibreTV 已更新并启动${RESET}"
+    show_access_info "$HOST_PORT"
     pause
 }
+
 
 # ================== 主循环 ==================
 while true; do
