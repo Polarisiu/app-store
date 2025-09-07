@@ -155,9 +155,41 @@ restart_komari() {
 }
 
 update_komari() {
+    echo -e "${yellow}正在拉取最新镜像...${re}"
     docker pull ${IMAGE_NAME}
-    restart_komari
+
+    echo -e "${yellow}正在删除旧容器...${re}"
+    docker rm -f ${CONTAINER_NAME} >/dev/null 2>&1 || true
+
+    echo -e "${yellow}正在重新创建容器...${re}"
+    if check_nat_available; then
+        docker run -d --name ${CONTAINER_NAME} \
+            -p ${PORT}:25774 \
+            -v ${DATA_DIR}:/app/data \
+            -e ADMIN_USERNAME="${ADMIN_USERNAME}" \
+            -e ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+            --restart unless-stopped \
+            ${IMAGE_NAME}
+        MODE="端口映射"
+    else
+        docker run -d --name ${CONTAINER_NAME} \
+            --network host \
+            -v ${DATA_DIR}:/app/data \
+            -e ADMIN_USERNAME="${ADMIN_USERNAME}" \
+            -e ADMIN_PASSWORD="${ADMIN_PASSWORD}" \
+            --restart unless-stopped \
+            ${IMAGE_NAME}
+        MODE="host 网络"
+    fi
+
+    if [ $? -eq 0 ]; then
+        echo -e "${green}✅ Komari 已更新并启动成功${re}"
+        echo "访问地址: http://$(curl -s ifconfig.me):${PORT} （${MODE} 模式）"
+    else
+        echo -e "${red}❌ 更新失败，请检查镜像或网络${re}"
+    fi
 }
+
 
 uninstall_komari() {
     stop_komari
