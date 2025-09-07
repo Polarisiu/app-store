@@ -62,11 +62,26 @@ logs_vertex() { docker logs -f "${APP_NAME}"; }
 
 # 更新
 update_vertex() {
-    echo -e "${YELLOW}正在更新 Vertex...${RESET}"
+    echo -e "${YELLOW}>>> 正在更新 Vertex...${RESET}"
     docker pull "${IMAGE_NAME}"
-    docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    install_vertex
+
+    if docker ps -a --format '{{.Names}}' | grep -q "^${APP_NAME}$"; then
+        echo -e "${YELLOW}停止并删除旧容器...${RESET}"
+        docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
+    fi
+
+    echo -e "${YELLOW}使用最新镜像启动新容器...${RESET}"
+    docker run -d \
+      --name "${APP_NAME}" \
+      -v "${DATA_DIR}:/vertex" \
+      -p ${APP_PORT}:3000 \
+      -e TZ=${TIMEZONE} \
+      --restart unless-stopped \
+      "${IMAGE_NAME}"
+
+    echo -e "${GREEN}✅ Vertex 已更新并启动，访问：http://$(hostname -I | awk '{print $1}'):${APP_PORT}${RESET}"
 }
+
 
 # 卸载
 uninstall_vertex() {
