@@ -104,7 +104,26 @@ update_image() {
     echo -e "${CYAN}拉取最新镜像...${RESET}"
     docker pull $IMAGE
     echo -e "${GREEN}镜像更新完成${RESET}"
-    restart_container
+    
+    echo -e "${YELLOW}备份当前数据...${RESET}"
+    backup_data
+
+    echo -e "${YELLOW}重启容器以应用新镜像...${RESET}"
+    docker stop $APP_NAME
+    docker rm $APP_NAME
+
+    docker run -d \
+        --name $APP_NAME \
+        -p $PORT:$PORT \
+        -v $DATA_DIR:/app/data \
+        -e TZ=$TZ \
+        -e PASSWORD=$PASSWORD \
+        --log-opt max-size=5m \
+        --log-opt max-file=3 \
+        --restart unless-stopped \
+        $IMAGE
+
+    echo -e "${GREEN}✅ 容器已更新并启动，访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
 }
 
 backup_data() {
