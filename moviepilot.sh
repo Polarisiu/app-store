@@ -75,6 +75,35 @@ uninstall_moviepilot() {
     fi
     echo -e "${GREEN}MoviePilot V2 已卸载${RESET}"
 }
+# 更新容器
+update_moviepilot() {
+    echo -e "${YELLOW}正在更新 MoviePilot V2...${RESET}"
+    docker pull "${IMAGE_NAME}"
+
+    echo -e "${YELLOW}停止并删除旧容器...${RESET}"
+    docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+
+    echo -e "${YELLOW}重新部署容器...${RESET}"
+    docker run -d \
+        --name "${CONTAINER_NAME}" \
+        --hostname "${CONTAINER_NAME}" \
+        --network host \
+        -v "${MEDIA_DIR}":/media \
+        -v "${CONFIG_DIR}":/config \
+        -v "${CACHE_DIR}":/moviepilot/.cache/ms-playwright \
+        -v /var/run/docker.sock:/var/run/docker.sock:ro \
+        -e NGINX_PORT=3000 \
+        -e PORT=3001 \
+        -e PUID=0 \
+        -e PGID=0 \
+        -e UMASK=000 \
+        -e TZ=Asia/Shanghai \
+        -e SUPERUSER=admin \
+        --restart always \
+        ${IMAGE_NAME}
+
+    echo -e "${GREEN}MoviePilot V2 已更新并重新启动！${RESET}"
+}
 
 # 菜单
 menu() {
@@ -85,7 +114,8 @@ menu() {
     echo -e "${GREEN}3. 停止容器${RESET}"
     echo -e "${GREEN}4. 重启容器${RESET}"
     echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 卸载容器${RESET}"
+    echo -e "${GREEN}6. 更新容器${RESET}"
+    echo -e "${GREEN}7. 卸载容器${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     echo -ne "${YELLOW}请输入选项: ${RESET}"
     read -r choice
@@ -95,7 +125,8 @@ menu() {
         3) stop_moviepilot ;;
         4) restart_moviepilot ;;
         5) logs_moviepilot ;;
-        6) uninstall_moviepilot ;;
+        6) update_moviepilot ;;
+        7) uninstall_moviepilot ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选项${RESET}" ;;
     esac
