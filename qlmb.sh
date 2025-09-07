@@ -51,6 +51,29 @@ deploy_qinglong() {
     PUBLIC_IP=$(get_public_ip)
     echo -e "${GREEN}QingLong 已成功启动，访问地址: http://${PUBLIC_IP}:${QL_PORT}${RESET}"
 }
+update_qinglong() {
+    echo -e "${GREEN}>>> 拉取最新 QingLong 镜像...${RESET}"
+    docker pull whyour/qinglong:latest
+
+    if docker ps -a --format '{{.Names}}' | grep -q '^qinglong$'; then
+        echo -e "${GREEN}>>> 删除旧容器...${RESET}"
+        docker stop qinglong
+        docker rm qinglong
+    fi
+
+    docker run -dit \
+        -v "$PWD/ql/data:/ql/data" \
+        -p "${QL_PORT}:${QL_PORT}" \
+        -e QlBaseUrl="/" \
+        -e QlPort="${QL_PORT}" \
+        --name qinglong \
+        --hostname qinglong \
+        --restart unless-stopped \
+        whyour/qinglong:latest
+
+    PUBLIC_IP=$(get_public_ip)
+    echo -e "${GREEN}✅ QingLong 已更新并启动完成，访问地址: http://${PUBLIC_IP}:${QL_PORT}${RESET}"
+}
 
 # ================== 管理 QingLong ==================
 manage_qinglong() {
@@ -94,21 +117,9 @@ manage_qinglong() {
                 fi
                 ;;
             8)
-                echo -e "${GREEN}拉取最新 QingLong 镜像...${RESET}"
-                docker pull whyour/qinglong:latest
-
-                if docker ps --format '{{.Names}}' | grep -q '^qinglong$'; then
-                    echo -e "${GREEN}停止容器...${RESET}"
-                    docker stop qinglong
-                    echo -e "${GREEN}使用新镜像重启容器...${RESET}"
-                    docker start qinglong
-                else
-                    echo -e "${RED}未找到正在运行的 QingLong 容器，请先部署${RESET}"
-                fi
-
-                PUBLIC_IP=$(get_public_ip)
-                CONTAINER_PORT=$(docker port qinglong | awk -F':' '{print $2}')
-                echo -e "${GREEN}更新完成，访问地址: http://${PUBLIC_IP}:${CONTAINER_PORT}${RESET}"
+                read -rp "请输入容器端口 (默认 $QL_PORT): " QL_PORT
+                QL_PORT=${QL_PORT:-5700}
+                update_qinglong  
                 ;;
             0)
                 break
