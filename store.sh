@@ -116,6 +116,7 @@ declare -A apps=(
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
     [8,3]="BEpusdt收款"
+    [8,4]="UPAYPRO"
 )
 
 # ================== 二级菜单命令 ==================
@@ -188,6 +189,7 @@ declare -A commands=(
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
     [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh)'
+    [8,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
 )
 
 # ================== 菜单显示函数 ==================
