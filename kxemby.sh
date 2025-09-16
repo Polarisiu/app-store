@@ -168,4 +168,4 @@ while true; do
         0) echo "退出脚本"; exit 0 ;;
         *) echo -e "${GREEN}无效选项${RESET}" ;;
     esac
-done 这个也 自动修复权限
+done
