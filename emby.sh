@@ -22,6 +22,28 @@ check_docker() {
     fi
 }
 
+# 检测 CPU 架构，自动选择镜像（更稳健）
+get_arch() {
+    arch=$(uname -m)
+    case "$arch" in
+        x86_64|amd64)
+            IMAGE_NAME="emby/embyserver:latest"
+            ;;
+        aarch64|arm64|armv8l)
+            IMAGE_NAME="emby/embyserver_arm64v8:latest"
+            ;;
+        armv7l|armv7)
+            # 如果你的平台是 32-bit arm (如部分旧树莓派)，可以尝试这个镜像（视镜像仓库是否存在）
+            IMAGE_NAME="emby/embyserver_arm32v7:latest"
+            ;;
+        *)
+            IMAGE_NAME="emby/embyserver:latest"
+            echo -e "${GREEN}未知架构: $arch，已使用默认 amd64 镜像：$IMAGE_NAME${RESET}"
+            ;;
+    esac
+    echo -e "${GREEN}检测到架构: $arch，使用镜像: $IMAGE_NAME${RESET}"
+}
+
 # 获取公网 IP
 get_public_ip() {
     PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
@@ -71,11 +93,12 @@ gpu_args() {
     fi
 }
 
-# 部署 EmbyServer
+# 部署 EmbyServer（已确保先检测架构）
 deploy_emby() {
     load_or_input_config
     create_dirs
-    echo -e "${GREEN}正在部署 EmbyServer 容器...${RESET}"
+    get_arch
+    echo -e "${GREEN}正在部署 EmbyServer 容器（镜像: $IMAGE_NAME）...${RESET}"
 
     docker run -d \
         --name $CONTAINER_NAME \
@@ -92,7 +115,7 @@ deploy_emby() {
         $IMAGE_NAME
 
     PUBLIC_IP=$(get_public_ip)
-    if [[ $PUBLIC_IP != "无法获取公网 IP" ]]; then
+    if [ -n "$PUBLIC_IP" ]; then
         echo -e "${GREEN}部署完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
     else
         echo -e "${GREEN}部署完成，但未能获取公网 IP，请使用内网访问${RESET}"
@@ -119,7 +142,7 @@ uninstall_all() {
     [ -f "$CONFIG_FILE" ] && rm -f "$CONFIG_FILE" && echo -e "${GREEN}配置文件已删除${RESET}"
 }
 
-# 更新镜像并重启容器
+# 更新镜像并重启容器（也会先检测架构）
 update_image() {
     if [ -f "$CONFIG_FILE" ]; then
         source "$CONFIG_FILE"
@@ -127,6 +150,8 @@ update_image() {
         echo -e "${GREEN}配置文件不存在，请先部署容器${RESET}"
         exit 1
     fi
+
+    get_arch
 
     echo -e "${GREEN}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
     docker pull $IMAGE_NAME
@@ -157,7 +182,7 @@ update_image() {
         $IMAGE_NAME
 
     PUBLIC_IP=$(get_public_ip)
-    if [[ $PUBLIC_IP != "无法获取公网 IP" ]]; then
+    if [ -n "$PUBLIC_IP" ]; then
         echo -e "${GREEN}更新完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
     else
         echo -e "${GREEN}更新完成，但未能获取公网 IP，请使用内网访问${RESET}"
