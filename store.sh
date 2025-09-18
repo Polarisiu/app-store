@@ -31,7 +31,7 @@ fi
 
 if [ "$added" = true ]; then
     source ~/.bashrc 2>/dev/null || true
-    echo -e "${GREEN}已添加快捷键 D/d，重启终端可直接输入启动脚本！${RESET}"
+    echo -e "${GREEN}已添加快捷键 D/d，重启终端或输入source ~/.bashrc可直接输入启动脚本！${RESET}"
 fi
 
 # ================== 一级菜单分类 ==================
@@ -97,6 +97,8 @@ declare -A apps=(
     [5,18]="4GTV"
     [5,19]="strm+302"
     [5,20]="弹幕API"
+    [5,21]="music-player"
+    [5,22]="sehuatang-crawler"
     [6,1]="Foxel图片管理"
     [6,2]="STB图床"
     [6,3]="兰空图床(无MySQL)"
@@ -115,6 +117,7 @@ declare -A apps=(
     [7,10]="笔记"
     [7,11]="TGBotRSS"
     [7,12]="TeleBox"
+    [7,13]="随机头像生成"
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
     [8,3]="BEpusdt收款"
@@ -126,7 +129,7 @@ declare -A commands=(
     [1,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh)'
     [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mysql.sh)'
     [1,3]='curl -fsSL https://raw.githubusercontent.com/xymn2023/DMR/main/docker_back.sh -o docker_back.sh && chmod +x docker_back.sh && ./docker_back.sh'
-    [1,4]='curl -sL https://raw.githubusercontent.com/ceocok/Docker_container_migration/refs/heads/main/Docker_container_migration.sh -o Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
+    [1,4]='curl -O https://raw.githubusercontent.com/woniu336/open_shell/main/Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
     [1,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)'
     [1,6]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/dockerss.sh)'
     [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
@@ -172,6 +175,8 @@ declare -A commands=(
     [5,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/4gtv.sh)'
     [5,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
     [5,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
+    [5,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
+    [5,22]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/sehuatang.sh)'
     [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
     [6,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
     [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lsky_menu.sh)'
@@ -190,6 +195,7 @@ declare -A commands=(
     [7,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Trilium.sh)'
     [7,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TGBot.sh)'
     [7,12]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/TeleBox.sh)'
+    [7,13]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/Colo.sh)'
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
     [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh)'
