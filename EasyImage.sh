@@ -3,7 +3,7 @@
 # ================= 配置 =================
 docker_name="easyimage"
 docker_img="ddsderek/easyimage:latest"
-docker_port=85
+docker_port=5663
 config_dir="/home/docker/easyimage/config"
 image_dir="/home/docker/easyimage/i"
 
