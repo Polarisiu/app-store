@@ -59,7 +59,7 @@ EOF
 
     cd "$INSTALL_DIR"
     docker compose up -d
-    echo -e "${GREEN}>>> Send 服务已安装并运行在端口: $PORT${RESET}"
+    echo -e "${GREEN}>>> Send 服务已安装并运行在: $DOMAIN${RESET}"
     echo -e "${GREEN}>>> 最大上传文件大小: ${MAX_GB}GB (${MAX_FILE_SIZE} 字节)${RESET}"
 
     read -p "按回车返回菜单..."  
