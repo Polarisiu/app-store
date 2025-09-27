@@ -1,7 +1,6 @@
 #!/bin/bash
 # ============================================
-# Komari 管理脚本（菜单版）
-# 功能: 安装/更新/卸载/日志
+# Komari 管理脚本（支持自定义端口）
 # ============================================
 
 set -e
@@ -12,6 +11,7 @@ YELLOW="\033[33m"
 RESET="\033[0m"
 
 COMPOSE_FILE="docker-compose.yml"
+CONFIG_FILE="komari_config.env"
 CONTAINER_NAME="komari"
 
 menu() {
@@ -35,6 +35,12 @@ menu() {
     esac
 }
 
+load_config() {
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    fi
+}
+
 install_komari() {
     echo -e "${GREEN}=== 开始安装 Komari ===${RESET}"
 
@@ -53,8 +59,19 @@ install_komari() {
         KOMARI_CLOUDFLARED_TOKEN=""
     fi
 
-    # 使用默认端口
-    PORT=25774
+    read -p "请输入 Komari 端口 (默认: 25774): " PORT
+    PORT=${PORT:-25774}
+
+    # 保存配置
+    cat > $CONFIG_FILE <<EOF
+ADMIN_USERNAME="$ADMIN_USERNAME"
+ADMIN_PASSWORD="$ADMIN_PASSWORD"
+KOMARI_ENABLE_CLOUDFLARED="$KOMARI_ENABLE_CLOUDFLARED"
+KOMARI_CLOUDFLARED_TOKEN="$KOMARI_CLOUDFLARED_TOKEN"
+PORT="$PORT"
+EOF
+
+    mkdir -p ./data
 
     cat > $COMPOSE_FILE <<EOF
 services:
@@ -62,7 +79,7 @@ services:
     image: ghcr.io/komari-monitor/komari:latest
     container_name: $CONTAINER_NAME
     ports:
-      - "${PORT}:${PORT}"
+      - "${PORT}:25774"
     volumes:
       - ./data:/app/data
     environment:
@@ -81,10 +98,11 @@ EOF
 }
 
 update_komari() {
+    load_config
     echo -e "${GREEN}=== 更新 Komari ===${RESET}"
     docker compose pull
     docker compose up -d
-    echo -e "${GREEN}✅ 更新完成！访问地址: http://$(curl -s https://api.ipify.org):25774${RESET}"
+    echo -e "${GREEN}✅ 更新完成！访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
     read -p "按回车返回菜单..." && menu
 }
 
@@ -93,7 +111,7 @@ uninstall_komari() {
     read -p "确认卸载? (y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         docker compose down -v
-        rm -rf $COMPOSE_FILE ./data
+        rm -rf $COMPOSE_FILE ./data $CONFIG_FILE
         echo -e "${GREEN}✅ 卸载完成${RESET}"
     else
         echo -e "${YELLOW}已取消${RESET}"
