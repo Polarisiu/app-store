@@ -3,9 +3,9 @@
 # ================= 配置 =================
 docker_name="easyimage"
 docker_img="ddsderek/easyimage:latest"
-docker_port=5663
 config_dir="/home/docker/easyimage/config"
 image_dir="/home/docker/easyimage/i"
+port_file="/home/docker/easyimage/easyimage_port.conf"
 
 # 颜色定义
 GREEN="\033[32m"
@@ -21,6 +21,16 @@ check_docker() {
     fi
 }
 
+get_port() {
+    if [[ -f "$port_file" ]]; then
+        docker_port=$(cat "$port_file")
+    else
+        read -rp "请输入端口 (默认 5663): " docker_port
+        docker_port=${docker_port:-5663}
+        echo "$docker_port" > "$port_file"
+    fi
+}
+
 check_port() {
     local port=$1
     while lsof -i:$port &>/dev/null; do
@@ -33,11 +43,17 @@ check_port() {
 install_container() {
     mkdir -p "$config_dir" "$image_dir"
 
-    # 检测端口
+    get_port
     docker_port=$(check_port $docker_port)
+    echo "$docker_port" > "$port_file"
 
     echo -e "${GREEN}正在拉取镜像...${RESET}"
     docker pull $docker_img
+
+    if docker ps -a --format '{{.Names}}' | grep -q "^$docker_name$"; then
+        docker stop $docker_name
+        docker rm $docker_name
+    fi
 
     echo -e "${GREEN}正在启动容器...${RESET}"
     docker run -d \
@@ -51,19 +67,17 @@ install_container() {
         --restart unless-stopped \
         $docker_img
 
-    # 获取公网 IP
     public_ip=$(curl -s ifconfig.me)
     echo -e "${GREEN}容器启动完成！${RESET}"
     echo -e "${YELLOW}访问地址: http://$public_ip:$docker_port${RESET}"
 }
 
 update_container() {
+    get_port
     echo -e "${GREEN}正在更新镜像...${RESET}"
     docker pull $docker_img
-    docker stop $docker_name
-    docker rm $docker_name
-
-    echo -e "${GREEN}重新启动容器...${RESET}"
+    docker stop $docker_name 2>/dev/null || true
+    docker rm $docker_name 2>/dev/null || true
     install_container
 }
 
@@ -92,10 +106,10 @@ view_logs() {
 }
 
 uninstall_all() {
-    docker stop $docker_name
-    docker rm $docker_name
+    docker stop $docker_name 2>/dev/null || true
+    docker rm $docker_name 2>/dev/null || true
     echo -e "${RED}容器及所有数据已删除！${RESET}"
-    rm -rf "$config_dir" "$image_dir"
+    rm -rf "$config_dir" "$image_dir" "$port_file"
 }
 
 # ================= 菜单 =================
