@@ -1,88 +1,104 @@
 #!/bin/bash
 # ========================================
-# SPlayer 一键部署 / 更新 / 卸载 脚本
-# 镜像来源: imsyy/splayer
+# SPlayer 一键管理脚本（更新自动复用安装端口和目录）
 # ========================================
 
 GREEN="\033[32m"
-RED="\033[31m"
-YELLOW="\033[33m"
 RESET="\033[0m"
+APP_NAME="SPlayer"
+CONTAINER_NAME="SPlayer"
+DEFAULT_PORT=25884
+DEFAULT_DATA_DIR="$HOME/SPlayer/data"
+CONFIG_FILE="$HOME/SPlayer/splayer.conf"
 
-IMAGE="imsyy/splayer:latest"
-CONTAINER="SPlayer"
-PORT=25884
-
-# 获取公网 IP
-get_ip() {
-    curl -s ipv4.icanhazip.com
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "your-ip"
 }
 
-# 检查 Docker 是否安装
-check_docker() {
-    if ! command -v docker &> /dev/null; then
-        echo -e "${YELLOW}Docker 未安装，正在安装...${RESET}"
-        curl -fsSL https://get.docker.com | sh
-        systemctl enable docker
-        systemctl start docker
-    else
-        echo -e "${GREEN}Docker 已安装${RESET}"
-    fi
-}
-
-# 部署
-deploy() {
-    check_docker
-    echo -e "${GREEN}拉取 SPlayer 镜像...${RESET}"
-    docker pull $IMAGE
-    echo -e "${GREEN}停止并删除旧容器（如有）...${RESET}"
-    docker rm -f $CONTAINER 2>/dev/null
-    echo -e "${GREEN}启动 SPlayer 容器...${RESET}"
-    docker run -d --name $CONTAINER -p ${PORT}:${PORT} $IMAGE
-    echo -e "${GREEN}SPlayer 已启动！${RESET}"
-    echo -e "访问地址: ${YELLOW}http://$(get_ip):${PORT}${RESET}"
-}
-
-# 更新
-update() {
-    check_docker
-    echo -e "${GREEN}更新 SPlayer...${RESET}"
-    docker pull $IMAGE
-    docker rm -f $CONTAINER 2>/dev/null
-    docker run -d --name $CONTAINER -p ${PORT}:${PORT} $IMAGE
-    echo -e "${GREEN}SPlayer 已更新并重启！${RESET}"
-    echo -e "访问地址: ${YELLOW}http://$(get_ip):${PORT}${RESET}"
-}
-
-# 卸载
-uninstall() {
-    echo -e "${RED}停止并删除容器...${RESET}"
-    docker rm -f $CONTAINER 2>/dev/null
-    echo -e "${RED}删除镜像...${RESET}"
-    docker rmi $IMAGE 2>/dev/null
-    echo -e "${GREEN}SPlayer 已卸载！${RESET}"
-}
-
-# 菜单
-menu() {
+function menu() {
     clear
-    echo -e "${GREEN}=====================================${RESET}"
-    echo -e "${GREEN}     SPlayer 一键管理脚本${RESET}"
-    echo -e "${GREEN}=====================================${RESET}"
-    echo -e "${GREEN}1. 部署 SPlayer${RESET}"
-    echo -e "${GREEN}2. 更新 SPlayer${RESET}"
-    echo -e "${GREEN}3. 卸载 SPlayer${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "${GREEN}=====================================${RESET}"
-    echo -ne "${YELLOW}请输入选项 [0-3]: ${RESET}"
-    read -r choice
+    echo -e "${GREEN}=== SPlayer 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1) deploy ;;
-        2) update ;;
-        3) uninstall ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
+}
+
+function install_app() {
+    mkdir -p "$HOME/SPlayer"
+
+    if [ -f "$CONFIG_FILE" ]; then
+        source "$CONFIG_FILE"
+    else
+        read -p "请输入映射端口 [默认:${DEFAULT_PORT}]: " input_port
+        PORT=${input_port:-$DEFAULT_PORT}
+
+        read -p "请输入数据目录 [默认:${DEFAULT_DATA_DIR}]: " input_data
+        DATA_DIR=${input_data:-$DEFAULT_DATA_DIR}
+
+        mkdir -p "$DATA_DIR"
+
+        echo "PORT=$PORT" > "$CONFIG_FILE"
+        echo "DATA_DIR=$DATA_DIR" >> "$CONFIG_FILE"
+    fi
+
+    docker pull imsyy/splayer:latest
+    docker stop "$CONTAINER_NAME" 2>/dev/null
+    docker rm "$CONTAINER_NAME" 2>/dev/null
+
+    docker run -d --name "$CONTAINER_NAME" -p ${PORT}:25884 \
+        -v "${DATA_DIR}:/app/data" \
+        --restart unless-stopped \
+        imsyy/splayer:latest
+
+    echo -e "${GREEN}✅ SPlayer 已启动${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):${PORT}${RESET}"
+    echo -e "${GREEN}📂 数据目录: $DATA_DIR${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    if [ ! -f "$CONFIG_FILE" ]; then
+        echo -e "${GREEN}⚠️ 未检测到安装记录，请先执行安装${RESET}"
+        sleep 2
+        menu
+    fi
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}🔄 拉取最新镜像并重装 SPlayer${RESET}"
+    install_app
+}
+
+function uninstall_app() {
+    docker stop "$CONTAINER_NAME" 2>/dev/null
+    docker rm "$CONTAINER_NAME" 2>/dev/null
+    read -p "是否同时删除数据目录? [y/N]: " deldata
+    if [[ "$deldata" =~ ^[Yy]$ ]]; then
+        source "$CONFIG_FILE"
+        rm -rf "$DATA_DIR"
+        echo -e "${GREEN}✅ 数据目录已删除${RESET}"
+    fi
+    rm -f "$CONFIG_FILE"
+    echo -e "${GREEN}✅ SPlayer 已卸载${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f "$CONTAINER_NAME"
+    read -p "按回车返回菜单..."
+    menu
 }
 
 menu
