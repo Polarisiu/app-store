@@ -10,7 +10,6 @@ menu() {
     echo -e "${GREEN}1) 安装萌次元商城${RESET}"
     echo -e "${GREEN}2) NGINX 反代${RESET}"
     echo -e "${GREEN}3) 商城管理${RESET}"
-    echo -e "${GREEN}4) 安装 BEpusdt${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo
     read -p $'\033[32m请选择操作 (0-4): \033[0m' choice
@@ -28,11 +27,6 @@ menu() {
         3)
             echo -e "${GREEN}正在运行商城管理脚本...${RESET}"
             bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcyml.sh)
-            pause
-            ;;
-        4)
-            echo -e "${GREEN}正在安装 BEpusdt...${RESET}"
-            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh)
             pause
             ;;
         0)
