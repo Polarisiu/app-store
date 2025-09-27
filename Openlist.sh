@@ -1,6 +1,7 @@
 #!/bin/bash
 # ========================================
 # OpenList 一键管理脚本
+# 支持自定义端口 & 管理员密码
 # ========================================
 
 GREEN="\033[32m"
@@ -38,6 +39,9 @@ function install_app() {
     read -p "请输入映射端口 [默认:5244]: " input_port
     PORT=${input_port:-5244}
 
+    read -p "请输入管理员密码 [默认:adminadmin]: " input_pwd
+    ADMIN_PWD=${input_pwd:-adminadmin}
+
     mkdir -p "$COMPOSE_DIR/data"
 
     cat > "$COMPOSE_FILE" <<EOF
@@ -53,13 +57,16 @@ services:
       - "${PORT}:5244"
     environment:
       - UMASK=022
+      - OPENLIST_ADMIN_PASSWORD=${ADMIN_PWD}
     volumes:
       - ${COMPOSE_DIR}/data:/opt/openlist/data
 EOF
 
     cd "$COMPOSE_DIR"
     docker compose up -d
-    echo -e "${GREEN}✅ OpenList 已启动，访问: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}✅ OpenList 已启动${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}👤 管理员密码: $ADMIN_PWD${RESET}"
     echo -e "${GREEN}📂 数据目录: $COMPOSE_DIR/data${RESET}"
     read -p "按回车返回菜单..."
     menu
