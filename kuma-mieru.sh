@@ -39,7 +39,7 @@ install_app() {
     install_docker
 
     # 输入环境变量
-    echo -e "${green}请输入 Uptime Kuma 地址 (例如 http://IP:端口):${plain}"
+    echo -e "${green}请输入 Uptime Kuma 地址 (例如 https://example.kuma-mieru.invalid):${plain}"
     read UPTIME_KUMA_BASE_URL
     echo -e "${green}请输入页面 ID:${plain}"
     read PAGE_ID
