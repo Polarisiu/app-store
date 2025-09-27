@@ -3,122 +3,100 @@
 # AutoBangumi 一键管理脚本
 # ========================================
 
-# 颜色
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-CYAN="\033[36m"
 RESET="\033[0m"
+CONFIG_DIR="$HOME/AutoBangumi/config"
+DATA_DIR="$HOME/AutoBangumi/data"
+COMPOSE_FILE="$HOME/AutoBangumi/docker-compose.yml"
+ENV_FILE="$HOME/AutoBangumi/.env"
 
-# 配置
-APP_NAME="AutoBangumi"
-APP_PORT=7892
-CONFIG_DIR="${HOME}/AutoBangumi/config"
-DATA_DIR="${HOME}/AutoBangumi/data"
-IMAGE_NAME="ghcr.io/estrellaxd/auto_bangumi:latest"
-TIMEZONE="Asia/Shanghai"
-
-# 检查 Docker
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        echo -e "${RED}错误: 未检测到 Docker，请先安装！${RESET}"
-        exit 1
-    fi
-}
-
-# 部署 AutoBangumi
-install_app() {
-    check_docker
-    mkdir -p "${CONFIG_DIR}" "${DATA_DIR}"
-    echo -e "${YELLOW}拉取镜像：${IMAGE_NAME}${RESET}"
-    docker pull "${IMAGE_NAME}"
-
-    if docker ps -a --format '{{.Names}}' | grep -q "^${APP_NAME}$"; then
-        echo -e "${YELLOW}已有容器 ${APP_NAME}，正在删除...${RESET}"
-        docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    fi
-
-    echo -e "${YELLOW}正在启动 AutoBangumi...${RESET}"
-    docker run -d \
-      --name="${APP_NAME}" \
-      -v "${CONFIG_DIR}:/app/config" \
-      -v "${DATA_DIR}:/app/data" \
-      -p ${APP_PORT}:7892 \
-      -e TZ=${TIMEZONE} \
-      -e PUID=$(id -u) \
-      -e PGID=$(id -g) \
-      -e UMASK=022 \
-      --network=bridge \
-      --dns=8.8.8.8 \
-      --restart unless-stopped \
-      "${IMAGE_NAME}"
-
-    echo -e "${GREEN}AutoBangumi 部署完成！${RESET}"
-    echo -e "${CYAN}访问地址：http://$(hostname -I | awk '{print $1}'):${APP_PORT}${RESET}"
-}
-
-# 启动
-start_app() { docker start "${APP_NAME}" && echo -e "${GREEN}已启动 ${APP_NAME}${RESET}"; }
-
-# 停止
-stop_app() { docker stop "${APP_NAME}" && echo -e "${YELLOW}已停止 ${APP_NAME}${RESET}"; }
-
-# 重启
-restart_app() { docker restart "${APP_NAME}" && echo -e "${GREEN}已重启 ${APP_NAME}${RESET}"; }
-
-# 查看日志
-logs_app() { docker logs -f "${APP_NAME}"; }
-
-# 更新镜像
-update_app() {
-    echo -e "${YELLOW}正在更新 ${APP_NAME}...${RESET}"
-    docker pull "${IMAGE_NAME}"
-    docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    install_app
-}
-
-# 卸载
-uninstall_app() {
-    docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    echo -e "${YELLOW}是否删除配置和数据目录？[y/N]${RESET}"
-    read -r del
-    if [[ "$del" == "y" || "$del" == "Y" ]]; then
-        rm -rf "${CONFIG_DIR}" "${DATA_DIR}"
-        echo -e "${RED}已删除配置和数据目录${RESET}"
-    fi
-    echo -e "${GREEN}${APP_NAME} 已卸载${RESET}"
-}
-
-# 菜单
-menu() {
+function menu() {
     clear
-    echo -e "${GREEN}==== AutoBangumi 管理菜单 ====${RESET}"
-    echo -e "${GREEN}1. 部署 AutoBangumi${RESET}"
-    echo -e "${GREEN}2. 启动 AutoBangumi${RESET}"
-    echo -e "${GREEN}3. 停止 AutoBangumi${RESET}"
-    echo -e "${GREEN}4. 重启 AutoBangumi${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 更新 AutoBangumi${RESET}"
-    echo -e "${GREEN}7. 卸载 AutoBangumi${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请输入选项: ${RESET}"
-    read -r choice
-    case "$choice" in
+    echo -e "${GREEN}=== AutoBangumi 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动 AutoBangumi${RESET}"
+    echo -e "${GREEN}2) 更新 AutoBangumi${RESET}"
+    echo -e "${GREEN}3) 卸载 AutoBangumi${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}==============================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
         1) install_app ;;
-        2) start_app ;;
-        3) stop_app ;;
-        4) restart_app ;;
-        5) logs_app ;;
-        6) update_app ;;
-        7) uninstall_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
 }
 
-# 循环菜单
-while true; do
+function install_app() {
+    read -p "请输入映射端口 (默认 7892): " input_port
+    APP_PORT=${input_port:-7892}
+
+    mkdir -p "$CONFIG_DIR" "$DATA_DIR"
+
+    echo "PUID=$(id -u)" > "$ENV_FILE"
+    echo "PGID=$(id -g)" >> "$ENV_FILE"
+    echo "APP_PORT=$APP_PORT" >> "$ENV_FILE"
+
+    cat > "$COMPOSE_FILE" <<EOF
+version: "3.8"
+
+services:
+  autobangumi:
+    image: ghcr.io/estrellaxd/auto_bangumi:latest
+    container_name: autobangumi
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "\${APP_PORT}:7892"
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=\${PUID}
+      - PGID=\${PGID}
+      - UMASK=022
+    volumes:
+      - ${CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/app/data
+    dns:
+      - 8.8.8.8
+EOF
+
+    cd "$HOME/AutoBangumi"
+    docker compose up -d
+    echo -e "✅ 已启动 AutoBangumi"
+    echo -e "🌐 访问地址: ${GREEN}http://$(curl -s ifconfig.me):${APP_PORT}${RESET}"
+    echo -e "👤 默认用户名: ${GREEN}admin${RESET}"
+    echo -e "🔑 默认密码: ${GREEN}adminadmin${RESET}"
+    echo -e "📂 配置目录: ${GREEN}$CONFIG_DIR${RESET}"
+    echo -e "📂 数据目录: ${GREEN}$DATA_DIR${RESET}"
+    read -p "按回车返回菜单..."
     menu
-    echo -e "${YELLOW}按回车键继续...${RESET}"
-    read -r
-done
+}
+
+function update_app() {
+    cd "$HOME/AutoBangumi" || exit
+    docker compose pull
+    docker compose up -d
+    echo "✅ AutoBangumi 已更新并重启完成"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$HOME/AutoBangumi" || exit
+    docker compose down -v
+    rm -rf "$HOME/AutoBangumi"
+    echo "✅ AutoBangumi 已彻底卸载（含数据与配置）"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f autobangumi
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
