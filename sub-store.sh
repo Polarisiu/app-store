@@ -1,91 +1,110 @@
 #!/bin/bash
 # ========================================
-# Sub-Store 一键管理脚本（增强版）
-# 功能：安装/卸载/更新/日志/公网IP提示
+# Sub-Store 一键管理脚本
 # ========================================
 
-# ===== 配置部分 =====
-CONTAINER_NAME="sub-store"
-IMAGE_NAME="xream/sub-store"
-DATA_DIR="/root/sub-store-data"
-PORT=3005
-BACKEND_PATH="/QYVa9TxuMpyQ2ZOsZt96"
-CRON="0 0 * * *"
-
-# ===== 获取公网IP =====
-get_public_ip() {
-    local IP
-    IP=$(curl -s ipv4.ip.sb || curl -s ifconfig.me || curl -s ipinfo.io/ip)
-    echo "$IP"
-}
-
-# ===== 安装/启动函数 =====
-install_substore() {
-    echo -e "\033[32m[INFO] 开始安装/启动 Sub-Store...\033[0m"
-    docker stop $CONTAINER_NAME >/dev/null 2>&1
-    docker rm $CONTAINER_NAME >/dev/null 2>&1
-
-    docker run -d \
-        --name $CONTAINER_NAME \
-        --restart=always \
-        -e "SUB_STORE_BACKEND_SYNC_CRON=$CRON" \
-        -e "SUB_STORE_FRONTEND_BACKEND_PATH=$BACKEND_PATH" \
-        -p ${PORT}:3001 \
-        -v ${DATA_DIR}:/opt/app/data \
-        $IMAGE_NAME
-
-    local PUBLIC_IP
-    PUBLIC_IP=$(get_public_ip)
-    echo -e "\033[32m[OK] Sub-Store 安装/启动完成！\033[0m"
-    echo -e "访问地址：\033[36mhttp://${PUBLIC_IP}:${PORT}?api=http://${PUBLIC_IP}:${PORT}${BACKEND_PATH}\033[0m"
-}
-
-# ===== 卸载函数 =====
-uninstall_substore() {
-    echo -e "\033[33m[INFO] 正在卸载 Sub-Store...\033[0m"
-    docker stop $CONTAINER_NAME >/dev/null 2>&1
-    docker rm $CONTAINER_NAME >/dev/null 2>&1
-    echo -e "\033[32m[OK] Sub-Store 已卸载。\033[0m"
-}
-
-# ===== 更新函数 =====
-update_substore() {
-    echo -e "\033[33m[INFO] 更新镜像并重启容器...\033[0m"
-    docker pull $IMAGE_NAME
-    install_substore
-    echo -e "\033[32m[OK] 更新完成！\033[0m"
-}
-
-# ===== 日志查看 =====
-view_logs() {
-    echo -e "\033[34m[INFO] 查看 Sub-Store 日志，按 Ctrl+C 退出...\033[0m"
-    docker logs -f $CONTAINER_NAME
-}
-
-# ===== 颜色定义 =====
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-CYAN="\033[36m"
 RESET="\033[0m"
+APP_NAME="sub-store"
+APP_DIR="$HOME/$APP_NAME"
+DATA_DIR="$APP_DIR/data"
+CONFIG_FILE="$APP_DIR/config.env"
+DEFAULT_PORT=3001
 
-# ===== 菜单 =====
-while true; do
-    echo -e "\n${GREEN}=== Sub-Store 一键管理 ===${RESET}"
-    echo -e "${GREEN}1. 安装 / 启动${RESET}"
-    echo -e "${GREEN}2. 卸载${RESET}"
-    echo -e "${GREEN}3. 更新${RESET}"
-    echo -e "${GREEN}4. 查看日志${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请输入选项: ${RESET}"
-    read -r choice
+mkdir -p "$DATA_DIR"
 
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "your-ip"
+}
+
+function menu() {
+    clear
+    echo -e "${GREEN}=== Sub-Store 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 显示访问信息${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1) install_substore ;;
-        2) uninstall_substore ;;
-        3) update_substore ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
         4) view_logs ;;
+        5) show_info ;;
         0) exit 0 ;;
-        *) echo -e "${RED}[ERROR] 无效选项${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入端口 [默认:$DEFAULT_PORT]: " input_port
+    PORT=${input_port:-$DEFAULT_PORT}
+
+    # 随机生成路径（16 位）
+    RANDOM_PATH=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 16)
+
+    mkdir -p "$APP_DIR"
+
+    cat > "$CONFIG_FILE" <<EOF
+PORT=$PORT
+RANDOM_PATH=$RANDOM_PATH
+EOF
+
+    docker rm -f $APP_NAME >/dev/null 2>&1
+
+    docker run -it -d --restart=always \
+      -e "SUB_STORE_CRON=0 0 * * *" \
+      -e "SUB_STORE_FRONTEND_BACKEND_PATH=/$RANDOM_PATH" \
+      -p 127.0.0.1:${PORT}:3001 \
+      -v ${DATA_DIR}:/opt/app/data \
+      --name ${APP_NAME} \
+      xream/sub-store
+
+    echo -e "${GREEN}✅ Sub-Store 已启动${RESET}"
+    show_info
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    source "$CONFIG_FILE" 2>/dev/null || { echo "未检测到配置文件，请先安装"; sleep 1; menu; }
+    docker rm -f $APP_NAME >/dev/null 2>&1
+    docker run -it -d --restart=always \
+      -e "SUB_STORE_CRON=0 0 * * *" \
+      -e "SUB_STORE_FRONTEND_BACKEND_PATH=/$RANDOM_PATH" \
+      -p 127.0.0.1:${PORT}:3001 \
+      -v ${DATA_DIR}:/opt/app/data \
+      --name ${APP_NAME} \
+      xream/sub-store
+    echo -e "${GREEN}✅ Sub-Store 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    docker rm -f $APP_NAME >/dev/null 2>&1
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Sub-Store 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f $APP_NAME
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function show_info() {
+    source "$CONFIG_FILE" 2>/dev/null || { echo "未检测到配置文件"; return; }
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:${PORT}?api=http://127.0.0.1:${PORT}/$RANDOM_PATH${RESET}"
+    echo -e "${GREEN}📂 数据目录: $DATA_DIR${RESET}"
+    echo -e "${GREEN}🔑 后端路径: /$RANDOM_PATH${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
