@@ -1,183 +1,92 @@
 #!/bin/bash
-set -e
+# ========================================
+# LibreTV 一键管理脚本
+# ========================================
 
-# ================== 颜色 ==================
 GREEN="\033[32m"
-YELLOW="\033[33m"
-RED="\033[31m"
 RESET="\033[0m"
+APP_NAME="libretv"
+COMPOSE_DIR="$HOME/LibreTV"
+COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
-# ================== 默认配置 ==================
-CONTAINER_NAME="libretv"
-IMAGE_NAME="bestzwei/libretv:latest"
-DEFAULT_HOST_PORT=8899
-CONTAINER_PORT=8080
-DEFAULT_PASSWORD="123456"
-
-# ================== 工具函数 ==================
-pause() {
-    read -rp "按回车返回菜单..."
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "your-ip"
 }
 
-check_port() {
-    local port=$1
-    if lsof -i:"$port" >/dev/null 2>&1; then
-        return 1
-    else
-        return 0
-    fi
-}
-
-get_ip() {
-    IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me)
-    echo "$IP"
-}
-
-
-print_menu() {
+function menu() {
     clear
-    echo -e "${YELLOW}=== LibreTV 容器管理菜单 ===${RESET}"
-    echo -e "${GREEN}1.启动/创建容器${RESET}"
-    echo -e "${GREEN}2.停止容器${RESET}"
-    echo -e "${GREEN}3.重启容器${RESET}"
-    echo -e "${GREEN}4.查看容器状态${RESET}"
-    echo -e "${GREEN}5.查看容器日志${RESET}"
-    echo -e "${GREEN}6.删除容器${RESET}"
-    echo -e "${GREEN}7.拉取最新镜像并重启容器${RESET}"
-    echo -e "${GREEN}0.退出${RESET}"
-}
-
-show_access_info() {
-    local host_port=$1
-    local ip
-    ip=$(get_ip)
-    echo -e "${GREEN}访问地址: http://${ip}:${host_port}${RESET}"
-    echo -e "${GREEN}容器密码: ${PASSWORD}${RESET}"
-}
-
-start_container() {
-    # 自定义密码
-    read -rp "请输入容器密码（回车使用默认: $DEFAULT_PASSWORD）: " PASSWORD
-    PASSWORD=${PASSWORD:-$DEFAULT_PASSWORD}
-
-    # 自定义端口
-    while true; do
-        read -rp "请输入本机端口（回车使用默认: $DEFAULT_HOST_PORT）: " HOST_PORT
-        HOST_PORT=${HOST_PORT:-$DEFAULT_HOST_PORT}
-
-        if check_port "$HOST_PORT"; then
-            break
-        else
-            echo -e "${RED}端口 $HOST_PORT 已被占用，请重新输入${RESET}"
-        fi
-    done
-
-    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
-        echo -e "${YELLOW}容器已存在，尝试启动...${RESET}"
-        docker start "$CONTAINER_NAME"
-    else
-        echo -e "${GREEN}正在创建并启动容器...${RESET}"
-        docker run -d \
-          --name "$CONTAINER_NAME" \
-          --restart unless-stopped \
-          -p "$HOST_PORT:$CONTAINER_PORT" \
-          -e PASSWORD="$PASSWORD" \
-          "$IMAGE_NAME"
-    fi
-    echo -e "${GREEN}容器启动完成${RESET}"
-    show_access_info "$HOST_PORT"
-    pause
-}
-
-stop_container() {
-    if docker ps -q -f name=$CONTAINER_NAME; then
-        docker stop "$CONTAINER_NAME"
-        echo -e "${GREEN}容器已停止${RESET}"
-    else
-        echo -e "${RED}容器未运行${RESET}"
-    fi
-    pause
-}
-
-restart_container() {
-    if docker ps -q -f name=$CONTAINER_NAME; then
-        docker restart "$CONTAINER_NAME"
-        echo -e "${GREEN}容器已重启${RESET}"
-    else
-        echo -e "${RED}容器未运行，直接启动...${RESET}"
-        start_container
-    fi
-    pause
-}
-
-status_container() {
-    docker ps -a --filter "name=$CONTAINER_NAME"
-    pause
-}
-
-logs_container() {
-    if docker ps -q -f name=$CONTAINER_NAME; then
-        docker logs -f "$CONTAINER_NAME"
-    else
-        echo -e "${RED}容器未运行${RESET}"
-    fi
-    pause
-}
-
-delete_container() {
-    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
-        docker rm -f "$CONTAINER_NAME"
-        echo -e "${GREEN}容器已删除${RESET}"
-    else
-        echo -e "${RED}容器不存在${RESET}"
-    fi
-    pause
-}
-
-update_and_restart_container() {
-    echo -e "${YELLOW}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
-    docker pull "$IMAGE_NAME"
-
-    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
-        echo -e "${YELLOW}正在删除旧容器...${RESET}"
-        docker rm -f "$CONTAINER_NAME"
-    fi
-
-    # 获取原端口（如果容器存在过）
-    if docker inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
-        HOST_PORT=$(docker port "$CONTAINER_NAME" $CONTAINER_PORT | cut -d: -f2)
-    else
-        HOST_PORT=$DEFAULT_HOST_PORT
-    fi
-
-    # 重新创建容器
-    echo -e "${YELLOW}正在使用新镜像创建容器...${RESET}"
-    docker run -d \
-        --name "$CONTAINER_NAME" \
-        --restart unless-stopped \
-        -p "$HOST_PORT:$CONTAINER_PORT" \
-        -e PASSWORD="${PASSWORD:-$DEFAULT_PASSWORD}" \
-        "$IMAGE_NAME"
-
-    echo -e "${GREEN}✅ LibreTV 已更新并启动${RESET}"
-    show_access_info "$HOST_PORT"
-    pause
-}
-
-
-# ================== 主循环 ==================
-while true; do
-    print_menu
-    read -rp "请选择操作: " choice
+    echo -e "${GREEN}=== LibreTV 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1) start_container ;;
-        2) stop_container ;;
-        3) restart_container ;;
-        4) status_container ;;
-        5) logs_container ;;
-        6) delete_container ;;
-        7) update_and_restart_container ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项${RESET}"; pause ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入映射端口 [默认:8899]: " input_port
+    PORT=${input_port:-8899}
+
+    read -p "请输入访问密码 [默认:111111]: " input_pwd
+    PASSWORD=${input_pwd:-111111}
+
+    mkdir -p "$COMPOSE_DIR"
+
+    cat > "$COMPOSE_FILE" <<EOF
+version: "3.8"
+
+services:
+  libretv:
+    image: bestzwei/libretv:latest
+    container_name: libretv
+    restart: unless-stopped
+    ports:
+      - "${PORT}:8080"
+    environment:
+      - PASSWORD=${PASSWORD}
+EOF
+
+    cd "$COMPOSE_DIR"
+    docker compose up -d
+    echo -e "${GREEN}✅ LibreTV 已启动${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}🔑 访问密码: $PASSWORD${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$COMPOSE_DIR" || exit
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ LibreTV 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$COMPOSE_DIR" || exit
+    docker compose down -v
+    rm -rf "$COMPOSE_DIR"
+    echo -e "${GREEN}✅ LibreTV 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f libretv
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
