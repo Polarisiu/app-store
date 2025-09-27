@@ -9,18 +9,28 @@ RESET="\033[0m"
 
 CONTAINER_NAME="webssh"
 IMAGE_NAME="cmliu/webssh:latest"
-PORT=8888
+WORKDIR="$HOME/.webssh_manager"
+PORT_FILE="$WORKDIR/port.conf"
+
+mkdir -p "$WORKDIR"
 
 # ================== 获取公网 IP ==================
 get_ip() {
-    IP=$(curl -s https://api.ip.sb/ip)
-    if [[ ! "$IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        IP=$(curl -s https://api.ipify.org)
-    fi
-    if [[ ! "$IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        IP=$(hostname -I | awk '{print $1}')
-    fi
-    echo "$IP"
+    for api in \
+        "https://api.ip.sb/ip" \
+        "https://api.ipify.org" \
+        "https://ifconfig.me" \
+        "https://icanhazip.com"
+    do
+        IP=$(curl -s --max-time 5 "$api")
+        if [[ "$IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "$IP"
+            return 0
+        fi
+    done
+
+    echo "获取公网IP失败"
+    return 1
 }
 
 # ================== 暂停并返回菜单 ==================
@@ -41,22 +51,32 @@ check_port() {
         fi
         read -p "请输入新的端口号: " PORT
     done
+    echo "$PORT" > "$PORT_FILE"
+}
+
+# ================== 加载端口配置 ==================
+load_port() {
+    if [ -f "$PORT_FILE" ]; then
+        PORT=$(cat "$PORT_FILE")
+    else
+        read -p "请输入 WebSSH 映射端口 (默认 8888): " PORT
+        PORT=${PORT:-8888}
+        check_port
+    fi
 }
 
 # ================== 菜单函数 ==================
 show_menu() {
     clear
     echo -e "${CYAN}================== WebSSH Docker 管理 ==================${RESET}"
-    echo -e "${GREEN}01. 安装并运行 WebSSH${RESET}"
-    echo -e "${GREEN}02. 停止 WebSSH ${RESET}"
-    echo -e "${GREEN}03. 启动 WebSSH 容器${RESET}"
-    echo -e "${GREEN}04. 重启 WebSSH 容器${RESET}"
-    echo -e "${GREEN}05. 查看 WebSSH 容器状态${RESET}"
-    echo -e "${GREEN}06. 查看 WebSSH 日志${RESET}"
-    echo -e "${GREEN}07. 更新 WebSSH 镜像并重启${RESET}"
-    echo -e "${GREEN}08. 删除 WebSSH 容器${RESET}"
-    echo -e "${GREEN}09. 仅卸载 WebSSH（保留 Docker）${RESET}"
-    echo -e "${GREEN}10. 设置菜单开机自启${RESET}"
+    echo -e "${GREEN}01. 安装 WebSSH${RESET}"
+    echo -e "${GREEN}02. 停止 WebSSH${RESET}"
+    echo -e "${GREEN}03. 启动 WebSSH容器${RESET}"
+    echo -e "${GREEN}04. 重启 WebSSH容器${RESET}"
+    echo -e "${GREEN}05. 查看 WebSSH容器状态${RESET}"
+    echo -e "${GREEN}06. 查看 WebSSH日志${RESET}"
+    echo -e "${GREEN}07. 更新 WebSSH${RESET}"
+    echo -e "${GREEN}08. 卸载 WebSSH${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
     echo -e "${CYAN}=======================================================${RESET}"
     read -p "请输入操作编号: " choice
@@ -68,9 +88,7 @@ show_menu() {
         5) status_container ;;
         6) logs_container ;;
         7) update_container ;;
-        8) remove_container ;;
-        9) remove_webssh_only ;;
-        10) enable_autostart ;;
+        8) uninstall_all ;;
         0) exit 0 ;;
         *) echo -e "${RED}输入错误，请重新选择！${RESET}"; sleep 2; show_menu ;;
     esac
@@ -78,6 +96,7 @@ show_menu() {
 
 # ================== 功能函数 ==================
 install_run() {
+    load_port
     check_port
 
     if ! command -v docker &>/dev/null; then
@@ -133,7 +152,7 @@ logs_container() {
 }
 
 update_container() {
-    check_port
+    load_port
     echo -e "${YELLOW}正在拉取最新镜像...${RESET}"
     docker pull $IMAGE_NAME
     if docker ps -a | grep -q $CONTAINER_NAME; then
@@ -146,58 +165,11 @@ update_container() {
     pause
 }
 
-remove_container() {
-    docker rm -f $CONTAINER_NAME
-    echo -e "${GREEN}WebSSH 容器已删除${RESET}"
-    pause
-}
 
-# ================== 仅卸载 WebSSH（保留 Docker） ==================
-remove_webssh_only() {
-    echo -e "${YELLOW}正在删除 WebSSH 容器和镜像...${RESET}"
-    if docker ps -a | grep -q $CONTAINER_NAME; then
-        docker rm -f $CONTAINER_NAME
-        echo -e "${GREEN}WebSSH 容器已删除${RESET}"
-    else
-        echo -e "${YELLOW}未检测到 WebSSH 容器${RESET}"
-    fi
-
-    if docker images | grep -q $(echo $IMAGE_NAME | awk -F':' '{print $1}'); then
-        docker rmi -f $IMAGE_NAME
-        echo -e "${GREEN}WebSSH 镜像已删除${RESET}"
-    else
-        echo -e "${YELLOW}未检测到 WebSSH 镜像${RESET}"
-    fi
-    pause
-}
-
-enable_autostart() {
-    SCRIPT_PATH="$(readlink -f "$0")"
-    SERVICE_FILE="/etc/systemd/system/webssh_menu.service"
-
-    echo -e "${YELLOW}正在创建 systemd 服务文件...${RESET}"
-    sudo bash -c "cat > $SERVICE_FILE <<EOF
-[Unit]
-Description=WebSSH Docker 菜单管理器
-After=network.target docker.service
-Requires=docker.service
-
-[Service]
-Type=simple
-ExecStart=$SCRIPT_PATH
-Restart=always
-User=$(whoami)
-WorkingDirectory=$(dirname "$SCRIPT_PATH")
-
-[Install]
-WantedBy=multi-user.target
-EOF"
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable webssh_menu.service
-    sudo systemctl start webssh_menu.service
-
-    echo -e "${GREEN}菜单已设置开机自启${RESET}"
+uninstall_all() {
+    docker rm -f $CONTAINER_NAME &>/dev/null
+    rm -rf "$WORKDIR"
+    echo -e "${GREEN}WebSSH 已彻底卸载，所有数据已删除${RESET}"
     pause
 }
 
@@ -206,3 +178,4 @@ while true
 do
     show_menu
 done
+```
