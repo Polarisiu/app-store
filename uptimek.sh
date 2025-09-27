@@ -1,16 +1,18 @@
 #!/bin/bash
 # =========================================
 # Uptime Kuma 一键管理脚本
-# 支持安装 / 更新 / 重启 / 停止 / 卸载 / 查看日志
 # =========================================
 
 APP_NAME="uptime-kuma"
 IMAGE_NAME="louislam/uptime-kuma:1"
-VOLUME_NAME="uptime-kuma"
-CONFIG_FILE="./uptime-kuma.conf"
+WORK_DIR="$HOME/uptime-kuma"
+CONFIG_FILE="$WORK_DIR/uptime-kuma.conf"
+DATA_DIR="$WORK_DIR/data"
 
 GREEN="\033[32m"
 RESET="\033[0m"
+
+mkdir -p "$WORK_DIR" "$DATA_DIR"
 
 # 获取公网 IP
 function get_ip() {
@@ -25,7 +27,7 @@ else
 fi
 
 function save_config() {
-    echo "PORT=$PORT" > $CONFIG_FILE
+    echo "PORT=$PORT" > "$CONFIG_FILE"
 }
 
 function install_app() {
@@ -39,11 +41,11 @@ function install_app() {
     docker run -d \
         --name=$APP_NAME \
         --restart=unless-stopped \
-        -p $PORT:3001 \
-        -v $VOLUME_NAME:/app/data \
+        -p 127.0.0.1:$PORT:3001 \
+        -v $DATA_DIR:/app/data \
         $IMAGE_NAME
     IP=$(get_ip)
-    echo -e "${GREEN}安装完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}安装完成！访问: http://127.0.0.1:$PORT${RESET}"
 }
 
 function update_app() {
@@ -53,18 +55,18 @@ function update_app() {
     docker run -d \
         --name=$APP_NAME \
         --restart=unless-stopped \
-        -p $PORT:3001 \
-        -v $VOLUME_NAME:/app/data \
+        -p 127.0.0.1:$PORT:3001 \
+        -v $DATA_DIR:/app/data \
         $IMAGE_NAME
     IP=$(get_ip)
-    echo -e "${GREEN}更新完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}更新完成！访问: http://127.0.0.1:$PORT${RESET}"
 }
 
 function restart_app() {
     echo -e "${GREEN}正在重启 ${APP_NAME}...${RESET}"
     docker restart $APP_NAME
     IP=$(get_ip)
-    echo -e "${GREEN}重启完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}重启完成${RESET}"
 }
 
 function stop_app() {
@@ -76,14 +78,13 @@ function stop_app() {
 function uninstall_app() {
     echo -e "${GREEN}正在彻底卸载 ${APP_NAME} (包括数据)...${RESET}"
     docker rm -f $APP_NAME 2>/dev/null
-    docker volume rm -f $VOLUME_NAME 2>/dev/null
-    rm -f $CONFIG_FILE
-    echo -e "${GREEN}已彻底卸载 ${APP_NAME}，数据卷和配置文件也已删除${RESET}"
+    rm -rf "$WORK_DIR"
+    echo -e "${GREEN}已彻底卸载 ${APP_NAME}，数据和配置文件也已删除${RESET}"
 }
 
 function view_logs() {
     echo -e "${GREEN}正在查看 ${APP_NAME} 日志 (Ctrl+C 退出)...${RESET}"
-    docker logs -f $APP_NAME
+    docker logs -f --tail 100 $APP_NAME
 }
 
 while true; do
