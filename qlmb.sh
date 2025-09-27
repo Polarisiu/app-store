@@ -7,6 +7,11 @@ YELLOW="\033[33m"
 RED="\033[31m"
 RESET="\033[0m"
 
+# ================== 配置 ==================
+QL_DIR="$PWD/ql"
+DATA_DIR="$QL_DIR/data"
+PORT_FILE="$QL_DIR/ql_port.conf"
+
 # ================== 获取公网 IP ==================
 get_public_ip() {
     PUBLIC_IP=$(curl -s https://ifconfig.me)
@@ -27,7 +32,8 @@ deploy_qinglong() {
     read -rp "请输入 QingLong 部署端口 (默认 5700): " QL_PORT
     QL_PORT=${QL_PORT:-5700}
 
-    mkdir -p "$PWD/ql/data"
+    mkdir -p "$DATA_DIR"
+    echo "$QL_PORT" > "$PORT_FILE"   # 保存端口
 
     echo -e "${GREEN}拉取 QingLong 镜像...${RESET}"
     docker pull whyour/qinglong:latest
@@ -39,7 +45,7 @@ deploy_qinglong() {
     fi
 
     docker run -dit \
-        -v "$PWD/ql/data:/ql/data" \
+        -v "$DATA_DIR:/ql/data" \
         -p "${QL_PORT}:${QL_PORT}" \
         -e QlBaseUrl="/" \
         -e QlPort="${QL_PORT}" \
@@ -51,7 +57,18 @@ deploy_qinglong() {
     PUBLIC_IP=$(get_public_ip)
     echo -e "${GREEN}QingLong 已成功启动，访问地址: http://${PUBLIC_IP}:${QL_PORT}${RESET}"
 }
+
+# ================== 更新 QingLong ==================
 update_qinglong() {
+    if [[ -f "$PORT_FILE" ]]; then
+        QL_PORT=$(cat "$PORT_FILE")
+        echo -e "${GREEN}检测到原来的端口: $QL_PORT${RESET}"
+    else
+        read -rp "请输入容器端口 (默认 5700): " QL_PORT
+        QL_PORT=${QL_PORT:-5700}
+        echo "$QL_PORT" > "$PORT_FILE"
+    fi
+
     echo -e "${GREEN}>>> 拉取最新 QingLong 镜像...${RESET}"
     docker pull whyour/qinglong:latest
 
@@ -62,7 +79,7 @@ update_qinglong() {
     fi
 
     docker run -dit \
-        -v "$PWD/ql/data:/ql/data" \
+        -v "$DATA_DIR:/ql/data" \
         -p "${QL_PORT}:${QL_PORT}" \
         -e QlBaseUrl="/" \
         -e QlPort="${QL_PORT}" \
@@ -75,7 +92,24 @@ update_qinglong() {
     echo -e "${GREEN}✅ QingLong 已更新并启动完成，访问地址: http://${PUBLIC_IP}:${QL_PORT}${RESET}"
 }
 
-# ================== 管理 QingLong ==================
+# ================== 卸载 QingLong 并删除数据 ==================
+uninstall_qinglong() {
+    read -rp "⚠️ 确定要卸载 QingLong 并删除所有数据吗？(y/n): " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        echo -e "${YELLOW}>>> 停止并删除容器...${RESET}"
+        docker stop qinglong 2>/dev/null || true
+        docker rm qinglong 2>/dev/null || true
+
+        echo -e "${YELLOW}>>> 删除数据目录...${RESET}"
+        rm -rf "$QL_DIR"
+
+        echo -e "${GREEN}✅ QingLong 已彻底卸载并清理完成${RESET}"
+    else
+        echo -e "${GREEN}已取消操作${RESET}"
+    fi
+}
+
+# ================== 管理菜单 ==================
 manage_qinglong() {
     while true; do
         echo -e "${GREEN}=== QingLong 管理菜单 ===${RESET}"
@@ -85,48 +119,22 @@ manage_qinglong() {
         echo -e "${GREEN}4. 停止容器${RESET}"
         echo -e "${GREEN}5. 重启容器${RESET}"
         echo -e "${GREEN}6. 查看日志${RESET}"
-        echo -e "${GREEN}7. 删除容器${RESET}"
-        echo -e "${GREEN}8. 更新镜像并重启${RESET}"
+        echo -e "${GREEN}7. 更新${RESET}"
+        echo -e "${GREEN}8. 卸载并删除所有数据${RESET}"
         echo -e "${GREEN}0. 退出${RESET}"
 
         read -rp "请选择操作: " choice
         case "$choice" in
-            1)
-                deploy_qinglong
-                ;;
-            2)
-                docker ps -a | grep qinglong || echo -e "${GREEN}未找到 QingLong 容器${RESET}"
-                ;;
-            3)
-                docker start qinglong
-                ;;
-            4)
-                docker stop qinglong
-                ;;
-            5)
-                docker restart qinglong
-                ;;
-            6)
-                docker logs -f qinglong
-                ;;
-            7)
-                read -rp "确定要删除 QingLong 容器吗? (y/n): " confirm
-                if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-                    docker stop qinglong
-                    docker rm qinglong
-                fi
-                ;;
-            8)
-                read -rp "请输入容器端口 (默认 $QL_PORT): " QL_PORT
-                QL_PORT=${QL_PORT:-5700}
-                update_qinglong  
-                ;;
-            0)
-                break
-                ;;
-            *)
-                echo -e "${RED}无效选项${RESET}"
-                ;;
+            1) deploy_qinglong ;;
+            2) docker ps -a | grep qinglong || echo -e "${GREEN}未找到 QingLong 容器${RESET}" ;;
+            3) docker start qinglong ;;
+            4) docker stop qinglong ;;
+            5) docker restart qinglong ;;
+            6) docker logs -f qinglong ;;
+            7) update_qinglong ;;
+            8) uninstall_qinglong ;;
+            0) break ;;
+            *) echo -e "${RED}无效选项${RESET}" ;;
         esac
         echo
     done
@@ -134,3 +142,4 @@ manage_qinglong() {
 
 # ================== 执行 ==================
 manage_qinglong
+```
