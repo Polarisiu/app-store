@@ -123,7 +123,7 @@ while true; do
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}5) 删除容器${RESET}"
     echo -e "${GREEN}6) 编辑配置${RESET}"
-    echo -e "${GREEN}7) 更新镜像并重建容器${RESET}"
+    echo -e "${GREEN}7) 更新${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -rp "请选择操作: " choice
 
