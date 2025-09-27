@@ -214,10 +214,8 @@ while true; do
     echo -e "${GREEN}4.  查看日志${RESET}"
     echo -e "${GREEN}5.  编辑配置文件 (config.toml)${RESET}"
     echo -e "${GREEN}6.  删除容器${RESET}"
-    echo -e "${GREEN}7.  修改挂载目录${RESET}"
-    echo -e "${GREEN}8.  添加 Telegram 用户${RESET}"
-    echo -e "${GREEN}9.  更新容器${RESET}"
-    echo -e "${GREEN}10. 卸载并删除所有数据${RESET}"
+    echo -e "${GREEN}7.  更新容器${RESET}"
+    echo -e "${GREEN}8.  卸载并删除所有数据${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
     echo -e "${GREEN}=================================${RESET}"
     read -p "请选择操作: " choice
@@ -228,10 +226,8 @@ while true; do
         4) logs_bot ;;
         5) edit_config ;;
         6) remove_bot ;;
-        7) set_mount_path ;;
-        8) add_users ;;
-        9) update_bot ;;
-       10) uninstall_bot ;;
+        7) update_bot ;;
+        8) uninstall_bot ;;
         0) exit 0 ;;
         *) echo -e "${GREEN}无效选项${RESET}" ;;
     esac
