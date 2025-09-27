@@ -32,7 +32,7 @@ create_2fauth_dir() {
 set_app_url_and_port() {
     read -rp "$(echo -e "${GREEN}请输入访问端口 (默认 $DEFAULT_PORT): ${RESET}")" PORT
     PORT=${PORT:-$DEFAULT_PORT}
-    read -rp "$(echo -e "${GREEN}请输入 APP_URL (例如 http://192.168.1.10:$PORT): ${RESET}")" APP_URL
+    read -rp "$(echo -e "${GREEN}请输入 APP_URL (例如 https://vvcwa.vvmn.me): ${RESET}")" APP_URL
     APP_URL=${APP_URL:-"http://127.0.0.1:$PORT"}
     echo "$APP_URL" > "$APP_URL_FILE"
     echo "$PORT" > "$PORT_FILE"
