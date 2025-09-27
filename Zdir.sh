@@ -1,127 +1,90 @@
 #!/bin/bash
-set -e
+# ========================================
+# ZDir 一键管理脚本
+# ========================================
 
-# ================== 配置 ==================
-IMAGE="helloz/zdir"
-CONTAINER="zdir"
-DEFAULT_PORT=6080
-DATA_DIR="/opt/zdir/data"
-PUBLIC_DIR="/data/public"
-PRIVATE_DIR="/data/private"
-
-# ================== 颜色 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
+APP_NAME="zdir"
+COMPOSE_DIR="/opt/zdir"
+COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
-# ================== 公共函数 ==================
-get_ip() {
-    ip addr show | awk '/inet / && !/127.0.0.1/ {print $2}' | cut -d/ -f1 | head -n1
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "your-ip"
 }
 
-# ================== 功能函数 ==================
-install() {
-    read -p "请输入映射端口(默认:${DEFAULT_PORT}): " port
-    port=${port:-$DEFAULT_PORT}
-
-    echo -e "${GREEN}>>> 正在部署 zdir 容器，端口: ${port}${RESET}"
-    docker run -d --name $CONTAINER \
-        -v ${DATA_DIR}:/opt/zdir/data \
-        -v ${PUBLIC_DIR}:/opt/zdir/data/public \
-        -v ${PRIVATE_DIR}:/opt/zdir/data/private \
-        -p ${port}:6080 \
-        --restart=always \
-        $IMAGE
-
-    local ip=$(get_ip)
-    echo -e "${GREEN}zdir 已部署完成，访问: http://${ip}:${port}${RESET}"
-}
-
-start() {
-    docker start $CONTAINER && echo -e "${GREEN}zdir 已启动${RESET}"
-}
-
-stop() {
-    docker stop $CONTAINER && echo -e "${GREEN}zdir 已停止${RESET}"
-}
-
-restart() {
-    docker restart $CONTAINER && echo -e "${GREEN}zdir 已重启${RESET}"
-}
-
-status() {
-    docker ps -a | grep $CONTAINER || echo -e "${GREEN}容器不存在${RESET}"
-}
-
-logs() {
-    docker logs -f $CONTAINER
-}
-
-enter() {
-    docker exec -it $CONTAINER /bin/sh
-}
-
-remove() {
-    echo -e "${GREEN}!!! 删除操作 !!!${RESET}"
-    read -p "是否删除容器和全部数据？(y=删除容器+数据 / n=只删除容器): " c
-    if [ "$c" = "y" ]; then
-        docker rm -f $CONTAINER 2>/dev/null || true
-        rm -rf ${DATA_DIR} ${PUBLIC_DIR} ${PRIVATE_DIR}
-        echo -e "${GREEN}zdir 容器和全部数据已删除${RESET}"
-    else
-        docker rm -f $CONTAINER 2>/dev/null || true
-        echo -e "${GREEN}zdir 容器已删除，数据已保留${RESET}"
-    fi
-}
-
-update() {
-    echo -e "${GREEN}>>> 拉取最新 zdir 镜像...${RESET}"
-    docker pull $IMAGE
-
-    echo -e "${GREEN}>>> 删除旧容器...${RESET}"
-    docker rm -f $CONTAINER 2>/dev/null || true
-
-    echo -e "${GREEN}>>> 使用新镜像重新创建容器...${RESET}"
-    docker run -d --name $CONTAINER \
-        -v ${DATA_DIR}:/opt/zdir/data \
-        -v ${PUBLIC_DIR}:/opt/zdir/data/public \
-        -v ${PRIVATE_DIR}:/opt/zdir/data/private \
-        -p ${DEFAULT_PORT}:6080 \
-        --restart=always \
-        $IMAGE
-
-    echo -e "${GREEN}zdir 已更新完成${RESET}"
-}
-
-
-# ================== 菜单 ==================
-menu() {
-    echo -e "${GREEN}========= Zdir 容器管理 =========${RESET}"
-    echo -e "${GREEN}1. 部署 Zdir${RESET}"
-    echo -e "${GREEN}2. 启动${RESET}"
-    echo -e "${GREEN}3. 停止${RESET}"
-    echo -e "${GREEN}4. 重启${RESET}"
-    echo -e "${GREEN}5. 查看状态${RESET}"
-    echo -e "${GREEN}6. 查看日志${RESET}"
-    echo -e "${GREEN}7. 进入容器${RESET}"
-    echo -e "${GREEN}8. 删除容器${RESET}"
-    echo -e "${GREEN}9. 更新容器${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "================================"
-    read -p "请输入选项: " opt
-    case $opt in
-        1) install ;;
-        2) start ;;
-        3) stop ;;
-        4) restart ;;
-        5) status ;;
-        6) logs ;;
-        7) enter ;;
-        8) remove ;;
-        9) update ;;
+function menu() {
+    clear
+    echo -e "${GREEN}=== ZDir 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo "无效选项" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-    sleep 2
+}
+
+function install_app() {
+    read -p "请输入访问端口 [默认:6080]: " input_port
+    PORT=${input_port:-6080}
+
+    mkdir -p "$COMPOSE_DIR/data" "$COMPOSE_DIR/data/public" "$COMPOSE_DIR/data/private"
+
+    cat > "$COMPOSE_FILE" <<EOF
+version: '3.3'
+
+services:
+    zdir:
+        container_name: zdir
+        privileged: true
+        image: helloz/zdir:4
+        restart: always
+        ports:
+            - '${PORT}:6080'
+        volumes:
+            - '${COMPOSE_DIR}/data:/opt/zdir/data'
+            - '${COMPOSE_DIR}/data/public:/opt/zdir/data/public'
+            - '${COMPOSE_DIR}/data/private:/opt/zdir/data/private'
+EOF
+
+    cd "$COMPOSE_DIR"
+    docker compose up -d
+    echo -e "${GREEN}✅ ZDir 已启动，访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $COMPOSE_DIR/data${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$COMPOSE_DIR" || exit
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ ZDir 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$COMPOSE_DIR" || exit
+    docker compose down -v
+    rm -rf "$COMPOSE_DIR"
+    echo -e "${GREEN}✅ ZDir 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f zdir
+    read -p "按回车返回菜单..."
     menu
 }
 
