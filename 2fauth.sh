@@ -1,132 +1,126 @@
 #!/bin/bash
+# ========================================
+# 2FAuth 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================== 颜色定义 ==================
 GREEN="\033[32m"
-YELLOW="\033[33m"
-RED="\033[31m"
 RESET="\033[0m"
+APP_NAME="2fauth"
+APP_DIR="/opt/$APP_NAME"
+DATA_DIR="$APP_DIR/data"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-APP_URL_FILE=".app_url"
-PORT_FILE=".port"
-DOCKER_COMPOSE_FILE="docker-compose.yml"
-DEFAULT_PORT=8000
-DEFAULT_IMAGE="2fauth/2fauth:latest"
-
-# ================== 工具函数 ==================
-check_prerequisites() {
-    command -v docker >/dev/null 2>&1 || { echo -e "${RED}Docker 未安装，请先安装 Docker${RESET}"; exit 1; }
-    command -v docker-compose >/dev/null 2>&1 || { echo -e "${RED}Docker Compose 未安装，请先安装${RESET}"; exit 1; }
+get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || hostname -I | awk '{print $1}' || echo "127.0.0.1"
 }
 
-create_2fauth_dir() {
-    if [ ! -d "2fauth" ]; then
-        mkdir 2fauth
-        chown 1000:1000 2fauth
-        chmod 700 2fauth
-        echo -e "${GREEN}2fauth 目录已创建并设置权限${RESET}"
-    else
-        echo -e "${YELLOW}2fauth 目录已存在，跳过创建${RESET}"
-    fi
+# ----------------- 菜单 -----------------
+function menu() {
+    clear
+    echo -e "${GREEN}=== 2FAuth 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo "无效选择"; sleep 1; menu ;;
+    esac
 }
 
-set_app_url_and_port() {
-    read -rp "$(echo -e "${GREEN}请输入访问端口 (默认 $DEFAULT_PORT): ${RESET}")" PORT
-    PORT=${PORT:-$DEFAULT_PORT}
-    read -rp "$(echo -e "${GREEN}请输入 APP_URL (例如 https://vvcwa.vvmn.me): ${RESET}")" APP_URL
-    APP_URL=${APP_URL:-"http://127.0.0.1:$PORT"}
-    echo "$APP_URL" > "$APP_URL_FILE"
-    echo "$PORT" > "$PORT_FILE"
-    echo -e "${GREEN}APP_URL 已保存: $APP_URL${RESET}"
-}
+# ----------------- 安装 -----------------
+function install_app() {
+    read -p "请输入 Web 端口 [默认:8120]: " input_port
+    PORT=${input_port:-8120}
 
-set_image_arch() {
-    read -rp "$(echo -e "${GREEN}请输入镜像版本/架构 (默认 $DEFAULT_IMAGE): ${RESET}")" IMAGE
-    IMAGE=${IMAGE:-$DEFAULT_IMAGE}
-    echo "$IMAGE" > ".image"
-}
+    read -p "请输入 APP_KEY [默认:随机生成]: " input_key
+    APP_KEY=${input_key:-$(openssl rand -hex 16)}
 
-generate_compose_file() {
-    if [ -f "$APP_URL_FILE" ] && [ -f "$PORT_FILE" ] && [ -f ".image" ]; then
-        APP_URL=$(cat "$APP_URL_FILE")
-        PORT=$(cat "$PORT_FILE")
-        IMAGE=$(cat ".image")
-    else
-        echo -e "${RED}未设置 APP_URL、端口或镜像，请先设置${RESET}"
-        return
-    fi
+    read -p "请输入 APP_URL [例如:https://2fa.gugu.ovh]: " input_url
+    APP_URL=${input_url:-https://2fa.gugu.ovh}
 
-    cat > $DOCKER_COMPOSE_FILE <<EOF
+    # 创建数据目录并设置权限，避免 permission denied
+    mkdir -p "$DATA_DIR"
+    chown -R 1000:1000 "$DATA_DIR"
+    chmod -R 755 "$DATA_DIR"
+
+    cat > "$COMPOSE_FILE" <<EOF
 services:
   2fauth:
-    image: $IMAGE
+    image: 2fauth/2fauth
     container_name: 2fauth
     volumes:
-      - ./2fauth:/2fauth
+      - $DATA_DIR:/2fauth
     ports:
-      - ${PORT}:8000/tcp
+      - "127.0.0.1:$PORT:8000"
     environment:
+      - APP_NAME=2FAuth
+      - APP_KEY=$APP_KEY
       - APP_URL=$APP_URL
+      - IS_DEMO_APP=false
+      - LOG_CHANNEL=daily
+      - LOG_LEVEL=notice
+      - DB_DATABASE="/2fauth/database.sqlite"
+      - CACHE_DRIVER=file
+      - SESSION_DRIVER=file
+      - AUTHENTICATION_GUARD=web-guard
+    restart: unless-stopped
 EOF
 
-    echo -e "${GREEN}docker-compose.yml 已生成${RESET}"
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+    echo "APP_KEY=$APP_KEY" >> "$CONFIG_FILE"
+    echo "APP_URL=$APP_URL" >> "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ 2FAuth 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $DATA_DIR${RESET}"
+    echo -e "${GREEN}🔑 APP_KEY: $APP_KEY${RESET}"
+    echo -e "${GREEN}🔗 APP_URL: $APP_URL${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-install_service() {
-    create_2fauth_dir
-    set_app_url_and_port
-    set_image_arch
-    generate_compose_file
-    docker-compose up -d
-    echo -e "${GREEN}2fauth 安装并启动完成，访问: $(cat $APP_URL_FILE)${RESET}"
+# ----------------- 更新 -----------------
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ 2FAuth 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-# 其余功能（更新/卸载/日志）保持不变
-
-
-update_service() {
-    echo -e "${GREEN}拉取最新镜像并重启服务...${RESET}"
-    docker-compose pull
-    docker-compose up -d
-    echo -e "${GREEN}更新完成${RESET}"
-}
-
-uninstall_service() {
-    docker-compose down
-    echo -e "${YELLOW}容器已停止${RESET}"
-    read -rp "$(echo -e "${GREEN}是否删除数据目录和配置文件？(y/n): ${RESET}")" confirm
-    if [[ $confirm =~ ^[Yy]$ ]]; then
-        rm -rf 2fauth docker-compose.yml $APP_URL_FILE $PORT_FILE
-        echo -e "${YELLOW}已删除数据和配置文件${RESET}"
+# ----------------- 卸载 -----------------
+function uninstall_app() {
+    read -p "⚠️ 确认要卸载 $APP_NAME 吗？（这将删除所有数据）（y/N): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        docker compose down -v
+        rm -rf "$APP_DIR"
+        echo -e "${GREEN}✅ 2FAuth 已卸载，数据已删除${RESET}"
+    else
+        echo "❌ 已取消"
     fi
+    read -p "按回车返回菜单..."
+    menu
 }
 
-view_logs() {
-    docker-compose logs -f
+# ----------------- 查看日志 -----------------
+function view_logs() {
+    docker logs -f 2fauth
+    read -p "按回车返回菜单..."
+    menu
 }
 
-show_menu() {
-    clear
-    echo -e "${GREEN}==== 2fauth Docker 管理脚本 ====${RESET}"
-    echo -e "${GREEN}1) 安装部署${RESET}"
-    echo -e "${GREEN}2) 更新服务${RESET}"
-    echo -e "${GREEN}3) 卸载服务${RESET}"
-    echo -e "${GREEN}4) 查看日志${RESET}"
-    echo -e "${GREEN}5) 退出${RESET}"
-    echo -e "${GREEN}==================================${RESET}"
-}
-
-# ================== 主循环 ==================
-check_prerequisites
-
-while true; do
-    show_menu
-    read -rp "$(echo -e "${GREEN}请选择操作: ${RESET}")" choice
-    case $choice in
-        1) install_service; read -rp "$(echo -e "${GREEN}按回车返回菜单...${RESET}")" ;;
-        2) update_service; read -rp "$(echo -e "${GREEN}按回车返回菜单...${RESET}")" ;;
-        3) uninstall_service; read -rp "$(echo -e "${GREEN}按回车返回菜单...${RESET}")" ;;
-        4) view_logs ;;
-        5) echo -e "${GREEN}退出${RESET}"; exit 0 ;;
-        *) echo -e "${RED}无效选择${RESET}"; read -rp "$(echo -e "${GREEN}按回车返回菜单...${RESET}")" ;;
-    esac
-done
+# ----------------- 启动菜单 -----------------
+menu
