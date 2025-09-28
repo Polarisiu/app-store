@@ -13,7 +13,7 @@ RESET="\033[0m"
 # ========== 设置变量 ==========
 APP_NAME="vps-value-calculator"
 REPO_URL="https://github.com/podcctv/vps-value-calculator.git"
-APP_DIR="$HOME/$APP_NAME"
+APP_DIR="/opt/$APP_NAME"
 
 # ========== 检查 Docker ==========
 check_docker() {
