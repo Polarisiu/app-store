@@ -7,18 +7,18 @@ RESET="\033[0m"
 APP_NAME="vue-color-avatar"
 IMAGE_NAME="vue-color-avatar:latest"
 DEFAULT_PORT=3000
-BASE_DIR="$HOME/vue-color-avatar"
+BASE_DIR="/opt/vue-color-avatar"
 PORT=$DEFAULT_PORT  # 默认端口，可在安装时修改
 
 show_menu() {
     echo -e "${GREEN}=== vue-color-avatar 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装并启动服务${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 停止服务${RESET}"
     echo -e "${GREEN}3) 启动服务${RESET}"
     echo -e "${GREEN}4) 重启服务${RESET}"
     echo -e "${GREEN}5) 更新服务${RESET}"
     echo -e "${GREEN}6) 查看日志${RESET}"
-    echo -e "${GREEN}7) 卸载服务（含镜像）${RESET}"
+    echo -e "${GREEN}7) 卸载服务${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo -e "${GREEN}===============================${RESET}"
     read -p "请选择: " choice
@@ -38,11 +38,11 @@ install_app() {
     docker build -t $IMAGE_NAME .
 
     # 启动容器
-    docker run -d -p "${PORT}:80" --name $APP_NAME $IMAGE_NAME
+    docker run -d -p "127.0.0.1:$PORT:80" --name $APP_NAME $IMAGE_NAME
 
     echo -e "✅ ${GREEN}vue-color-avatar 已安装并启动${RESET}"
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://$ip:${PORT}${RESET}"
+    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
 }
 
 stop_app() {
@@ -76,10 +76,10 @@ update_app() {
     docker build -t $IMAGE_NAME .
 
     # 启动新容器
-    docker run -d -p "${PORT}:80" --name $APP_NAME $IMAGE_NAME
+    docker run -d -p "127.0.0.1:$PORT:80" --name $APP_NAME $IMAGE_NAME
     echo -e "⬆️ ${GREEN}vue-color-avatar 已更新并重启${RESET}"
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://$ip:${PORT}${RESET}"
+    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
 }
 
 logs_app() {
