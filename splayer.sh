@@ -8,7 +8,7 @@ RESET="\033[0m"
 APP_NAME="SPlayer"
 CONTAINER_NAME="SPlayer"
 DEFAULT_PORT=25884
-DEFAULT_DATA_DIR="$HOME/SPlayer/data"
+DEFAULT_DATA_DIR="/opt/SPlayer/data"
 CONFIG_FILE="$HOME/SPlayer/splayer.conf"
 
 function get_ip() {
