@@ -2,7 +2,7 @@
 # Send 管理脚本 (绿色菜单版，含Redis，自定义文件大小)
 
 SERVICE_NAME="send"
-INSTALL_DIR="/opt/$SERVICE_NAME"
+INSTALL_DIR="/root/$SERVICE_NAME"
 COMPOSE_FILE="$INSTALL_DIR/docker-compose.yml"
 
 # 颜色
@@ -24,7 +24,7 @@ install() {
     mkdir -p "$INSTALL_DIR/uploads"
 
     cat > $COMPOSE_FILE <<EOF
-version: "3.8"
+
 
 services:
   send:
@@ -33,7 +33,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "$PORT:1443"
+      - "127.0.0.1:$PORT:1443"
     environment:
       - NODE_ENV=production
       - PORT=1443
