@@ -21,7 +21,6 @@ install() {
     mkdir -p "$INSTALL_DIR/config"
 
     cat > $COMPOSE_FILE <<EOF
-version: "3.8"
 
 services:
   pairdrop:
@@ -37,7 +36,7 @@ services:
       - RTC_CONFIG=false
       - DEBUG_MODE=false
     ports:
-      - "$PORT:3000"
+      - "127.0.0.1:$PORT:3000"
     volumes:
       - ./config:/config
 EOF
@@ -51,7 +50,7 @@ EOF
         IP=$(hostname -I | awk '{print $1}')
     fi
 
-    echo -e "${GREEN}>>> Pairdrop 服务已安装并运行在: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}>>> Pairdrop 服务已安装并运行在: http://127.0.0.1:$PORT${RESET}"
     read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
     menu
 }
