@@ -6,7 +6,7 @@ GREEN="\033[32m"
 RESET="\033[0m"
 
 # ================== 固定目录 ==================
-WORKDIR="$HOME/oneapi"
+WORKDIR="/opt/oneapi"
 COMPOSE_FILE="$WORKDIR/docker-compose.yml"
 BACKUP_DIR="$WORKDIR/backup"
 DATE=$(date +%Y%m%d_%H%M%S)
@@ -210,20 +210,20 @@ show_config() {
 menu() {
     clear
     echo -e "${GREEN}====== OneAPI 一键部署管理菜单 ======${RESET}"
-    echo -e "${GREEN}1. 部署并启动服务 (自定义端口/SESSION_SECRET)${RESET}"
-    echo -e "${GREEN}2. 启动服务${RESET}"
-    echo -e "${GREEN}3. 停止服务${RESET}"
-    echo -e "${GREEN}4. 重启服务${RESET}"
-    echo -e "${GREEN}5. 更新镜像并重启服务${RESET}"
-    echo -e "${GREEN}6. 查看 OneAPI 日志${RESET}"
-    echo -e "${GREEN}7. 查看 MySQL 日志${RESET}"
-    echo -e "${GREEN}8. 进入 OneAPI 容器${RESET}"
-    echo -e "${GREEN}9. 进入 MySQL 容器${RESET}"
+    echo -e "${GREEN}1.  部署并启动服务${RESET}"
+    echo -e "${GREEN}2.  启动服务${RESET}"
+    echo -e "${GREEN}3.  停止服务${RESET}"
+    echo -e "${GREEN}4.  重启服务${RESET}"
+    echo -e "${GREEN}5.  更新${RESET}"
+    echo -e "${GREEN}6.  查看 OneAPI日志${RESET}"
+    echo -e "${GREEN}7.  查看 MySQL日志${RESET}"
+    echo -e "${GREEN}8.  进入 OneAPI容器${RESET}"
+    echo -e "${GREEN}9.  进入 MySQL容器${RESET}"
     echo -e "${GREEN}10. 备份数据库${RESET}"
     echo -e "${GREEN}11. 恢复数据库${RESET}"
     echo -e "${GREEN}12. 删除所有容器和数据${RESET}"
     echo -e "${GREEN}13. 查看当前配置${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
+    echo -e "${GREEN}0.  退出${RESET}"
     echo "================================="
 }
 
