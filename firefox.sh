@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # ================== 颜色 ==================
 GREEN="\033[32m"
@@ -7,18 +8,17 @@ RESET="\033[0m"
 
 # ================== 变量 ==================
 SERVICE_NAME="firefox"
-COMPOSE_FILE="docker-compose.yaml"
-CONFIG_DIR=~/firefox
+INSTALL_DIR="/opt/firefox"
+COMPOSE_FILE="$INSTALL_DIR/docker-compose.yaml"
 
 # ================== 获取公网IP ==================
 get_ip() {
-  curl -s ifconfig.me || curl -s ipinfo.io/ip
+    curl -s ifconfig.me || curl -s ipinfo.io/ip
 }
 
 # ================== 生成 docker-compose.yaml ==================
 generate_compose() {
   cat > $COMPOSE_FILE <<EOF
-version: '3.8'
 
 services:
   ${SERVICE_NAME}:
@@ -37,10 +37,10 @@ services:
       CUSTOM_USER: "${CUSTOM_USER}"
       PASSWORD: "${PASSWORD}"
     ports:
-      - "${WEB_PORT}:3000"
-      - "${VNC_PORT}:3001"
+      - "127.0.0.1:${WEB_PORT}:3000"
+      - "127.0.0.1:${VNC_PORT}:3001"
     volumes:
-      - ${CONFIG_DIR}:/config
+      - ${INSTALL_DIR}/config:/config
     shm_size: 1gb
 EOF
 }
@@ -59,15 +59,15 @@ deploy() {
   read -p "请输入VNC端口 (默认3001): " VNC_PORT
   VNC_PORT=${VNC_PORT:-3001}
 
-  mkdir -p $CONFIG_DIR
+  mkdir -p "$INSTALL_DIR/config"
 
   generate_compose
 
   echo -e "${GREEN}生成 docker-compose.yaml 并启动容器...${RESET}"
-  docker compose up -d
+  docker compose -f $COMPOSE_FILE up -d
 
   echo -e "${GREEN}部署完成！${RESET}"
-  echo -e "${GREEN}Web访问: http://$(get_ip):${WEB_PORT}${RESET}"
+  echo -e "${GREEN}Web访问: http://127.0.0.1:${WEB_PORT}${RESET}"
   echo -e "${GREEN}VNC端口: ${VNC_PORT}${RESET}"
   echo -e "${GREEN}用户名: ${CUSTOM_USER}${RESET}"
   echo -e "${GREEN}密码: ${PASSWORD}${RESET}"
@@ -81,40 +81,40 @@ while true; do
   echo -e "${GREEN}1) 部署安装${RESET}"
   echo -e "${GREEN}2) 启动${RESET}"
   echo -e "${GREEN}3) 停止${RESET}"
-  echo -e "${GREEN}4) 删除 (包含配置)${RESET}"
+  echo -e "${GREEN}4) 删除（含数据）${RESET}"
   echo -e "${GREEN}5) 查看日志${RESET}"
   echo -e "${GREEN}6) 更新${RESET}"
-  echo -e "${GREEN}7) 退出${RESET}"
+  echo -e "${GREEN}0) 退出${RESET}"
   echo -e "${GREEN}==============================${RESET}"
 
-  read -p "请输入选项 [1-7]: " choice
+  read -p "请输入选项 : " choice
   case $choice in
     1)
       deploy
       ;;
     2)
-      docker compose start
+      docker compose -f $COMPOSE_FILE start
       echo -e "${GREEN}已启动${RESET}"
       ;;
     3)
-      docker compose stop
+      docker compose -f $COMPOSE_FILE stop
       echo -e "${GREEN}已停止${RESET}"
       ;;
     4)
-      docker compose down
-      rm -rf $CONFIG_DIR $COMPOSE_FILE
-      echo -e "${RED}Firefox 容器已删除${RESET}"
+      docker compose -f $COMPOSE_FILE down
+      rm -rf "$INSTALL_DIR"
+      echo -e "${RED}Firefox 容器及数据已删除${RESET}"
       ;;
     5)
-      docker compose logs -f
+      docker compose -f $COMPOSE_FILE logs -f
       ;;
     6)
       echo -e "${GREEN}开始更新 Firefox...${RESET}"
-      docker compose pull
-      docker compose up -d
+      docker compose -f $COMPOSE_FILE pull
+      docker compose -f $COMPOSE_FILE up -d
       echo -e "${GREEN}更新完成并已重启 Firefox${RESET}"
       ;;
-    7)
+    0)
       echo -e "${GREEN}退出脚本${RESET}"
       exit 0
       ;;
