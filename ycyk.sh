@@ -68,7 +68,7 @@ show_menu() {
         echo -e "${GREEN}2. 停止服务${RESET}"
         echo -e "${GREEN}3. 重启服务${RESET}"
         echo -e "${GREEN}4. 查看日志${RESET}"
-        echo -e "${GREEN}5. 更新服务（拉取最新镜像并重启）${RESET}"
+        echo -e "${GREEN}5. 更新服务${RESET}"
         echo -e "${GREEN}6. 卸载服务及数据${RESET}"
         echo -e "${GREEN}7. 查看状态（含 Redis/OPcache/数据库信息）${RESET}"
         echo -e "${GREEN}8. 退出${RESET}"
@@ -87,13 +87,12 @@ show_menu() {
 
                 # ===== 生成 docker-compose.yaml =====
                 cat > $INSTALL_DIR/docker-compose.yaml <<EOF
-version: "3.8"
 
 services:
   acgfaka:
     image: dapiaoliang666/acgfaka
     ports:
-      - "${WEB_PORT}:80"
+      - "127.0.0.1:$WEB_PORT:80"
     depends_on:
       - mysql
       - redis
@@ -127,8 +126,8 @@ EOF
                 cd $INSTALL_DIR
                 docker compose up -d
                 IP=$(curl -s ifconfig.me)
-                echo -e "${GREEN}网站访问地址: http://${IP}:${WEB_PORT}${RESET}"
-                echo -e "${GREEN}后台路径: http://${IP}:${WEB_PORT}/admin${RESET}"
+                echo -e "${GREEN}网站访问地址: http://127.0.0.1:$WEB_PORT${RESET}"
+                echo -e "${GREEN}后台路径: http://127.0.0.1:$WEB_PORT/admin${RESET}"
                 echo -e "${GREEN}数据库地址: mysql${RESET}"
                 echo -e "${GREEN}数据库名称: acgfakadb${RESET}"
                 echo -e "${GREEN}数据库账号: acgfakauser${RESET}"
