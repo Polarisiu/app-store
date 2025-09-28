@@ -1,6 +1,7 @@
 #!/bin/bash
 # ================== 一键部署/管理异次元发卡 ==================
 # 功能：Docker 部署 ACGFaka，带 MySQL、Redis、OPcache，加速
+# 安装路径: /opt/acgfaka
 # ================== 颜色 ==================
 GREEN="\033[32m"
 RED="\033[31m"
@@ -28,12 +29,12 @@ if ! command -v docker-compose >/dev/null 2>&1; then
 fi
 
 # ================== 配置路径 ==================
-INSTALL_DIR=~/acgfaka
+INSTALL_DIR=/opt/acgfaka
 mkdir -p $INSTALL_DIR/{mysql,acgfaka}
 
 # ================== 状态检测函数 ==================
 check_status() {
-    cd $INSTALL_DIR
+    cd $INSTALL_DIR || return
     echo -e "${GREEN}===== 当前服务状态 =====${RESET}"
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
@@ -75,7 +76,6 @@ show_menu() {
         read -p "请选择操作: " choice
         case $choice in
             1)
-                # ===== 输入配置（只在安装时执行） =====
                 read -p "请输入网站端口（默认 9000）: " WEB_PORT
                 WEB_PORT=${WEB_PORT:-9000}
 
@@ -85,12 +85,11 @@ show_menu() {
                 read -p "请输入 MySQL 数据库密码（默认 acgfakapassword）: " MYSQL_PASSWORD
                 MYSQL_PASSWORD=${MYSQL_PASSWORD:-acgfakapassword}
 
-                # ===== 生成 docker-compose.yaml =====
                 cat > $INSTALL_DIR/docker-compose.yaml <<EOF
-
 services:
   acgfaka:
     image: dapiaoliang666/acgfaka
+    container_name: acgfaka
     ports:
       - "127.0.0.1:$WEB_PORT:80"
     depends_on:
