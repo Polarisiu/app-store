@@ -8,31 +8,26 @@ RESET="\033[0m"
 BOLD="\033[1m"
 
 # ================== 脚本路径 ==================
-SCRIPT_PATH="$HOME/store.sh"
+BASE_DIR="/root/app-store"
+SCRIPT_PATH="$BASE_DIR/store.sh"
+SCRIPT_URL="https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
+BIN_LINK_DIR="/usr/local/bin"
+
+mkdir -p "$BASE_DIR"
 
 # ================== 首次运行自动保存 ==================
 if [ ! -f "$SCRIPT_PATH" ]; then
     echo -e "${YELLOW}首次运行，正在保存脚本到 $SCRIPT_PATH ...${RESET}"
-    curl -fsSL -o "$SCRIPT_PATH" "https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
+    curl -fsSL -o "$SCRIPT_PATH" "$SCRIPT_URL"
     chmod +x "$SCRIPT_PATH"
     echo -e "${GREEN}保存完成！${RESET}"
 fi
 
-# ================== 快捷键 d/D ==================
-added=false
-if ! grep -q "alias d=" ~/.bashrc; then
-    echo "alias d='bash $SCRIPT_PATH'" >> ~/.bashrc
-    added=true
-fi
-if ! grep -q "alias D=" ~/.bashrc; then
-    echo "alias D='bash $SCRIPT_PATH'" >> ~/.bashrc
-    added=true
-fi
-
-if [ "$added" = true ]; then
-    source ~/.bashrc 2>/dev/null || true
-    echo -e "${GREEN}已添加快捷键 D/d，重启终端或输入source ~/.bashrc可直接输入启动脚本！${RESET}"
-fi
+# ================== 快捷命令 d/D ==================
+for cmd in d D; do
+    ln -sf "$SCRIPT_PATH" "$BIN_LINK_DIR/$cmd"
+done
+echo -e "${GREEN}已创建全局命令 d/D，可直接输入启动脚本${RESET}"
 
 # ================== 一级菜单分类 ==================
 declare -A categories=(
@@ -53,7 +48,6 @@ declare -A apps=(
     [1,3]="Docker备份恢复"
     [1,4]="Docker容器迁移"
     [1,5]="NGINX反代"
-    [1,6]="Docker反代"
     [2,1]="Wallos订阅"
     [2,2]="Vaultwarden (密码管理)"
     [2,3]="2FBA"
@@ -96,15 +90,14 @@ declare -A apps=(
     [5,15]="metatube"
     [5,16]="navidrome"
     [5,17]="music-tag-web"
-    [5,18]="4GTV"
-    [5,19]="strm+302"
-    [5,20]="弹幕API"
-    [5,21]="music-player"
-    [5,22]="sehuatang-crawler"
+    [5,18]="strm+302"
+    [5,19]="弹幕API"
+    [5,20]="music-player"
+    [5,21]="磁力爬虫"
     [6,1]="Foxel图片管理"
     [6,2]="STB图床"
-    [6,3]="兰空图床(无MySQL)"
-    [6,4]="兰空图床(有MySQL)"
+    [6,3]="兰空图床(MySQL)"
+    [6,4]="兰空图床(远程MySQL)"
     [6,5]="图片API (兰空图床)"
     [6,6]="简单图床"
     [7,1]="ALLinSSL证书"
@@ -129,8 +122,7 @@ declare -A apps=(
     [7,20]="firefox浏览器"
     [8,1]="异次元商城"
     [8,2]="萌次元商城"
-    [8,3]="BEpusdt收款"
-    [8,4]="UPAYPRO"
+    [8,3]="UPAYPRO"
 )
 
 # ================== 二级菜单命令 ==================
@@ -140,7 +132,6 @@ declare -A commands=(
     [1,3]='curl -fsSL https://raw.githubusercontent.com/xymn2023/DMR/main/docker_back.sh -o docker_back.sh && chmod +x docker_back.sh && ./docker_back.sh'
     [1,4]='curl -O https://raw.githubusercontent.com/woniu336/open_shell/main/Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
     [1,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)'
-    [1,6]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/dockerss.sh)'
     [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
     [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
     [2,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/2fauth.sh)'
@@ -183,11 +174,10 @@ declare -A commands=(
     [5,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mata.sh)'
     [5,16]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/navidrome.sh)'
     [5,17]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/musictw.sh)'
-    [5,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/4gtv.sh)'
-    [5,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
-    [5,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
-    [5,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
-    [5,22]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/sehuatang.sh)'
+    [5,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
+    [5,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
+    [5,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
+    [5,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/sehuatang.sh)'
     [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
     [6,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
     [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lsky_menu.sh)'
@@ -216,13 +206,12 @@ declare -A commands=(
     [7,20]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/firefox.sh)'
     [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
     [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
-    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/BEpusdt.sh)'
-    [8,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
+    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
 )
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
-    printf '\033c'  # 替代 clear，避免闪屏
+    printf '\033c'
     echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${GREEN}${BOLD}         应用分类菜单${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
@@ -264,8 +253,6 @@ show_app_menu() {
 
     printf "${GREEN}[0 ] %-25s${RESET}\n" "返回上一级"
 }
-
-
 
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
@@ -326,22 +313,19 @@ app_menu_handler() {
 # ================== 脚本更新与卸载 ==================
 update_script() {
     echo -e "${YELLOW}正在更新脚本...${RESET}"
-    curl -fsSL -o "$SCRIPT_PATH" https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh
+    curl -fsSL -o "$SCRIPT_PATH" "$SCRIPT_URL"
     chmod +x "$SCRIPT_PATH"
+    for cmd in d D; do
+        ln -sf "$SCRIPT_PATH" "$BIN_LINK_DIR/$cmd"
+    done
     echo -e "${GREEN}更新完成! 可直接使用 D/d 启动脚本${RESET}"
 }
 
 uninstall_script() {
     echo -e "${YELLOW}正在卸载脚本...${RESET}"
     rm -f "$SCRIPT_PATH"
-
-    sed -i "/alias d='bash .*store.sh'/d" ~/.bashrc
-    sed -i "/alias D='bash .*store.sh'/d" ~/.bashrc
-    sed -i "/alias d='bash .*store.sh'/d" ~/.zshrc 2>/dev/null || true
-    sed -i "/alias D='bash .*store.sh'/d" ~/.zshrc 2>/dev/null || true
-    source ~/.bashrc 2>/dev/null || true
-
-    echo -e "${RED}卸载完成! 已清理 D/d 快捷键${RESET}"
+    rm -f "$BIN_LINK_DIR/d" "$BIN_LINK_DIR/D"
+    echo -e "${RED}卸载完成! 已清理全局命令 d/D${RESET}"
     exit 0
 }
 
