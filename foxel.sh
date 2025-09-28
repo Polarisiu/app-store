@@ -1,124 +1,114 @@
 #!/bin/bash
 # ========================================
-# Foxel Docker 管理脚本（增强版）
-# 默认 WebUI 端口 8088
+# Foxel 一键管理脚本 (Docker Compose)
 # ========================================
 
-# 颜色
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-CYAN="\033[36m"
 RESET="\033[0m"
+APP_NAME="foxel"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-BASE_DIR="$PWD"
-UPLOADS_DIR="${BASE_DIR}/uploads"
-DB_DIR="${BASE_DIR}/db"
-COMPOSE_FILE="${BASE_DIR}/compose.yaml"
-
-# 默认 WebUI 端口
-WEB_PORT=8088
-
-# 一键部署
-deploy_foxel() {
-    echo -e "${YELLOW}下载 compose.yaml 文件...${RESET}"
-    curl -O https://raw.githubusercontent.com/DrizzleTime/Foxel/master/compose.yaml
-
-    echo -e "${YELLOW}创建数据目录...${RESET}"
-    mkdir -p "${UPLOADS_DIR}" "${DB_DIR}"
-
-    echo -e "${YELLOW}设置目录权限...${RESET}"
-    chmod 777 "${UPLOADS_DIR}"
-    chmod 700 "${DB_DIR}"
-
-    echo -e "${YELLOW}启动所有容器...${RESET}"
-    docker compose up -d
-
-    show_access_info
-}
-
-# 启动容器
-start_foxel() {
-    docker compose start
-    echo -e "${GREEN}Foxel 容器已启动${RESET}"
-    show_access_info
-}
-
-# 停止容器
-stop_foxel() {
-    docker compose stop
-    echo -e "${YELLOW}Foxel 容器已停止${RESET}"
-}
-
-# 重启容器
-restart_foxel() {
-    docker compose restart
-    echo -e "${GREEN}Foxel 容器已重启${RESET}"
-    show_access_info
-}
-
-# 查看日志
-logs_foxel() {
-    docker compose logs -f
-}
-
-# 卸载容器
-uninstall_foxel() {
-    docker compose down
-    echo -e "${YELLOW}是否删除数据目录？[y/N]${RESET}"
-    read -r del
-    if [[ "$del" == "y" || "$del" == "Y" ]]; then
-        rm -rf "${UPLOADS_DIR}" "${DB_DIR}"
-        echo -e "${RED}数据目录已删除${RESET}"
-    fi
-    echo -e "${GREEN}Foxel Docker 已卸载${RESET}"
-}
-
-# 更新容器镜像
-update_foxel() {
-    echo -e "${YELLOW}拉取最新镜像并重建容器...${RESET}"
-    docker compose pull
-    docker compose up -d --remove-orphans
-    echo -e "${GREEN}Foxel 已更新到最新镜像并重启${RESET}"
-    show_access_info
-}
-
-# 显示 WebUI 访问地址
-show_access_info() {
-    IP=$(hostname -I | awk '{print $1}')
-    echo -e "${CYAN}Foxel WebUI 访问地址: http://${IP}:${WEB_PORT}${RESET}"
-}
-
-# 菜单
-menu() {
+function menu() {
     clear
-    echo -e "${GREEN}==== Foxel Docker 管理菜单 ====${RESET}"
-    echo -e "${GREEN}1. 一键部署 & 启动容器${RESET}"
-    echo -e "${GREEN}2. 启动容器${RESET}"
-    echo -e "${GREEN}3. 停止容器${RESET}"
-    echo -e "${GREEN}4. 重启容器${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 卸载容器${RESET}"
-    echo -e "${GREEN}7. 更新容器镜像${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请输入选项: ${RESET}"
-    read -r choice
-    case "$choice" in
-        1) deploy_foxel ;;
-        2) start_foxel ;;
-        3) stop_foxel ;;
-        4) restart_foxel ;;
-        5) logs_foxel ;;
-        6) uninstall_foxel ;;
-        7) update_foxel ;;
+    echo -e "${GREEN}=== Foxel 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 查看密钥${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        5) show_secret ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
 }
 
-# 循环菜单
-while true; do
+function install_app() {
+    read -p "请输入 Web 端口 [默认:8088]: " input_port
+    PORT=${input_port:-8088}
+
+    # 可自定义密钥
+    read -p "请输入 SECRET_KEY [留空自动生成]: " input_secret
+    SECRET_KEY=${input_secret:-$(openssl rand -base64 32)}
+
+    # 创建统一文件夹
+    mkdir -p "$APP_DIR/data"
+
+    # 生成 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  foxel:
+    image: ghcr.io/drizzletime/foxel:latest
+    container_name: foxel
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:$PORT:80"
+    environment:
+      - TZ=Asia/Shanghai
+      - SECRET_KEY=$SECRET_KEY
+      - TEMP_LINK_SECRET_KEY=$SECRET_KEY
+    volumes:
+      - $APP_DIR/data:/app/data
+    pull_policy: always
+    networks:
+      - foxel-network
+
+networks:
+  foxel-network:
+    driver: bridge
+EOF
+
+    echo -e "PORT=$PORT\nSECRET_KEY=$SECRET_KEY" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ Foxel 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
+    read -p "按回车返回菜单..."
     menu
-    echo -e "${YELLOW}按回车键继续...${RESET}"
-    read -r
-done
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}✅ Foxel 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Foxel 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f foxel
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function show_secret() {
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}🔑 当前 SECRET_KEY: $SECRET_KEY${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
