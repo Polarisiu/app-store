@@ -1,181 +1,85 @@
 #!/bin/bash
+# ========================================
+# WebSSH 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================== 颜色定义 ==================
 GREEN="\033[32m"
-YELLOW="\033[33m"
-RED="\033[31m"
-CYAN="\033[36m"
 RESET="\033[0m"
+APP_NAME="webssh"
+APP_DIR="$HOME/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-CONTAINER_NAME="webssh"
-IMAGE_NAME="cmliu/webssh:latest"
-WORKDIR="$HOME/.webssh_manager"
-PORT_FILE="$WORKDIR/port.conf"
-
-mkdir -p "$WORKDIR"
-
-# ================== 获取公网 IP ==================
-get_ip() {
-    for api in \
-        "https://api.ip.sb/ip" \
-        "https://api.ipify.org" \
-        "https://ifconfig.me" \
-        "https://icanhazip.com"
-    do
-        IP=$(curl -s --max-time 5 "$api")
-        if [[ "$IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "$IP"
-            return 0
-        fi
-    done
-
-    echo "获取公网IP失败"
-    return 1
-}
-
-# ================== 暂停并返回菜单 ==================
-pause() {
-    read -p "按回车返回菜单..." 
-    show_menu
-}
-
-# ================== 端口检查函数 ==================
-check_port() {
-    while true; do
-        if lsof -i:$PORT &>/dev/null; then
-            echo -e "${RED}端口 $PORT 已被占用！${RESET}"
-        elif ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1024 ] || [ "$PORT" -gt 65535 ]; then
-            echo -e "${RED}端口号不合法，请输入 1024-65535 的数字${RESET}"
-        else
-            break
-        fi
-        read -p "请输入新的端口号: " PORT
-    done
-    echo "$PORT" > "$PORT_FILE"
-}
-
-# ================== 加载端口配置 ==================
-load_port() {
-    if [ -f "$PORT_FILE" ]; then
-        PORT=$(cat "$PORT_FILE")
-    else
-        read -p "请输入 WebSSH 映射端口 (默认 8888): " PORT
-        PORT=${PORT:-8888}
-        check_port
-    fi
-}
-
-# ================== 菜单函数 ==================
-show_menu() {
+function menu() {
     clear
-    echo -e "${CYAN}================== WebSSH Docker 管理 ==================${RESET}"
-    echo -e "${GREEN}01. 安装 WebSSH${RESET}"
-    echo -e "${GREEN}02. 停止 WebSSH${RESET}"
-    echo -e "${GREEN}03. 启动 WebSSH容器${RESET}"
-    echo -e "${GREEN}04. 重启 WebSSH容器${RESET}"
-    echo -e "${GREEN}05. 查看 WebSSH容器状态${RESET}"
-    echo -e "${GREEN}06. 查看 WebSSH日志${RESET}"
-    echo -e "${GREEN}07. 更新 WebSSH${RESET}"
-    echo -e "${GREEN}08. 卸载 WebSSH${RESET}"
-    echo -e "${GREEN}0.  退出${RESET}"
-    echo -e "${CYAN}=======================================================${RESET}"
-    read -p "请输入操作编号: " choice
-    case "$choice" in
-        1) install_run ;;
-        2) stop_container ;;
-        3) start_container ;;
-        4) restart_container ;;
-        5) status_container ;;
-        6) logs_container ;;
-        7) update_container ;;
-        8) uninstall_all ;;
+    echo -e "${GREEN}=== WebSSH 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${RED}输入错误，请重新选择！${RESET}"; sleep 2; show_menu ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
 }
 
-# ================== 功能函数 ==================
-install_run() {
-    load_port
-    check_port
+function install_app() {
+    read -p "请输入 Web 端口 [默认:8888]: " input_port
+    PORT=${input_port:-8888}
 
-    if ! command -v docker &>/dev/null; then
-        echo -e "${YELLOW}检测到 Docker 未安装，正在安装...${RESET}"
-        curl -fsSL https://get.docker.com | bash
-        systemctl enable docker
-        systemctl start docker
-    fi
+    mkdir -p "$APP_DIR"
 
-    if command -v firewall-cmd &>/dev/null; then
-        firewall-cmd --permanent --add-port=$PORT/tcp
-        firewall-cmd --reload
-    fi
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  webssh:
+    image: cmliu/webssh:latest
+    container_name: webssh
+    ports:
+      - "127.0.0.1:$PORT:8888"
+    restart: always
+    network_mode: bridge
+EOF
 
-    if docker ps -a | grep -q $CONTAINER_NAME; then
-        docker rm -f $CONTAINER_NAME
-    fi
+    echo "PORT=$PORT" > "$CONFIG_FILE"
 
-    docker pull $IMAGE_NAME
-    docker run -d --name $CONTAINER_NAME --restart always -p $PORT:8888 $IMAGE_NAME
+    cd "$APP_DIR"
+    docker compose up -d
 
-    IP=$(get_ip)
-    echo -e "${GREEN}WebSSH 已启动，访问: http://$IP:$PORT${RESET}"
-    pause
+    echo -e "${GREEN}✅ WebSSH 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-stop_container() {
-    docker stop $CONTAINER_NAME
-    echo -e "${GREEN}WebSSH 已停止${RESET}"
-    pause
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ WebSSH 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-start_container() {
-    docker start $CONTAINER_NAME
-    echo -e "${GREEN}WebSSH 已启动${RESET}"
-    pause
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ WebSSH 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-restart_container() {
-    docker restart $CONTAINER_NAME
-    echo -e "${GREEN}WebSSH 已重启${RESET}"
-    pause
+function view_logs() {
+    docker logs -f webssh
+    read -p "按回车返回菜单..."
+    menu
 }
 
-status_container() {
-    docker ps -a | grep $CONTAINER_NAME
-    pause
-}
-
-logs_container() {
-    docker logs -f $CONTAINER_NAME
-    pause
-}
-
-update_container() {
-    load_port
-    echo -e "${YELLOW}正在拉取最新镜像...${RESET}"
-    docker pull $IMAGE_NAME
-    if docker ps -a | grep -q $CONTAINER_NAME; then
-        docker rm -f $CONTAINER_NAME
-    fi
-    docker run -d --name $CONTAINER_NAME --restart always -p $PORT:8888 $IMAGE_NAME
-
-    IP=$(get_ip)
-    echo -e "${GREEN}WebSSH 已更新并重新启动，访问: http://$IP:$PORT${RESET}"
-    pause
-}
-
-
-uninstall_all() {
-    docker rm -f $CONTAINER_NAME &>/dev/null
-    rm -rf "$WORKDIR"
-    echo -e "${GREEN}WebSSH 已彻底卸载，所有数据已删除${RESET}"
-    pause
-}
-
-# ================== 脚本入口 ==================
-while true
-do
-    show_menu
-done
-```
+menu
