@@ -1,125 +1,85 @@
 #!/bin/bash
-set -e
+# ========================================
+# HubProxy 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================== 配置 ==================
-IMAGE="ghcr.io/sky22333/hubproxy"
-CONTAINER="hubproxy"
-DEFAULT_PORT=5000
-
-# ================== 颜色 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
+APP_NAME="hubproxy"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# ================== 公共函数 ==================
-get_ip() {
-    ip addr show | awk '/inet / && !/127.0.0.1/ {print $2}' | cut -d/ -f1 | head -n1
-}
-
-pause() {
-    echo
-    read -p "按回车返回菜单..."
-}
-
-# ================== 功能函数 ==================
-deploy() {
-    read -p "请输入映射端口(默认:${DEFAULT_PORT}): " port
-    port=${port:-$DEFAULT_PORT}
-
-    echo -e "${GREEN}>>> 正在部署 hubproxy...${RESET}"
-    docker run -d --name $CONTAINER \
-        -p ${port}:5000 \
-        --restart always \
-        $IMAGE
-
-    local ip=$(get_ip)
-    echo -e "${GREEN}hubproxy 已部署完成！访问: http://${ip}:${port}${RESET}"
-    pause
-}
-
-start() {
-    docker start $CONTAINER && echo -e "${GREEN}hubproxy 已启动${RESET}"
-    pause
-}
-
-stop() {
-    docker stop $CONTAINER && echo -e "${GREEN}hubproxy 已停止${RESET}"
-    pause
-}
-
-restart() {
-    docker restart $CONTAINER && echo -e "${GREEN}hubproxy 已重启${RESET}"
-    pause
-}
-
-status() {
-    docker ps -a | grep $CONTAINER || echo -e "${GREEN}容器不存在${RESET}"
-    pause
-}
-
-logs() {
-    docker logs -f $CONTAINER
-    pause
-}
-
-enter() {
-    docker exec -it $CONTAINER /bin/sh
-    pause
-}
-
-remove() {
-    docker rm -f $CONTAINER 2>/dev/null || true
-    echo -e "${GREEN}hubproxy 容器已删除${RESET}"
-    pause
-}
-
-update() {
-    echo -e "${GREEN}>>> 拉取最新镜像...${RESET}"
-    docker pull $IMAGE
-
-    echo -e "${GREEN}>>> 删除旧容器并重新创建...${RESET}"
-    local port=$(docker inspect --format='{{(index (index .HostConfig.PortBindings "5000/tcp") 0).HostPort}}' $CONTAINER 2>/dev/null || echo $DEFAULT_PORT)
-
-    docker rm -f $CONTAINER >/dev/null 2>&1 || true
-
-    docker run -d --name $CONTAINER \
-        -p ${port}:5000 \
-        --restart always \
-        $IMAGE
-
-    local ip=$(get_ip)
-    echo -e "${GREEN}hubproxy 已更新并重启完成！访问: http://${ip}:${port}${RESET}"
-    pause
-}
-
-
-# ================== 菜单 ==================
-menu() {
-    echo -e "${GREEN}========= HubProxy 容器管理 =========${RESET}"
-    echo -e "${GREEN}1. 部署 HubProxy${RESET}"
-    echo -e "${GREEN}2. 启动${RESET}"
-    echo -e "${GREEN}3. 停止${RESET}"
-    echo -e "${GREEN}4. 重启${RESET}"
-    echo -e "${GREEN}5. 查看状态${RESET}"
-    echo -e "${GREEN}6. 查看日志${RESET}"
-    echo -e "${GREEN}7. 进入容器${RESET}"
-    echo -e "${GREEN}8. 删除容器${RESET}"
-    echo -e "${GREEN}9. 更新容器${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "==================================="
-    read -p "请输入选项: " opt
-    case $opt in
-        1) deploy ;;
-        2) start ;;
-        3) stop ;;
-        4) restart ;;
-        5) status ;;
-        6) logs ;;
-        7) enter ;;
-        8) remove ;;
-        9) update ;;
+function menu() {
+    clear
+    echo -e "${GREEN}=== HubProxy 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo "无效选项"; pause ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
+}
+
+function install_app() {
+    read -p "请输入 Web 端口 [默认:5000]: " input_port
+    PORT=${input_port:-5000}
+
+    mkdir -p "$APP_DIR"
+
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  hubproxy:
+    image: ghcr.io/sky22333/hubproxy
+    container_name: hubproxy
+    restart: always
+    ports:
+      - "127.0.0.1:$PORT:5000"
+EOF
+
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ HubProxy 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web 地址: http://127.0.0.1:$PORT${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}✅ HubProxy 已更新并重启完成${RESET}"
+    echo -e "${GREEN}🌐 Web 地址: http://127.0.0.1:$PORT${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ HubProxy 已卸载${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f hubproxy
+    read -p "按回车返回菜单..."
     menu
 }
 
