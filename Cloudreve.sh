@@ -49,7 +49,7 @@ services:
       - redis
     restart: always
     ports:
-      - "\${PORT}:5212"
+      - "127.0.0.1:$PORT:5212"
       - "6888:6888"
       - "6888:6888/udp"
     environment:
