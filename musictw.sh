@@ -4,15 +4,15 @@ GREEN="\033[32m"
 RESET="\033[0m"
 
 APP_NAME="music-tag-web"
-YML_FILE="music-tag-compose.yml"
+YML_FILE="/opt/music-tag/music-tag-compose.yml"
 
 # 存储上次安装时的目录（便于卸载时清理）
-CONF_FILE=".music_tag_dirs"
+CONF_FILE="/opt/music-tag/music_tag_dirs"
 
 show_menu() {
     clear
     echo -e "${GREEN}=== Music Tag 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动 Music Tag${RESET}"
+    echo -e "${GREEN}1) 安装启动 Music Tag${RESET}"
     echo -e "${GREEN}2) 更新 Music Tag${RESET}"
     echo -e "${GREEN}3) 卸载 Music Tag${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
@@ -30,8 +30,8 @@ show_menu() {
 }
 
 install_app() {
-    read -p "请输入音乐目录路径 (默认 /mnt/nas/music): " music_dir
-    music_dir=${music_dir:-/mnt/nas/music}
+    read -p "请输入音乐目录路径 (默认 /opt/music-tag/music): " music_dir
+    music_dir=${music_dir:-/opt/music-tag/music}
 
     read -p "请输入配置文件目录路径 (默认 /opt/music-tag/config): " config_dir
     config_dir=${config_dir:-/opt/music-tag/config}
@@ -45,14 +45,13 @@ install_app() {
     mkdir -p "$music_dir" "$config_dir" "$download_dir"
 
     cat > $YML_FILE <<EOF
-version: '3'
 
 services:
   music-tag:
     image: xhongc/music_tag_web:latest
     container_name: $APP_NAME
     ports:
-      - "${port}:8002"
+      - "127.0.0.1:${port}:8002"
     volumes:
       - ${music_dir}:/app/media
       - ${config_dir}:/app/data
@@ -66,7 +65,7 @@ EOF
     echo "$port" >> $CONF_FILE
 
     docker compose -f $YML_FILE up -d
-    echo -e "${GREEN}✅ $APP_NAME 已启动，访问地址: http://$(hostname -I | awk '{print $1}'):${port}${RESET}"
+    echo -e "${GREEN}✅ $APP_NAME 已启动，访问地址: http://127.0.0.1:${port}${RESET}"
     read -p "按回车键返回菜单..."
     show_menu
 }
