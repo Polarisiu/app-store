@@ -2,7 +2,7 @@
 # Send 管理脚本 (绿色菜单版，含Redis，自定义文件大小)
 
 SERVICE_NAME="send"
-INSTALL_DIR="/root/$SERVICE_NAME"
+INSTALL_DIR="/opt/$SERVICE_NAME"
 COMPOSE_FILE="$INSTALL_DIR/docker-compose.yml"
 
 # 颜色
