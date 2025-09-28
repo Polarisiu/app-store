@@ -85,12 +85,14 @@ update() {
 }
 
 uninstall() {
-    stop
+    cd "$INSTALL_DIR" || exit
+    docker compose down -v
     rm -rf "$INSTALL_DIR"
-    echo -e "${GREEN}>>> Pairdrop 服务已卸载${RESET}"
-    read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
+    echo -e "${GREEN}✅ Pairdrop已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
     menu
 }
+
 
 menu() {
     clear
