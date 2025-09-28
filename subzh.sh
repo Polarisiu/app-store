@@ -41,14 +41,14 @@ function install_app() {
     mkdir -p "$COMPOSE_DIR/data"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: '3.8'
+
 services:
   sub-web-modify:
     image: youshandefeiyang/sub-web-modify:latest
     container_name: sub-web-modify
     restart: unless-stopped
     ports:
-      - "${PORT}:80"
+      - "127.0.0.1:$PORT:80"
     volumes:
       - ${COMPOSE_DIR}/data:/app/data
 EOF
@@ -57,7 +57,7 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ ${APP_NAME} 已启动${RESET}"
-    echo -e "${GREEN}🌐 Web UI 地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}📂 数据目录: $COMPOSE_DIR/data${RESET}"
     read -p "按回车返回菜单..."
     menu
