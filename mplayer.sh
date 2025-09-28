@@ -19,13 +19,11 @@ create_compose() {
     mkdir -p "$BASE_DIR"
 
     cat > $YML_FILE <<EOF
-version: '3'
-
 services:
   music-player:
     image: ghcr.io/eooce/music-player:latest
     ports:
-      - "${port}:3000"
+      - "127.0.0.1:${port}:3000"
     environment:
       - PORT=3000
       - ADMIN_PASSWORD=${admin_pass}
@@ -54,7 +52,7 @@ show_menu() {
 
 print_access_info() {
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://$ip:${PORT}${RESET}"
+    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
     echo -e "🔑 管理员密码: ${GREEN}${ADMIN_PASSWORD}${RESET}"
 }
 
@@ -79,21 +77,18 @@ stop_app() {
 start_app() {
     docker compose -f $YML_FILE up -d
     echo -e "🚀 ${GREEN}Music Player 已启动${RESET}"
-    print_access_info
 }
 
 restart_app() {
     docker compose -f $YML_FILE down
     docker compose -f $YML_FILE up -d
     echo -e "🔄 ${GREEN}Music Player 已重启${RESET}"
-    print_access_info
 }
 
 update_app() {
     docker compose -f $YML_FILE pull
     docker compose -f $YML_FILE up -d
     echo -e "⬆️ ${GREEN}Music Player 已更新到最新版本${RESET}"
-    print_access_info
 }
 
 logs_app() {
@@ -101,11 +96,12 @@ logs_app() {
 }
 
 uninstall_app() {
-    docker compose -f $YML_FILE down
-    rm -f $YML_FILE
-    docker volume rm music-data
-    echo -e "🗑️ ${GREEN}Music Player 已卸载，数据已删除${RESET}"
+    cd "$BASE_DIR" || { echo -e "❌ ${GREEN}安装目录不存在${RESET}"; return; }
+    docker compose down -v
+    rm -rf "$BASE_DIR"
+    echo -e "🗑️ ${GREEN}Music Player 已卸载，安装目录和数据已删除${RESET}"
 }
+
 
 while true; do
     show_menu
