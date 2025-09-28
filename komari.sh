@@ -10,7 +10,7 @@ RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-APP_DIR="$HOME/komari"
+APP_DIR="/opt/komari"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
 CONFIG_FILE="$APP_DIR/komari_config.env"
 DATA_DIR="$APP_DIR/data"
