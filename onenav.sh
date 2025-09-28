@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="onenav"
-COMPOSE_DIR="$HOME/OneNav"
+COMPOSE_DIR="/opt/OneNav"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
 function get_ip() {
@@ -16,7 +16,7 @@ function get_ip() {
 function menu() {
     clear
     echo -e "${GREEN}=== OneNav 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
@@ -40,7 +40,6 @@ function install_app() {
     mkdir -p "$COMPOSE_DIR/data"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: '3'
 
 services:
   onenav:
@@ -48,7 +47,7 @@ services:
     image: helloz/onenav
     restart: always
     ports:
-      - "${PORT}:80"
+      - "127.0.0.1:$PORT:80"
     volumes:
       - "${COMPOSE_DIR}/data:/data/wwwroot/default/data"
 EOF
@@ -56,7 +55,7 @@ EOF
     cd "$COMPOSE_DIR"
     docker compose up -d
     echo -e "${GREEN}✅ OneNav 已启动${RESET}"
-    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}📂 数据目录: $COMPOSE_DIR/data${RESET}"
     read -p "按回车返回菜单..."
     menu
