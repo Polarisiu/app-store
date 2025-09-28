@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# Komari 管理脚本（支持自定义端口）
+# Komari 管理脚本（统一文件夹 + 支持自定义端口）
 # ============================================
 
 set -e
@@ -10,8 +10,10 @@ RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-COMPOSE_FILE="docker-compose.yml"
-CONFIG_FILE="komari_config.env"
+APP_DIR="$HOME/komari"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/komari_config.env"
+DATA_DIR="$APP_DIR/data"
 CONTAINER_NAME="komari"
 
 menu() {
@@ -44,6 +46,8 @@ load_config() {
 install_komari() {
     echo -e "${GREEN}=== 开始安装 Komari ===${RESET}"
 
+    mkdir -p "$APP_DIR" "$DATA_DIR"
+
     read -p "请输入管理员用户名 (默认: admin): " ADMIN_USERNAME
     ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
 
@@ -63,7 +67,7 @@ install_komari() {
     PORT=${PORT:-25774}
 
     # 保存配置
-    cat > $CONFIG_FILE <<EOF
+    cat > "$CONFIG_FILE" <<EOF
 ADMIN_USERNAME="$ADMIN_USERNAME"
 ADMIN_PASSWORD="$ADMIN_PASSWORD"
 KOMARI_ENABLE_CLOUDFLARED="$KOMARI_ENABLE_CLOUDFLARED"
@@ -71,28 +75,24 @@ KOMARI_CLOUDFLARED_TOKEN="$KOMARI_CLOUDFLARED_TOKEN"
 PORT="$PORT"
 EOF
 
-    mkdir -p ./data
-
-    cat > $COMPOSE_FILE <<EOF
+    # 生成 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
 services:
   komari:
     image: ghcr.io/komari-monitor/komari:latest
     container_name: $CONTAINER_NAME
     ports:
-      - "${PORT}:25774"
+      - "127.0.0.1:$PORT:25774"
     volumes:
-      - ./data:/app/data
-    environment:
-      ADMIN_USERNAME: "$ADMIN_USERNAME"
-      ADMIN_PASSWORD: "$ADMIN_PASSWORD"
-      KOMARI_ENABLE_CLOUDFLARED: "$KOMARI_ENABLE_CLOUDFLARED"
-      KOMARI_CLOUDFLARED_TOKEN: "$KOMARI_CLOUDFLARED_TOKEN"
-      PORT: "$PORT"
+      - $DATA_DIR:/app/data
+    env_file:
+      - $CONFIG_FILE
     restart: unless-stopped
 EOF
 
-    docker compose up -d
-    echo -e "${GREEN}✅ 部署完成！访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
+    (cd "$APP_DIR" && docker compose up -d)
+
+    echo -e "${GREEN}✅ 部署完成！访问地址:  http://127.0.0.1:$PORT${RESET}"
     echo -e "${YELLOW}用户名: $ADMIN_USERNAME  密码: $ADMIN_PASSWORD${RESET}"
     read -p "按回车返回菜单..." && menu
 }
@@ -100,9 +100,8 @@ EOF
 update_komari() {
     load_config
     echo -e "${GREEN}=== 更新 Komari ===${RESET}"
-    docker compose pull
-    docker compose up -d
-    echo -e "${GREEN}✅ 更新完成！访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
+    (cd "$APP_DIR" && docker compose pull && docker compose up -d)
+    echo -e "${GREEN}✅ 更新完成！${RESET}"
     read -p "按回车返回菜单..." && menu
 }
 
@@ -110,8 +109,8 @@ uninstall_komari() {
     echo -e "${RED}⚠️  即将卸载 Komari，并删除相关数据！${RESET}"
     read -p "确认卸载? (y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        docker compose down -v
-        rm -rf $COMPOSE_FILE ./data $CONFIG_FILE
+        (cd "$APP_DIR" && docker compose down -v)
+        rm -rf "$APP_DIR"
         echo -e "${GREEN}✅ 卸载完成${RESET}"
     else
         echo -e "${YELLOW}已取消${RESET}"
