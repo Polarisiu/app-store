@@ -88,7 +88,6 @@ function view_logs() {
 }
 
 while true; do
-    clear
     echo -e "${GREEN}=== File Transfer Go 管理菜单 ===${RESET}"
     echo -e "${GREEN}1. 安装${RESET}"
     echo -e "${GREEN}2. 更新${RESET}"
