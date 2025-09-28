@@ -16,9 +16,9 @@ function get_ip() {
 function menu() {
     clear
     echo -e "${GREEN}=== ZDir 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 更新${RESET}"
-    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo -e "${GREEN}=======================${RESET}"
@@ -40,7 +40,6 @@ function install_app() {
     mkdir -p "$COMPOSE_DIR/data" "$COMPOSE_DIR/data/public" "$COMPOSE_DIR/data/private"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: '3.3'
 
 services:
     zdir:
@@ -49,7 +48,7 @@ services:
         image: helloz/zdir:4
         restart: always
         ports:
-            - '${PORT}:6080'
+            - '127.0.0.1:$PORT:6080'
         volumes:
             - '${COMPOSE_DIR}/data:/opt/zdir/data'
             - '${COMPOSE_DIR}/data/public:/opt/zdir/data/public'
@@ -58,7 +57,7 @@ EOF
 
     cd "$COMPOSE_DIR"
     docker compose up -d
-    echo -e "${GREEN}✅ ZDir 已启动，访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}✅ ZDir 已启动，访问地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}📂 数据目录: $COMPOSE_DIR/data${RESET}"
     read -p "按回车返回菜单..."
     menu
