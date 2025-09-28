@@ -87,7 +87,7 @@ services:
     networks:
       - oneapi
     ports:
-      - "${ONEAPI_PORT}:3000"
+      - "127.0.0.1:${ONEAPI_PORT}:3000"
     volumes:
       - $WORKDIR/data:/data
     environment:
@@ -118,7 +118,7 @@ deploy_services() {
     echo -e "${GREEN}服务已部署并启动${RESET}"
     IP=$(get_ip)
     PORT=$(cat "$WORKDIR/.oneapi_port")
-    echo -e "${GREEN}访问地址: http://${IP}:${PORT}${RESET}"
+    echo -e "${GREEN}访问地址: http://127.0.0.1:${PORT}${RESET}"
     echo -e "${GREEN}OneAPI 初始账号用户名为 root，密码为 123456${RESET}"
 }
 
@@ -209,12 +209,12 @@ show_config() {
 # ================== 菜单 ==================
 menu() {
     clear
-    echo -e "${GREEN}====== OneAPI 一键部署管理菜单 ======${RESET}"
+    echo -e "${GREEN}====== OneAPI 部署管理菜单 ======${RESET}"
     echo -e "${GREEN}1.  部署并启动服务${RESET}"
     echo -e "${GREEN}2.  启动服务${RESET}"
     echo -e "${GREEN}3.  停止服务${RESET}"
     echo -e "${GREEN}4.  重启服务${RESET}"
-    echo -e "${GREEN}5.  更新${RESET}"
+    echo -e "${GREEN}5.  更新 OneAPI${RESET}"
     echo -e "${GREEN}6.  查看 OneAPI日志${RESET}"
     echo -e "${GREEN}7.  查看 MySQL日志${RESET}"
     echo -e "${GREEN}8.  进入 OneAPI容器${RESET}"
