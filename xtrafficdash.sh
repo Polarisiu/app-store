@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="xtrafficdash"
-COMPOSE_DIR="/usr/xtrafficdash"
+COMPOSE_DIR="/root/xtrafficdash"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 DEFAULT_PORT=37022
 DEFAULT_PASSWORD="admin123"
@@ -47,14 +47,13 @@ function install_app() {
     chmod 777 "$COMPOSE_DIR/data"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: '3.8'
 services:
   xtrafficdash:
     image: sanqi37/xtrafficdash
     container_name: xtrafficdash
     restart: unless-stopped
     ports:
-      - "${PORT}:37022"
+      - "127.0.0.1:${PORT}:37022"
     environment:
       - TZ=Asia/Shanghai
       - DATABASE_PATH=/app/data/xtrafficdash.db
