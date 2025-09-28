@@ -13,14 +13,16 @@ gl_bai="\033[0m"  # 重置
 # 通用选项
 COMMON_OPTS="--write-subs --sub-langs all --write-thumbnail --embed-thumbnail --write-info-json --no-overwrites --no-post-overwrites"
 
-# 目录与文件
-VIDEO_DIR="/home/yt-dlp"
-URL_FILE="$VIDEO_DIR/urls.txt"
-ARCHIVE_FILE="$VIDEO_DIR/archive.txt"
+# 目录与文件（统一放到 /opt/yt-dlp）
+APP_NAME="yt-dlp"
+VIDEO_DIR="/opt/$APP_NAME/videos"
+APP_DIR="/opt/$APP_NAME"
+URL_FILE="$APP_DIR/urls.txt"
+ARCHIVE_FILE="$APP_DIR/archive.txt"
 APP_ID="66"
 
 mkdir -p "$VIDEO_DIR"
-mkdir -p /home/docker && touch /home/docker/appno.txt
+mkdir -p /opt/docker && touch /opt/docker/appno.txt
 
 # 安装依赖函数
 install_dep() {
@@ -33,8 +35,8 @@ install_dep() {
 
 # 添加应用 ID
 add_app_id() {
-    if ! grep -q "\b$APP_ID\b" /home/docker/appno.txt; then
-        echo "$APP_ID" >> /home/docker/appno.txt
+    if ! grep -q "\b$APP_ID\b" /opt/docker/appno.txt; then
+        echo "$APP_ID" >> /opt/docker/appno.txt
     fi
 }
 
@@ -74,6 +76,7 @@ yt_menu_pro() {
         clear
         echo -e "${gl_lv}=== yt-dlp 下载工具 ===${gl_bai}"
         echo -e "${gl_lv}yt-dlp 状态: $YTDLP_STATUS${gl_bai}"
+        echo -e "${gl_lv}视频保存目录: $VIDEO_DIR${gl_bai}"
         echo -e "${gl_lv}支持 YouTube、Bilibili、Twitter 等站点${gl_bai}"
         echo -e "${gl_lv}官网: https://github.com/yt-dlp/yt-dlp${gl_bai}"
         echo -e "${gl_lv}-------------------------${gl_bai}"
@@ -92,7 +95,6 @@ yt_menu_pro() {
             sorted_dirs=($(for d in "${!dir_sizes[@]}"; do echo -e "${dir_sizes[$d]}\t$d"; done | sort -nr | awk '{print $2}'))
             for dir in "${sorted_dirs[@]}"; do
                 size_human=$(du -sh "$dir" 2>/dev/null | cut -f1)
-                # 修复修改时间报错
                 if [ -d "$dir" ]; then
                     mtime=$(stat -c "%y" "$dir" 2>/dev/null | cut -d'.' -f1)
                 else
@@ -122,7 +124,7 @@ yt_menu_pro() {
             3)
                 send_stats "卸载 yt-dlp..."
                 sudo rm -f /usr/local/bin/yt-dlp
-                sed -i "/\b$APP_ID\b/d" /home/docker/appno.txt
+                sed -i "/\b$APP_ID\b/d" /opt/docker/appno.txt
                 echo -e "${gl_lv}已卸载${gl_bai}"
                 read -n1 -r -p "按任意键继续..." ;;
             5)
