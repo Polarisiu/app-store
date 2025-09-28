@@ -32,7 +32,6 @@ EOF
 generate_compose() {
     echo -e "${GREEN}生成 docker-compose.yml 文件...${RESET}"
     cat > "$COMPOSE_FILE" <<EOF
-version: "3.8"
 services:
   new-api:
     image: calciumion/new-api:latest
@@ -40,7 +39,7 @@ services:
     restart: always
     command: --log-dir /app/logs
     ports:
-      - "$API_PORT:3000"
+      - "127.0.0.1:$API_PORT:3000"
     volumes:
       - ./data:/data
       - ./logs:/app/logs
@@ -120,9 +119,12 @@ restart_service() {
 }
 
 update_service() {
-    docker-compose -f "$COMPOSE_FILE" pull
-    restart_service
+    echo -e "${GREEN}正在拉取最新镜像...${RESET}"
+    docker compose -f "$COMPOSE_FILE" pull
+    docker compose -f "$COMPOSE_FILE" up -d
+    echo -e "${GREEN}✅ 已更新并重启服务${RESET}"
 }
+
 
 uninstall_service() {
     stop_service
@@ -139,16 +141,9 @@ show_logs_mysql() {
 
 show_ip_port() {
     IP=$(hostname -I | awk '{print $1}')
-    echo -e "${GREEN}访问地址: http://$IP:$API_PORT${RESET}"
+    echo -e "${GREEN}访问地址: http://127.0.0.1:$API_PORT${RESET}"
 }
 
-set_port() {
-    read -p "请输入访问端口(默认 $DEFAULT_PORT): " PORT
-    API_PORT=${PORT:-$DEFAULT_PORT}
-    echo -e "${GREEN}端口已设置为 $API_PORT，正在重新生成配置并重启服务...${RESET}"
-    generate_compose
-    restart_service
-}
 
 # 菜单循环
 while true; do
@@ -160,8 +155,7 @@ while true; do
     echo -e "${GREEN}5. 卸载服务${RESET}"
     echo -e "${GREEN}6. 查看 New API 日志${RESET}"
     echo -e "${GREEN}7. 查看 MySQL 日志${RESET}"
-    echo -e "${GREEN}8. 修改访问端口${RESET}"
-    echo -e "${GREEN}9. 显示访问地址${RESET}"
+    echo -e "${GREEN}8. 显示访问地址${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     read -p "请选择操作: " choice
     case $choice in
@@ -172,8 +166,7 @@ while true; do
         5) uninstall_service; exit ;;
         6) show_logs_api ;;
         7) show_logs_mysql ;;
-        8) set_port ;;
-        9) show_ip_port ;;
+        8) show_ip_port ;;
         0) exit ;;
         *) echo "无效选项" ;;
     esac
