@@ -6,7 +6,7 @@ RESET="\033[0m"
 
 APP_NAME="sehuatang-crawler"
 POSTGRES_NAME="sehuatang-postgres"
-BASE_DIR="/opt/sehuatang"
+BASE_DIR="/root/sehuatang"
 YML_FILE="$BASE_DIR/docker-compose.yml"
 
 # 默认端口和密码
