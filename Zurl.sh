@@ -1,113 +1,88 @@
 #!/bin/bash
-set -e
+# ========================================
+# Zurl 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================== 配置 ==================
-SERVICE="zurl"
-IMAGE="helloz/zurl"
-DEFAULT_PORT=3080
-COMPOSE_FILE="docker-compose.yml"
-ENV_FILE=".env"
-
-# ================== 颜色 ==================
 GREEN="\033[32m"
 RESET="\033[0m"
+APP_NAME="zurl"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# ================== 公共函数 ==================
-get_ip() {
-    ip addr show | awk '/inet / && !/127.0.0.1/ {print $2}' | cut -d/ -f1 | head -n1
-}
-
-init_compose() {
-    if [ ! -f "$COMPOSE_FILE" ]; then
-        cat > $COMPOSE_FILE <<EOF
-version: '3.8'
-
-services:
-  ${SERVICE}:
-    container_name: ${SERVICE}
-    image: ${IMAGE}
-    ports:
-      - "\${ZURL_PORT:-${DEFAULT_PORT}}:3080"
-    restart: always
-    volumes:
-      - ./data:/opt/zurl/app/data
-EOF
-        echo -e "${GREEN}已生成 docker-compose.yml 模版${RESET}"
-    fi
-}
-
-# ================== 功能函数 ==================
-deploy() {
-    read -p "请输入映射端口(默认:${DEFAULT_PORT}): " port
-    port=${port:-$DEFAULT_PORT}
-    echo "ZURL_PORT=${port}" > $ENV_FILE
-
-    docker-compose -f $COMPOSE_FILE up -d
-    local ip=$(get_ip)
-    echo -e "${GREEN}zurl 已部署完成，访问: http://${ip}:${port}${RESET}"
-    echo -e "${GREEN}根据提示完成初始化即可 🎉${RESET}"
-}
-
-start() { docker-compose -f $COMPOSE_FILE start && echo -e "${GREEN}zurl 已启动${RESET}"; }
-stop() { docker-compose -f $COMPOSE_FILE stop && echo -e "${GREEN}zurl 已停止${RESET}"; }
-restart() { docker-compose -f $COMPOSE_FILE restart && echo -e "${GREEN}zurl 已重启${RESET}"; }
-status() { docker-compose -f $COMPOSE_FILE ps; }
-logs() { docker-compose -f $COMPOSE_FILE logs -f $SERVICE; }
-enter() { docker exec -it $SERVICE /bin/sh; }
-
-remove() {
-    echo -e "${GREEN}!!! 删除操作 !!!${RESET}"
-    read -p "是否同时删除数据目录 ./data ？(y/n): " c
-    docker-compose -f $COMPOSE_FILE down
-    if [ "$c" = "y" ]; then
-        rm -rf ./data
-        echo -e "${GREEN}zurl 容器和数据已删除${RESET}"
-    else
-        echo -e "${GREEN}zurl 容器已删除，数据已保留${RESET}"
-    fi
-}
-
-update() {
-    echo -e "${GREEN}>>> 正在拉取最新镜像...${RESET}"
-    docker-compose -f $COMPOSE_FILE pull
-    docker-compose -f $COMPOSE_FILE up -d
-    local ip=$(get_ip)
-    local port=$(grep ZURL_PORT $ENV_FILE | cut -d= -f2)
-    echo -e "${GREEN}zurl 已更新完成，访问: http://${ip}:${port}${RESET}"
-}
-
-# ================== 菜单 ==================
-menu() {
-    echo -e "${GREEN}========= Zurl 服务管理 =========${RESET}"
-    echo -e "${GREEN}1. 部署 Zurl${RESET}"
-    echo -e "${GREEN}2. 启动${RESET}"
-    echo -e "${GREEN}3. 停止${RESET}"
-    echo -e "${GREEN}4. 重启${RESET}"
-    echo -e "${GREEN}5. 查看状态${RESET}"
-    echo -e "${GREEN}6. 查看日志${RESET}"
-    echo -e "${GREEN}7. 进入容器${RESET}"
-    echo -e "${GREEN}8. 删除容器${RESET}"
-    echo -e "${GREEN}9. 更新服务${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "================================"
-    read -p "请输入选项: " opt
-    case $opt in
-        1) deploy ;;
-        2) start ;;
-        3) stop ;;
-        4) restart ;;
-        5) status ;;
-        6) logs ;;
-        7) enter ;;
-        8) remove ;;
-        9) update ;;
+function menu() {
+    clear
+    echo -e "${GREEN}=== Zurl 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo "无效选项" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-    sleep 2
+}
+
+function install_app() {
+    read -p "请输入 Web 端口 [默认:3080]: " input_port
+    PORT=${input_port:-3080}
+
+    mkdir -p "$APP_DIR/data"
+
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  zurl:
+    container_name: zurl
+    image: helloz/zurl
+    restart: always
+    ports:
+      - "127.0.0.1:$PORT:3080"
+    volumes:
+      - $APP_DIR/data:/opt/zurl/app/data
+EOF
+
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ Zurl 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
+    read -p "按回车返回菜单..."
     menu
 }
 
-# ================== 主入口 ==================
-init_compose
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}✅ Zurl 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Zurl 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f zurl
+    read -p "按回车返回菜单..."
+    menu
+}
+
 menu
