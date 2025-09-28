@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="libretv"
-COMPOSE_DIR="$HOME/LibreTV"
+COMPOSE_DIR="/opt/LibreTV"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
 function get_ip() {
@@ -16,7 +16,7 @@ function get_ip() {
 function menu() {
     clear
     echo -e "${GREEN}=== LibreTV 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
@@ -43,7 +43,6 @@ function install_app() {
     mkdir -p "$COMPOSE_DIR"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: "3.8"
 
 services:
   libretv:
@@ -51,7 +50,7 @@ services:
     container_name: libretv
     restart: unless-stopped
     ports:
-      - "${PORT}:8080"
+      - "127.0.0.1:$PORT:8080"
     environment:
       - PASSWORD=${PASSWORD}
 EOF
@@ -59,7 +58,7 @@ EOF
     cd "$COMPOSE_DIR"
     docker compose up -d
     echo -e "${GREEN}✅ LibreTV 已启动${RESET}"
-    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):$PORT${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}🔑 访问密码: $PASSWORD${RESET}"
     read -p "按回车返回菜单..."
     menu
