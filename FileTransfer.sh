@@ -6,7 +6,8 @@
 
 APP_NAME="file-transfer-go"
 IMAGE_NAME="matrixseven/file-transfer-go:latest"
-CONFIG_FILE="./${APP_NAME}.conf"
+INSTALL_DIR="/opt/$APP_NAME"
+CONFIG_FILE="$INSTALL_DIR/config.env"
 
 GREEN="\033[32m"
 RESET="\033[0m"
@@ -24,7 +25,8 @@ else
 fi
 
 function save_config() {
-    echo "PORT=$PORT" > $CONFIG_FILE
+    mkdir -p "$INSTALL_DIR"
+    echo "PORT=$PORT" > "$CONFIG_FILE"
 }
 
 function install_app() {
@@ -38,10 +40,11 @@ function install_app() {
     docker run -d \
         --name=$APP_NAME \
         --restart=unless-stopped \
-        -p $PORT:8080 \
+        -p 127.0.0.1:$PORT:8080 \
         $IMAGE_NAME
     IP=$(get_ip)
-    echo -e "${GREEN}安装完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}安装完成！访问: http://127.0.0.1:$PORT${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 function update_app() {
@@ -51,30 +54,32 @@ function update_app() {
     docker run -d \
         --name=$APP_NAME \
         --restart=unless-stopped \
-        -p $PORT:8080 \
+        -p 127.0.0.1:$PORT:8080 \
         $IMAGE_NAME
-    IP=$(get_ip)
-    echo -e "${GREEN}更新完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}更新完成${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 function restart_app() {
     echo -e "${GREEN}正在重启 ${APP_NAME}...${RESET}"
     docker restart $APP_NAME
-    IP=$(get_ip)
-    echo -e "${GREEN}重启完成！访问: http://$IP:$PORT${RESET}"
+    echo -e "${GREEN}重启完成${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 function stop_app() {
     echo -e "${GREEN}正在停止 ${APP_NAME}...${RESET}"
     docker stop $APP_NAME
     echo -e "${GREEN}停止完成！${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 function uninstall_app() {
     echo -e "${GREEN}正在卸载 ${APP_NAME}...${RESET}"
     docker rm -f $APP_NAME 2>/dev/null
-    rm -f $CONFIG_FILE
-    echo -e "${GREEN}已卸载 ${APP_NAME}，配置文件已删除${RESET}"
+    rm -rf "$INSTALL_DIR"
+    echo -e "${GREEN}已卸载 ${APP_NAME}，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 function view_logs() {
@@ -83,7 +88,8 @@ function view_logs() {
 }
 
 while true; do
-    echo -e "\n${GREEN}=== File Transfer Go 管理菜单 ===${RESET}"
+    clear
+    echo -e "${GREEN}=== File Transfer Go 管理菜单 ===${RESET}"
     echo -e "${GREEN}1. 安装${RESET}"
     echo -e "${GREEN}2. 更新${RESET}"
     echo -e "${GREEN}3. 重启${RESET}"
@@ -101,6 +107,6 @@ while true; do
         5) uninstall_app ;;
         6) view_logs ;;
         0) exit ;;
-        *) echo -e "${GREEN}无效选择${RESET}" ;;
+        *) echo -e "${GREEN}无效选择${RESET}" ; sleep 1 ;;
     esac
 done
