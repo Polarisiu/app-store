@@ -40,8 +40,8 @@ create_docker_compose() {
     local root_domain=$(echo "$domain" | awk -F. '{print $(NF-1)"."$NF}')
     local admin_email="admin@${root_domain}"
 
-    mkdir -p /root/data/docker_data/posteio
-    cd /root/data/docker_data/posteio || exit 1
+    mkdir -p /opt/posteio
+    cd /opt/posteio || exit 1
 
     cat > docker-compose.yml << EOF
 services:
@@ -96,7 +96,7 @@ main_menu_action() {
         1)
             read -p "请输入邮箱域名 (例如: mail.example.com): " domain
             create_docker_compose "$domain"
-            cd /root/data/docker_data/posteio
+            cd /opt/posteio
             echo "正在启动服务..."
             docker-compose up -d || { echo -e "${RED}启动失败！${NC}"; exit 1; }
             show_dns_info "$domain"
@@ -111,8 +111,8 @@ main_menu_action() {
             echo -e "\033[38;5;81m────────────────────────\033[0m"
             ;;
         2)
-            if [ -d "/root/data/docker_data/posteio" ]; then
-                cd /root/data/docker_data/posteio
+            if [ -d "/opt/posteio" ]; then
+                cd /opt/posteio
                 echo "正在更新服务..."
                 docker-compose pull
                 docker-compose up -d
@@ -124,12 +124,12 @@ main_menu_action() {
             fi
             ;;
         3)
-            if [ -d "/root/data/docker_data/posteio" ]; then
-                cd /root/data/docker_data/posteio
+            if [ -d "/opt/posteio" ]; then
+                cd /opt/posteio
                 echo "正在卸载服务..."
                 docker-compose down
                 docker images | awk '/poste\.io/ {print $3}' | xargs -r docker rmi -f
-                cd /root/data/docker_data
+                cd /opt
                 rm -rf posteio
                 echo -e "\n\033[38;5;81m────────────────────────\033[0m"
                 echo -e "${GREEN}▶ 已完全卸载服务、数据和镜像！${NC}"
@@ -165,7 +165,7 @@ initial_check() {
     fi
 
     echo -n "✓ 邮局服务....... "
-    if [ -d "/root/data/docker_data/posteio" ]; then
+    if [ -d "opt/posteio" ]; then
         echo -e "${GREEN}已安装${NC}"
     else
         echo -e "${RED}未安装${NC}"
