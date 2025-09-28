@@ -5,7 +5,7 @@
 # ============================================
 
 APP_NAME="telebox"
-APP_DIR="$HOME/telebox"
+APP_DIR="/opt/telebox"
 GIT_REPO="https://github.com/TeleBoxDev/TeleBox.git"
 ENV_FILE="$APP_DIR/.env"
 
