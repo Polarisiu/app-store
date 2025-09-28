@@ -14,7 +14,7 @@ CYAN="\033[36m"
 RESET="\033[0m"
 
 # 工作目录
-WORKDIR="$HOME/nexus-terminal"
+WORKDIR="/opt/nexus-terminal"
 
 # 创建工作目录（如果不存在）
 if [ ! -d "$WORKDIR" ]; then
@@ -92,11 +92,6 @@ while true; do
             docker compose pull
             docker compose up -d
             echo -e "${GREEN}服务已更新并启动${RESET}"
-
-            # 获取公网 IP 并显示访问地址
-            IP=$(get_public_ip)
-            PORT=18111
-            echo -e "${GREEN}访问地址：http://$IP:$PORT${RESET}"
             ;;
         4)
             echo -e "${CYAN}显示日志（Ctrl+C 退出）${RESET}"
