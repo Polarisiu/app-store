@@ -1,144 +1,100 @@
 #!/bin/bash
+# ========================================
+# EasyImage 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================= 配置 =================
-docker_name="easyimage"
-docker_img="ddsderek/easyimage:latest"
-config_dir="/home/docker/easyimage/config"
-image_dir="/home/docker/easyimage/i"
-port_file="/home/docker/easyimage/easyimage_port.conf"
-
-# 颜色定义
 GREEN="\033[32m"
-YELLOW="\033[33m"
-RED="\033[31m"
 RESET="\033[0m"
+APP_NAME="easyimage"
+APP_DIR="$HOME/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# ================= 函数 =================
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        echo -e "${RED}Docker 未安装，请先安装 Docker！${RESET}"
-        exit 1
-    fi
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "127.0.0.1"
 }
 
-get_port() {
-    if [[ -f "$port_file" ]]; then
-        docker_port=$(cat "$port_file")
-    else
-        read -rp "请输入端口 (默认 5663): " docker_port
-        docker_port=${docker_port:-5663}
-        echo "$docker_port" > "$port_file"
-    fi
-}
-
-check_port() {
-    local port=$1
-    while lsof -i:$port &>/dev/null; do
-        echo -e "${YELLOW}端口 $port 已被占用，尝试下一个端口...${RESET}"
-        port=$((port+1))
-    done
-    echo $port
-}
-
-install_container() {
-    mkdir -p "$config_dir" "$image_dir"
-
-    get_port
-    docker_port=$(check_port $docker_port)
-    echo "$docker_port" > "$port_file"
-
-    echo -e "${GREEN}正在拉取镜像...${RESET}"
-    docker pull $docker_img
-
-    if docker ps -a --format '{{.Names}}' | grep -q "^$docker_name$"; then
-        docker stop $docker_name
-        docker rm $docker_name
-    fi
-
-    echo -e "${GREEN}正在启动容器...${RESET}"
-    docker run -d \
-        --name $docker_name \
-        -p $docker_port:80 \
-        -e TZ=Asia/Shanghai \
-        -e PUID=1000 \
-        -e PGID=1000 \
-        -v $config_dir:/app/web/config \
-        -v $image_dir:/app/web/i \
-        --restart unless-stopped \
-        $docker_img
-
-    public_ip=$(curl -s ifconfig.me)
-    echo -e "${GREEN}容器启动完成！${RESET}"
-    echo -e "${YELLOW}访问地址: http://$public_ip:$docker_port${RESET}"
-}
-
-update_container() {
-    get_port
-    echo -e "${GREEN}正在更新镜像...${RESET}"
-    docker pull $docker_img
-    docker stop $docker_name 2>/dev/null || true
-    docker rm $docker_name 2>/dev/null || true
-    install_container
-}
-
-start_container() {
-    docker start $docker_name
-    echo -e "${GREEN}容器已启动！${RESET}"
-}
-
-stop_container() {
-    docker stop $docker_name
-    echo -e "${RED}容器已停止！${RESET}"
-}
-
-restart_container() {
-    docker restart $docker_name
-    echo -e "${GREEN}容器已重启！${RESET}"
-}
-
-status_container() {
-    docker ps -a --filter "name=$docker_name"
-}
-
-view_logs() {
-    echo -e "${GREEN}显示容器日志，按 Ctrl+C 返回菜单${RESET}"
-    docker logs -f $docker_name
-}
-
-uninstall_all() {
-    docker stop $docker_name 2>/dev/null || true
-    docker rm $docker_name 2>/dev/null || true
-    echo -e "${RED}容器及所有数据已删除！${RESET}"
-    rm -rf "$config_dir" "$image_dir" "$port_file"
-}
-
-# ================= 菜单 =================
-while true; do
-    echo -e "${GREEN}==============================${RESET}"
-    echo -e "${GREEN} EasyImage 图床 Docker 管理菜单 ${RESET}"
-    echo -e "${GREEN}==============================${RESET}"
-    echo -e "${GREEN}1. 安装并启动容器${RESET}"
-    echo -e "${GREEN}2. 启动容器${RESET}"
-    echo -e "${GREEN}3. 停止容器${RESET}"
-    echo -e "${GREEN}4. 重启容器${RESET}"
-    echo -e "${GREEN}5. 查看容器状态${RESET}"
-    echo -e "${GREEN}6. 更新容器镜像${RESET}"
-    echo -e "${GREEN}7. 查看容器日志${RESET}"
-    echo -e "${RED}8. 卸载容器并删除所有数据${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "${GREEN}==============================${RESET}"
-    read -p "请选择操作 [0-8]: " choice
-
+function menu() {
+    clear
+    echo -e "${GREEN}=== EasyImage 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1) install_container ;;
-        2) start_container ;;
-        3) stop_container ;;
-        4) restart_container ;;
-        5) status_container ;;
-        6) update_container ;;
-        7) view_logs ;;
-        8) uninstall_all ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${RED}输入错误，请重新选择。${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入 Web 端口 [默认:8080]: " input_port
+    PORT=${input_port:-8080}
+
+    # 创建统一文件夹
+    mkdir -p "$APP_DIR/config" "$APP_DIR/i"
+
+    # 生成 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  easyimage:
+    image: ddsderek/easyimage:latest
+    container_name: easyimage
+    ports:
+      - "127.0.0.1:$PORT:80"
+    environment:
+      - TZ=Asia/Shanghai
+      - PUID=1000
+      - PGID=1000
+      - DEBUG=false
+    volumes:
+      - $APP_DIR/config:/app/web/config
+      - $APP_DIR/i:/app/web/i
+    restart: unless-stopped
+EOF
+
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ EasyImage 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 配置目录: $APP_DIR/config${RESET}"
+    echo -e "${GREEN}📂 图片目录: $APP_DIR/i${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ EasyImage 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ EasyImage 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f easyimage
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
