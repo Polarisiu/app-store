@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="magnetboard"
-APP_DIR="$HOME/$APP_NAME"
+APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
 CONFIG_FILE="$APP_DIR/config.env"
 
