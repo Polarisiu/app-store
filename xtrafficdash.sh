@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="xtrafficdash"
-COMPOSE_DIR="/root/xtrafficdash"
+COMPOSE_DIR="/opt/xtrafficdash"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 DEFAULT_PORT=37022
 DEFAULT_PASSWORD="admin123"
