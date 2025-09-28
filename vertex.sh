@@ -1,137 +1,107 @@
 #!/bin/bash
 # ========================================
-# Vertex 一键管理脚本（最终简化版）
-# 菜单选项 8 直接显示密码
+# Vertex 一键管理脚本
 # ========================================
 
-# 颜色
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-CYAN="\033[36m"
 RESET="\033[0m"
-
-# 配置
 APP_NAME="vertex"
-APP_PORT=3006   # 修改端口为 3006
-DATA_DIR="/root/vertex"
-IMAGE_NAME="lswl/vertex:stable"
-TIMEZONE="Asia/Shanghai"
+APP_DIR="$HOME/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# 检查 Docker
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        echo -e "${RED}错误: 未检测到 Docker，请先安装！${RESET}"
-        exit 1
-    fi
-}
-
-# 部署 Vertex
-install_vertex() {
-    check_docker
-    mkdir -p "${DATA_DIR}"
-    echo -e "${YELLOW}拉取镜像：${IMAGE_NAME}${RESET}"
-    docker pull "${IMAGE_NAME}"
-    if docker ps -a --format '{{.Names}}' | grep -q "^${APP_NAME}$"; then
-        echo -e "${YELLOW}已有容器 ${APP_NAME}，正在删除...${RESET}"
-        docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    fi
-    echo -e "${YELLOW}正在启动 Vertex...${RESET}"
-    docker run -d \
-      --name "${APP_NAME}" \
-      -v "${DATA_DIR}:/vertex" \
-      -p ${APP_PORT}:3000 \
-      -e TZ=${TIMEZONE} \
-      --restart unless-stopped \
-      "${IMAGE_NAME}"
-    echo -e "${GREEN}Vertex 部署完成！${RESET}"
-    echo -e "${CYAN}访问地址：http://$(hostname -I | awk '{print $1}'):${APP_PORT}${RESET}"
-}
-
-# 启动
-start_vertex() { docker start "${APP_NAME}" && echo -e "${GREEN}已启动 Vertex${RESET}"; }
-
-# 停止
-stop_vertex() { docker stop "${APP_NAME}" && echo -e "${YELLOW}已停止 Vertex${RESET}"; }
-
-# 重启
-restart_vertex() { docker restart "${APP_NAME}" && echo -e "${GREEN}已重启 Vertex${RESET}"; }
-
-# 查看日志
-logs_vertex() { docker logs -f "${APP_NAME}"; }
-
-# 更新
-update_vertex() {
-    echo -e "${YELLOW}>>> 正在更新 Vertex...${RESET}"
-    docker pull "${IMAGE_NAME}"
-
-    if docker ps -a --format '{{.Names}}' | grep -q "^${APP_NAME}$"; then
-        echo -e "${YELLOW}停止并删除旧容器...${RESET}"
-        docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    fi
-
-    echo -e "${YELLOW}使用最新镜像启动新容器...${RESET}"
-    docker run -d \
-      --name "${APP_NAME}" \
-      -v "${DATA_DIR}:/vertex" \
-      -p ${APP_PORT}:3000 \
-      -e TZ=${TIMEZONE} \
-      --restart unless-stopped \
-      "${IMAGE_NAME}"
-
-    echo -e "${GREEN}✅ Vertex 已更新并启动，访问：http://$(hostname -I | awk '{print $1}'):${APP_PORT}${RESET}"
-}
-
-
-# 卸载
-uninstall_vertex() {
-    docker stop "${APP_NAME}" && docker rm "${APP_NAME}"
-    echo -e "${YELLOW}是否删除数据目录 ${DATA_DIR}？[y/N]${RESET}"
-    read -r del
-    if [[ "$del" == "y" || "$del" == "Y" ]]; then
-        rm -rf "${DATA_DIR}"
-        echo -e "${RED}已删除数据目录${RESET}"
-    fi
-    echo -e "${GREEN}Vertex 已卸载${RESET}"
-}
-
-# 查看初始密码（直接用 more 显示）
-show_password() {
-    more /root/vertex/data/password
-}
-
-# 菜单
-menu() {
+function menu() {
     clear
-    echo -e "${GREEN}==== Vertex 管理菜单 ====${RESET}"
-    echo -e "${GREEN}1. 部署 Vertex${RESET}"
-    echo -e "${GREEN}2. 启动 Vertex${RESET}"
-    echo -e "${GREEN}3. 停止 Vertex${RESET}"
-    echo -e "${GREEN}4. 重启 Vertex${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 更新 Vertex${RESET}"
-    echo -e "${GREEN}7. 卸载 Vertex${RESET}"
-    echo -e "${GREEN}8. 查看初始密码${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请输入选项: ${RESET}"
-    read -r choice
-    case "$choice" in
-        1) install_vertex ;;
-        2) start_vertex ;;
-        3) stop_vertex ;;
-        4) restart_vertex ;;
-        5) logs_vertex ;;
-        6) update_vertex ;;
-        7) uninstall_vertex ;;
-        8) show_password ;;
+    echo -e "${GREEN}=== Vertex 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 查看初始密码${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        5) show_password ;;
         0) exit 0 ;;
-        *) echo -e "${RED}无效选项${RESET}" ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
 }
 
-# 循环菜单
-while true; do
+function install_app() {
+    read -p "请输入 Web 端口 [默认:3000]: " input_port
+    PORT=${input_port:-3000}
+
+    mkdir -p "$APP_DIR/config"
+
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  vertex:
+    image: lswl/vertex:stable
+    container_name: vertex
+    restart: unless-stopped
+    network_mode: bridge
+    environment:
+      - TZ=Asia/Shanghai
+      - PORT=3000
+    ports:
+      - "127.0.0.1:$PORT:3000"
+    volumes:
+      - $APP_DIR/config:/vertex
+EOF
+
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ Vertex 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 配置目录: $APP_DIR/config${RESET}"
+    read -p "按回车返回菜单..."
     menu
-    echo -e "${YELLOW}按回车键继续...${RESET}"
-    read -r
-done
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ Vertex 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Vertex 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f vertex
+    read -p "按回车返回菜单..."
+    menu
+}
+
+# 查看初始密码（分页显示）
+show_password() {
+    PASSWORD_FILE="/root/vertex/config/data/password"
+    if [ -f "$PASSWORD_FILE" ]; then
+        echo -e "\033[32m初始密码内容:\033[0m"
+        more "$PASSWORD_FILE"
+    else
+        echo -e "\033[32m未找到初始密码文件\033[0m"
+    fi
+    read -p "按回车返回菜单..."
+    menu
+}
+
+
+menu
