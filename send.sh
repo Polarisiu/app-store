@@ -95,12 +95,14 @@ update() {
 }
 
 uninstall() {
-    stop
+    cd "$INSTALL_DIR" || exit
+    docker compose down -v
     rm -rf "$INSTALL_DIR"
-    echo -e "${GREEN}>>> Send 服务已卸载${RESET}"
+    echo -e "${GREEN}✅ Send 已卸载，数据已删除${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
+
 
 menu() {
     clear
