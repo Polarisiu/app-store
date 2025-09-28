@@ -5,7 +5,7 @@ GREEN='\033[0;32m'
 RESET='\033[0m'
 
 DEFAULT_CONTAINER_NAME="emby"
-DEFAULT_DATA_DIR="$HOME/emby"
+DEFAULT_DATA_DIR="/opt/emby"
 DEFAULT_HTTP_PORT="8096"
 IMAGE_NAME="emby/embyserver:latest"
 CONFIG_FILE="$HOME/.emby_config"
@@ -107,7 +107,7 @@ deploy_emby() {
         -e UID=0 \
         -e GID=0 \
         -e GIDLIST=0 \
-        -p $HTTP_PORT:8096 \
+        -p 127.0.0.1:$HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
         -v $DATA_DIR/media:/mnt/share1 \
@@ -116,9 +116,9 @@ deploy_emby() {
 
     PUBLIC_IP=$(get_public_ip)
     if [ -n "$PUBLIC_IP" ]; then
-        echo -e "${GREEN}部署完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
+        echo -e "${GREEN}部署完成！公网访问地址: http://127.0.0.1:${HTTP_PORT}${RESET}"
     else
-        echo -e "${GREEN}部署完成，但未能获取公网 IP，请使用内网访问${RESET}"
+        echo -e "${GREEN}部署完成公网访问地址: http://127.0.0.1:${HTTP_PORT}${RESET}"
     fi
 }
 
@@ -174,7 +174,7 @@ update_image() {
         -e UID=0 \
         -e GID=0 \
         -e GIDLIST=0 \
-        -p $HTTP_PORT:8096 \
+        -p 127.0.0.1:$HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
         -v $DATA_DIR/media:/mnt/share1 \
@@ -183,22 +183,22 @@ update_image() {
 
     PUBLIC_IP=$(get_public_ip)
     if [ -n "$PUBLIC_IP" ]; then
-        echo -e "${GREEN}更新完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
+        echo -e "${GREEN}更新完成${RESET}"
     else
-        echo -e "${GREEN}更新完成，但未能获取公网 IP，请使用内网访问${RESET}"
+        echo -e "${GREEN}更新完成${RESET}"
     fi
 }
 
 # 显示菜单
 show_menu() {
-    echo -e "${GREEN}===== EMBY一键部署与更新菜单 =====${RESET}"
-    echo -e "${GREEN}1.部署 EmbyServer${RESET}"
+    echo -e "${GREEN}===== EMBY菜单 =====${RESET}"
+    echo -e "${GREEN}1.部署${RESET}"
     echo -e "${GREEN}2.启动容器${RESET}"
     echo -e "${GREEN}3.停止容器${RESET}"
     echo -e "${GREEN}4.删除容器${RESET}"
     echo -e "${GREEN}5.查看日志${RESET}"
-    echo -e "${GREEN}6.卸载全部数据（容器+统一目录+配置文件)${RESET}"
-    echo -e "${GREEN}7.更新镜像并重启容器${RESET}"
+    echo -e "${GREEN}6.卸载${RESET}"
+    echo -e "${GREEN}7.更新${RESET}"
     echo -e "${GREEN}0.退出${RESET}"
     echo -n "请输入编号: "
 }
