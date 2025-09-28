@@ -1,124 +1,105 @@
 #!/bin/bash
+# ========================================
+# Random-Image-API 一键管理脚本
+# ========================================
 
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
 RESET="\033[0m"
+APP_NAME="random-image-api"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# docker-compose 文件名
-DC_FILE="docker-compose.yml"
-
-# 获取服务器公网 IP
-get_ip() {
-    # 尝试获取公网 IP
-    IP=$(curl -s https://api.ipify.org)
-    if [[ -z "$IP" ]]; then
-        IP="localhost"
-    fi
-    echo "$IP"
-}
-
-menu() {
+function menu() {
     clear
-    echo -e "${RED}=== 随机图片 API 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 一键部署 API${RESET}"
-    echo -e "${GREEN}2) 启动 API${RESET}"
-    echo -e "${GREEN}3) 停止 API${RESET}"
-    echo -e "${GREEN}4) 重启 API${RESET}"
-    echo -e "${GREEN}5) 查看日志${RESET}"
-    echo -e "${GREEN}6) 卸载 API${RESET}"
-    echo -e "${GREEN}7) 查看访问方式${RESET}"
-    echo -e "${GREEN}8) 更新 API${RESET}"
+    echo -e "${GREEN}=== Random-Image-API 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo
-    read -p "请输入选项: " choice
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo "无效选择"; sleep 1; menu ;;
+    esac
 }
 
-deploy() {
-    read -p "请输入你的图床地址: " LSKY_API_URL
-    read -p "请输入你的兰空图床 Token: " LSKY_TOKEN
-    read -p "请输入自定义标题: " CUSTOM_TITLE
+function install_app() {
+    read -p "请输入 Web 端口 [默认:3007]: " input_port
+    PORT=${input_port:-3007}
 
-    cat > $DC_FILE <<EOF
-version: '3'
+    read -p "请输入图床地址 [默认: https://img.ibytebox.com]: " input_url
+    LSKY_API_URL=${input_url:-https://img.ibytebox.com}
+
+    read -p "请输入图床 Token: " LSKY_TOKEN
+    read -p "请输入自定义标题 [默认: 我的随机图片]: " CUSTOM_TITLE
+    CUSTOM_TITLE=${CUSTOM_TITLE:-我的随机图片}
+
+    mkdir -p "$APP_DIR/data"
+
+    # 生成 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
 services:
   random-image-api:
     image: libyte/random-image-api:latest
+    container_name: random-image-api
+    restart: unless-stopped
     ports:
-      - "3007:3007"
+      - "127.0.0.1:$PORT:3007"
     environment:
-      - LSKY_API_URL=${LSKY_API_URL}
-      - LSKY_TOKEN=${LSKY_TOKEN}
-      - CUSTOM_TITLE=${CUSTOM_TITLE}
+      - LSKY_API_URL=$LSKY_API_URL
+      - LSKY_TOKEN=$LSKY_TOKEN
+      - CUSTOM_TITLE=$CUSTOM_TITLE
+    volumes:
+      - $APP_DIR/data:/app/data
 EOF
 
-    echo -e "${GREEN}docker-compose.yml 已生成，正在启动容器...${RESET}"
+    echo -e "PORT=$PORT\nLSKY_API_URL=$LSKY_API_URL\nLSKY_TOKEN=$LSKY_TOKEN\nCUSTOM_TITLE=$CUSTOM_TITLE" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
     docker compose up -d
 
-    show_access
-}
-
-start_api() {
-    docker compose up -d
-    echo -e "${GREEN}API 已启动${RESET}"
-}
-
-stop_api() {
-    docker compose down
-    echo -e "${YELLOW}API 已停止${RESET}"
-}
-
-restart_api() {
-    docker compose down
-    docker compose up -d
-    echo -e "${GREEN}API 已重启${RESET}"
-}
-
-view_logs() {
-    docker compose logs -f
-}
-
-uninstall_api() {
-    read -p $'\033[31m⚠️ 确认要卸载 API 并删除所有文件吗？(y/n): \033[0m' confirm
-    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        docker compose down
-        rm -f $DC_FILE
-        echo -e "${RED}API 已卸载，docker-compose.yml 已删除${RESET}"
-    else
-        echo -e "${YELLOW}已取消卸载${RESET}"
-    fi
-}
-update_api() {
-    echo -e "${GREEN}>>> 正在拉取最新镜像...${RESET}"
-    docker compose pull
-    echo -e "${GREEN}>>> 正在重启服务...${RESET}"
-    docker compose up -d
-    echo -e "${GREEN}API 已更新完成${RESET}"
-}
-
-
-show_access() {
-    IP=$(get_ip)
-    echo -e "${GREEN}\n🌐 访问方式${RESET}"
-    echo -e "${GREEN}主页预览：http://${IP}:3007/  - 好看的图片页面${RESET}"
-    echo -e "${GREEN}直接图片：http://${IP}:3007/api  - 纯图片，刷新换图${RESET}"
-    echo -e "${GREEN}JSON 数据：http://${IP}:3007/?format=json  - 程序调用${RESET}\n"
-}
-
-while true; do
+    echo -e "${GREEN}✅ Random-Image-API 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
+    echo -e "${GREEN}🔑 Token: $LSKY_TOKEN${RESET}"
+    echo -e "${GREEN}🌐 访问方式${RESET}"
+    echo -e "${GREEN}主页预览：http://127.0.0.1:3007/  - 好看的图片页面${RESET}"
+    echo -e "${GREEN}直接图片：http://127.0.0.1:3007/api  - 纯图片，刷新换图${RESET}"
+    echo -e "${GREEN}JSON 数据：http://127.0.0.1:3007/?format=json  - 程序调用${RESET}"
+    read -p "按回车返回菜单..."
     menu
-    case $choice in
-        1) deploy ;;
-        2) start_api ;;
-        3) stop_api ;;
-        4) restart_api ;;
-        5) view_logs ;;
-        6) uninstall_api ;;
-        7) show_access ;;
-        8) update_api ;;
-        0) exit 0 ;;
-        *) echo -e "${RED}无效选项，请重新选择${RESET}" ;;
-    esac
-    echo
-    read -p "按回车继续..." dummy
-done
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    source "$CONFIG_FILE"
+    echo -e "${GREEN}✅ Random-Image-API 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Random-Image-API 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f random-image-api
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
