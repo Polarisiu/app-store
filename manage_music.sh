@@ -127,7 +127,6 @@ show_menu() {
     echo -e "${GREEN}===============================${RESET}"
     echo -e "${GREEN}容器状态:${RESET}"
     docker-compose ps --services --filter "status=running" | awk '{print "  " $1 " : 运行中"}'
-    docker-compose ps --services --filter "status=exited" | awk '{print "  " $1 " : 停止"}'
     echo -e "${GREEN}-------------------------------${RESET}"
     echo -e "${GREEN}1) 启动所有服务${RESET}"
     echo -e "${GREEN}2) 停止所有服务${RESET}"
