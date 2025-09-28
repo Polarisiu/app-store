@@ -57,13 +57,13 @@ function install_app() {
     docker stop "$CONTAINER_NAME" 2>/dev/null
     docker rm "$CONTAINER_NAME" 2>/dev/null
 
-    docker run -d --name "$CONTAINER_NAME" -p ${PORT}:25884 \
+    docker run -d --name "$CONTAINER_NAME" -p 127.0.0.1:${PORT}:25884 \
         -v "${DATA_DIR}:/app/data" \
         --restart unless-stopped \
         imsyy/splayer:latest
 
     echo -e "${GREEN}✅ SPlayer 已启动${RESET}"
-    echo -e "${GREEN}🌐 访问地址: http://$(get_ip):${PORT}${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:${PORT}${RESET}"
     echo -e "${GREEN}📂 数据目录: $DATA_DIR${RESET}"
     read -p "按回车返回菜单..."
     menu
