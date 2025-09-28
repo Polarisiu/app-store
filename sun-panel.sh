@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="sun-panel"
-COMPOSE_DIR="$HOME/sun-panel"
+COMPOSE_DIR="/opt/sun-panel"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 DEFAULT_PORT=3002
 
