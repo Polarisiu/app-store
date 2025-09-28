@@ -1,25 +1,26 @@
 #!/bin/bash
-# =========================================
-# DNSMgr Docker 管理脚本 (显示访问信息)
-# =========================================
+set -e
 
+# ================== 颜色 ==================
 GREEN="\033[32m"
 YELLOW="\033[33m"
 RED="\033[31m"
 RESET="\033[0m"
 
-COMPOSE_FILE="./docker-compose.yml"
-WEB_DIR="./web"
-MYSQL_CONF_DIR="./mysql/conf"
-MYSQL_LOGS_DIR="./mysql/logs"
-MYSQL_DATA_DIR="./mysql/data"
+# ================== 变量 ==================
+INSTALL_DIR="/opt/dnsmgr"
+COMPOSE_FILE="$INSTALL_DIR/docker-compose.yml"
+WEB_DIR="$INSTALL_DIR/web"
+MYSQL_CONF_DIR="$INSTALL_DIR/mysql/conf"
+MYSQL_LOGS_DIR="$INSTALL_DIR/mysql/logs"
+MYSQL_DATA_DIR="$INSTALL_DIR/mysql/data"
 NETWORK_NAME="dnsmgr-network"
 
 MYSQL_ROOT_PASSWORD="554751"
 MYSQL_DB_NAME="dnsmgr"
 
-# 检查端口是否被占用
-function check_port() {
+# ================== 公共函数 ==================
+check_port() {
     local port=$1
     if lsof -i:"$port" &>/dev/null; then
         return 1
@@ -28,13 +29,11 @@ function check_port() {
     fi
 }
 
-# 创建目录
-function create_dirs() {
+create_dirs() {
     mkdir -p "$WEB_DIR" "$MYSQL_CONF_DIR" "$MYSQL_LOGS_DIR" "$MYSQL_DATA_DIR"
 }
 
-# 生成 my.cnf
-function generate_my_cnf() {
+generate_my_cnf() {
     local cnf_file="$MYSQL_CONF_DIR/my.cnf"
     if [ ! -f "$cnf_file" ]; then
         cat > "$cnf_file" <<'EOF'
@@ -44,20 +43,18 @@ EOF
     fi
 }
 
-# 生成 docker-compose.yml
-function generate_docker_compose() {
+generate_docker_compose() {
     local web_port="$1"
     cat > "$COMPOSE_FILE" <<EOF
-version: '3'
 services:
   dnsmgr-web:
     container_name: dnsmgr-web
     stdin_open: true
     tty: true
     ports:
-      - ${web_port}:80
+      - 127.0.0.1:${web_port}:80
     volumes:
-      - ./web:/app/www
+      - ${WEB_DIR}:/app/www
     image: netcccyun/dnsmgr
     depends_on:
       - dnsmgr-mysql
@@ -70,9 +67,9 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf
-      - ./mysql/logs:/logs
-      - ./mysql/data:/var/lib/mysql
+      - ${MYSQL_CONF_DIR}/my.cnf:/etc/mysql/my.cnf
+      - ${MYSQL_LOGS_DIR}:/logs
+      - ${MYSQL_DATA_DIR}:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
       - MYSQL_DATABASE=$MYSQL_DB_NAME
@@ -87,8 +84,7 @@ networks:
 EOF
 }
 
-# 等待 MySQL 启动完成
-function wait_mysql_ready() {
+wait_mysql_ready() {
     echo "等待 MySQL 启动..."
     while ! docker exec dnsmgr-mysql mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent &>/dev/null; do
         sleep 2
@@ -96,50 +92,44 @@ function wait_mysql_ready() {
     echo "MySQL 已就绪"
 }
 
-# 初始化 MySQL (第一次启动自动创建数据库)
-function init_mysql() {
-    docker-compose up -d dnsmgr-mysql
+init_mysql() {
+    docker compose -f $COMPOSE_FILE up -d dnsmgr-mysql
     wait_mysql_ready
 }
 
-# 启动服务
-function start_all() {
-    docker-compose up -d
+start_all() {
+    docker compose -f $COMPOSE_FILE up -d
 }
 
-# 停止服务
-function stop_all() {
-    docker-compose down
+stop_all() {
+    docker compose -f $COMPOSE_FILE down
 }
 
-# 更新服务
-function update_services() {
-    docker-compose pull
-    docker-compose up -d
+update_services() {
+    docker compose -f $COMPOSE_FILE pull
+    docker compose -f $COMPOSE_FILE up -d
 }
 
-# 卸载服务
-function uninstall() {
-    read -p "是否保留数据? [y/N]: " keep
-    stop_all
-    docker rm -f dnsmgr-web dnsmgr-mysql 2>/dev/null || true
+uninstall() {
+    cd "$INSTALL_DIR" || exit
+    # 停止服务并删除容器
+    docker compose down -v
+    docker rm -f dnsmgr-web 2>/dev/null || true
     docker network rm $NETWORK_NAME 2>/dev/null || true
+    docker rmi netcccyun/dnsmgr 2>/dev/null || true
 
-    if [[ "$keep" =~ ^[Yy]$ ]]; then
-        docker rmi netcccyun/dnsmgr mysql:5.7 2>/dev/null || true
-    else
-        docker-compose down -v --rmi all
-        rm -rf "$WEB_DIR" "$MYSQL_CONF_DIR" "$MYSQL_LOGS_DIR" "$MYSQL_DATA_DIR"
-    fi
-    echo -e "${GREEN}卸载完成！${RESET}"
+    # 删除整个安装目录（包括 web 文件）
+    rm -rf "$INSTALL_DIR"
+
+    echo -e "${GREEN}✅ DNSMgr 已卸载，数据已删除${RESET}"
+
 }
 
-# 显示访问信息
-function show_info() {
+
+show_info() {
     local web_port="$1"
-    local ip=$(hostname -I | awk '{print $1}')
     echo -e "\n${GREEN}==== 安装完成信息 ====${RESET}"
-    echo -e "${YELLOW}访问 dnsmgr-web:${RESET} http://$ip:$web_port"
+    echo -e "${YELLOW}访问 dnsmgr-web:${RESET} http://127.0.0.1:${web_port}"
     echo -e "${YELLOW}MySQL 主机:${RESET} dnsmgr-mysql"
     echo -e "${YELLOW}MySQL 端口:${RESET} 3306"
     echo -e "${YELLOW}MySQL 用户名:${RESET} root"
@@ -147,16 +137,15 @@ function show_info() {
     echo -e "${YELLOW}数据库名称:${RESET} $MYSQL_DB_NAME"
 }
 
-# 菜单
-function menu() {
+menu() {
     while true; do
-        echo -e "${GREEN}==== DNSMgr Docker 管理菜单 ====${RESET}"
-        echo -e "${GREEN}1) 安装并初始化${RESET}"
+        echo -e "${GREEN}==== DNSMgr 管理菜单 ====${RESET}"
+        echo -e "${GREEN}1) 安装${RESET}"
         echo -e "${GREEN}2) 启动服务${RESET}"
         echo -e "${GREEN}3) 停止服务${RESET}"
         echo -e "${GREEN}4) 更新服务${RESET}"
         echo -e "${GREEN}5) 卸载${RESET}"
-        echo -e "${GREEN}6) 退出${RESET}"
+        echo -e "${GREEN}0) 退出${RESET}"
         read -p "请输入操作编号: " choice
         case "$choice" in
             1)
@@ -176,14 +165,11 @@ function menu() {
                 start_all
                 show_info "$web_port"
                 ;;
-            2)
-                start_all
-                echo -e "${GREEN}服务已启动！${RESET}"
-                ;;
-            3) stop_all ;;
-            4) update_services ;;
+            2) start_all ; echo -e "${GREEN}服务已启动！${RESET}" ;;
+            3) stop_all ; echo -e "${GREEN}服务已停止！${RESET}" ;;
+            4) update_services ; echo -e "${GREEN}服务已更新！${RESET}" ;;
             5) uninstall ;;
-            6) exit 0 ;;
+            0) exit 0 ;;
             *) echo -e "${RED}无效选项！${RESET}" ;;
         esac
     done
