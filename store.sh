@@ -8,12 +8,10 @@ RESET="\033[0m"
 BOLD="\033[1m"
 
 # ================== 脚本路径 ==================
-BASE_DIR="/root/app-store"
-SCRIPT_PATH="$BASE_DIR/store.sh"
+SCRIPT_PATH="/root/store.sh"
 SCRIPT_URL="https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
 BIN_LINK_DIR="/usr/local/bin"
-
-mkdir -p "$BASE_DIR"
+MARK_FILE="/root/.store_installed"
 
 # ================== 首次运行自动保存 ==================
 if [ ! -f "$SCRIPT_PATH" ]; then
@@ -27,7 +25,12 @@ fi
 for cmd in d D; do
     ln -sf "$SCRIPT_PATH" "$BIN_LINK_DIR/$cmd"
 done
-echo -e "${GREEN}已创建全局命令 d/D，可直接输入启动脚本${RESET}"
+
+# ================== 首次运行提示 ==================
+if [ ! -f "$MARK_FILE" ]; then
+    echo -e "\n${YELLOW}💡 提示: 以后可以直接输入 ${RED}d${RESET}${YELLOW} 或 ${RED}D${RESET}${YELLOW} 命令来启动脚本${RESET}\n"
+    touch "$MARK_FILE"
+fi
 
 # ================== 一级菜单分类 ==================
 declare -A categories=(
@@ -209,6 +212,7 @@ declare -A commands=(
     [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
 )
 
+
 # ================== 菜单显示函数 ==================
 show_category_menu() {
     printf '\033c'
@@ -325,7 +329,8 @@ uninstall_script() {
     echo -e "${YELLOW}正在卸载脚本...${RESET}"
     rm -f "$SCRIPT_PATH"
     rm -f "$BIN_LINK_DIR/d" "$BIN_LINK_DIR/D"
-    echo -e "${RED}卸载完成! 已清理全局命令 d/D${RESET}"
+    rm -f "$MARK_FILE"
+    echo -e "${RED}卸载完成! 已清理全局命令 d/D 和提示标记${RESET}"
     exit 0
 }
 
