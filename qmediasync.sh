@@ -5,7 +5,7 @@ GREEN="\033[32m"
 RESET="\033[0m"
 
 APP_NAME="qmediasync"
-BASE_DIR="/root/qmediasync"
+BASE_DIR="/opt/qmediasync"
 CONFIG_DIR="$BASE_DIR/config"
 MEDIA_DIR="$BASE_DIR/media"
 YML_FILE="$BASE_DIR/qmediasync-compose.yml"
