@@ -1,121 +1,106 @@
 #!/bin/bash
-set -e
-
 # ========================================
-# Vaultwarden 一键管理脚本
-# 功能：启动/停止/更新/查看日志/卸载 + 自定义域名和端口
+# Vaultwarden 一键管理脚本 (Docker Compose)
 # ========================================
 
-WORKDIR="$HOME/vaultwarden-data"
-CONTAINER_NAME="vaultwarden"
-IMAGE_NAME="vaultwarden/server:latest"
-CONFIG_FILE="$WORKDIR/vw.conf"
-
-# ========== 颜色 ==========
 GREEN="\033[32m"
-YELLOW="\033[33m"
-RED="\033[31m"
 RESET="\033[0m"
+APP_NAME="vaultwarden"
+APP_DIR="$HOME/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# ========== 获取公网 IP ==========
-get_public_ip() {
-    IP=$(curl -s https://ifconfig.me || echo "服务器IP")
-    if ! [[ $IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        IP="服务器IP"
-    fi
-    echo "$IP"
+function get_ip() {
+    curl -s ifconfig.me || curl -s ip.sb || echo "127.0.0.1"
 }
 
-# ========== 读取配置 ==========
-load_config() {
-    if [[ -f "$CONFIG_FILE" ]]; then
-        source "$CONFIG_FILE"
-    else
-        echo -ne "${YELLOW}请输入域名 (如 https://vw.domain.tld): ${RESET}"
-        read -r DOMAIN
-        echo -ne "${YELLOW}请输入端口 (默认 8000): ${RESET}"
-        read -r PORT
-        PORT=${PORT:-8000}
-        mkdir -p "$WORKDIR"
-        cat > "$CONFIG_FILE" <<EOF
-DOMAIN="$DOMAIN"
-PORT=$PORT
-EOF
-    fi
-}
-
-# ========== 菜单 ==========
-show_menu() {
-    echo -e "${GREEN}===== Vaultwarden 管理菜单 =====${RESET}"
-    echo -e "${GREEN}1. 启动 Vaultwarden${RESET}"
-    echo -e "${GREEN}2. 停止 Vaultwarden${RESET}"
-    echo -e "${GREEN}3. 更新 Vaultwarden${RESET}"
-    echo -e "${GREEN}4. 查看日志${RESET}"
-    echo -e "${GREEN}5. 卸载 Vaultwarden${RESET}"
-    echo -e "${GREEN}6. 退出${RESET}"
-    echo -e "${GREEN}================================${RESET}"
-}
-
-# ========== 主逻辑 ==========
-load_config
-
-while true; do
-    show_menu
-    echo -ne "${YELLOW}请选择操作 [1-6]: ${RESET}"
-    read -r choice
+function menu() {
+    clear
+    echo -e "${GREEN}=== Vaultwarden 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}=======================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1)
-            echo -e "${GREEN}启动 Vaultwarden...${RESET}"
-            docker run -d \
-                --name $CONTAINER_NAME \
-                --env DOMAIN="$DOMAIN" \
-                --volume "$WORKDIR:/data/" \
-                --restart unless-stopped \
-                -p 0.0.0.0:$PORT:80 \
-                $IMAGE_NAME
-            echo -e "${GREEN}Vaultwarden 已启动${RESET}"
-            echo -e "${GREEN}访问地址：$DOMAIN ${RESET}"
-            ;;
-        2)
-            echo -e "${GREEN}停止 Vaultwarden...${RESET}"
-            docker stop $CONTAINER_NAME
-            ;;
-        3)
-            echo -e "${GREEN}更新 Vaultwarden...${RESET}"
-            docker stop $CONTAINER_NAME 2>/dev/null || true
-            docker rm $CONTAINER_NAME 2>/dev/null || true
-            docker pull $IMAGE_NAME
-            docker run -d \
-                --name $CONTAINER_NAME \
-                --env DOMAIN="$DOMAIN" \
-                --volume "$WORKDIR:/data/" \
-                --restart unless-stopped \
-                -p 0.0.0.0:$PORT:80 \
-                $IMAGE_NAME
-            echo -e "${GREEN}Vaultwarden 已更新并启动${RESET}"
-            echo -e "${GREEN}访问地址：$DOMAIN ${RESET}"
-            ;;
-        4)
-            echo -e "${GREEN}查看日志（Ctrl+C 退出）${RESET}"
-            docker logs -f $CONTAINER_NAME
-            ;;
-        5)
-            echo -ne "${YELLOW}确认卸载 Vaultwarden 并删除数据吗？[y/N]: ${RESET}"
-            read -r confirm
-            if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                docker stop $CONTAINER_NAME 2>/dev/null || true
-                docker rm $CONTAINER_NAME 2>/dev/null || true
-                rm -rf "$WORKDIR"
-                echo -e "${GREEN}Vaultwarden 已卸载${RESET}"
-                exit 0
-            fi
-            ;;
-        6)
-            echo -e "${YELLOW}退出脚本${RESET}"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}输入错误，请重新选择${RESET}"
-            ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入 Web 端口 [默认:11001]: " input_port
+    PORT=${input_port:-11001}
+
+    read -p "请输入域名（例如 https://vaultwarden.example.com）: " DOMAIN
+    read -p "允许注册新用户? (true/false) [默认:true]: " SIGNUPS_ALLOWED_INPUT
+    SIGNUPS_ALLOWED=${SIGNUPS_ALLOWED_INPUT:-true}
+
+    # 创建统一数据目录
+    mkdir -p "$APP_DIR/vw-data"
+
+    # 生成 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: always
+    environment:
+      DOMAIN: "$DOMAIN"
+      SIGNUPS_ALLOWED: "$SIGNUPS_ALLOWED"
+    volumes:
+      - $APP_DIR/vw-data:/data
+    ports:
+      - "$PORT:80"
+EOF
+
+    # 保存配置
+    cat > "$CONFIG_FILE" <<EOF
+PORT=$PORT
+DOMAIN=$DOMAIN
+SIGNUPS_ALLOWED=$SIGNUPS_ALLOWED
+EOF
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    echo -e "${GREEN}✅ Vaultwarden 已启动${RESET}"
+    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    [ -n "$DOMAIN" ] && echo -e "${GREEN}🔗 域名: $DOMAIN${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/vw-data${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ Vaultwarden 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Vaultwarden 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f vaultwarden
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
