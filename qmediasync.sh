@@ -5,7 +5,7 @@ GREEN="\033[32m"
 RESET="\033[0m"
 
 APP_NAME="qmediasync"
-BASE_DIR="/opt/qmediasync"
+BASE_DIR="/root/qmediasync"
 CONFIG_DIR="$BASE_DIR/config"
 MEDIA_DIR="$BASE_DIR/media"
 YML_FILE="$BASE_DIR/qmediasync-compose.yml"
@@ -21,7 +21,6 @@ create_compose() {
     mkdir -p "$BASE_DIR"
 
     cat > $YML_FILE <<EOF
-version: "3.8"
 
 services:
   qmediasync:
@@ -29,7 +28,7 @@ services:
     container_name: qmediasync
     restart: unless-stopped
     ports:
-      - "12333:12333"
+      - "127.0.0.1:12333:12333"
       - "8095:8095"
       - "8094:8094"
     volumes:
@@ -60,7 +59,7 @@ show_menu() {
 
 print_access_info() {
     local ip=$(get_ip)
-    echo -e "🌐 访问地址: ${GREEN}http://$ip:12333${RESET}"
+    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:12333${RESET}"
     echo -e "👤 默认用户: ${GREEN}admin${RESET}"
     echo -e "🔑 默认密码: ${GREEN}admin123${RESET}"
 }
@@ -80,21 +79,18 @@ stop_app() {
 start_app() {
     docker compose -f $YML_FILE up -d
     echo -e "🚀 ${GREEN}QMediaSync 已启动${RESET}"
-    print_access_info
 }
 
 restart_app() {
     docker compose -f $YML_FILE down
     docker compose -f $YML_FILE up -d
     echo -e "🔄 ${GREEN}QMediaSync 已重启${RESET}"
-    print_access_info
 }
 
 update_app() {
     docker compose -f $YML_FILE pull
     docker compose -f $YML_FILE up -d
     echo -e "⬆️ ${GREEN}QMediaSync 已更新到最新版本${RESET}"
-    print_access_info
 }
 
 logs_app() {
