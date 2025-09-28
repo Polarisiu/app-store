@@ -11,7 +11,7 @@ red="\033[31m"
 plain="\033[0m"
 
 # 项目目录
-APP_DIR="$HOME/kuma-mieru"
+APP_DIR="/opt/kuma-mieru"
 # 默认宿主机端口（映射 docker-compose.yml 的端口）
 HOST_PORT=3883
 
