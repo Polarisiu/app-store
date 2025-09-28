@@ -142,7 +142,7 @@ update_services() {
     echo -e "${GREEN}正在拉取最新镜像...${RESET}"
     docker-compose -f $COMPOSE_FILE pull
     docker-compose -f $COMPOSE_FILE up -d
-    echo -e "${GREEN}镜像已更新并重启服务${RESET}"
+    echo -e "${GREEN}已更新并重启服务${RESET}"
 }
 
 logs_oneapi() {
