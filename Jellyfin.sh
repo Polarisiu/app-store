@@ -1,14 +1,14 @@
 #!/bin/bash
-# Jellyfin 一键部署与更新菜单脚本（绿色菜单、强制root、显示公网IP）
+# Jellyfin 一键部署与更新菜单脚本（统一 /opt/jellyfin，循环菜单版）
 
 GREEN='\033[0;32m'
 RESET='\033[0m'
 
 DEFAULT_CONTAINER_NAME="jellyfin"
-DEFAULT_DATA_DIR="$HOME/jellyfin"
+DEFAULT_DATA_DIR="/opt/jellyfin"
 DEFAULT_HTTP_PORT="8096"
 IMAGE_NAME="jellyfin/jellyfin:latest"
-CONFIG_FILE="$HOME/.jellyfin_config"
+CONFIG_FILE="$DEFAULT_DATA_DIR/config.env"
 
 CONTAINER_NAME=""
 DATA_DIR=""
@@ -23,12 +23,10 @@ check_docker() {
 
 get_public_ip() {
     PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
-    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
         PUBLIC_IP=$(curl -s https://ifconfig.me/ip)
     fi
-    if ! [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        PUBLIC_IP=""
-    fi
+    [[ $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || PUBLIC_IP=""
     echo "$PUBLIC_IP"
 }
 
@@ -40,21 +38,23 @@ load_or_input_config() {
     read -p "请输入容器名 [${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}]: " input_container
     CONTAINER_NAME=${input_container:-${CONTAINER_NAME:-$DEFAULT_CONTAINER_NAME}}
 
-    read -p "请输入统一存放目录（配置+媒体+缓存） [${DATA_DIR:-$DEFAULT_DATA_DIR}]: " input_dir
-    DATA_DIR=${input_dir:-${DATA_DIR:-$DEFAULT_DATA_DIR}}
+    DATA_DIR="$DEFAULT_DATA_DIR"
 
     read -p "请输入宿主机 HTTP 映射端口 [${HTTP_PORT:-$DEFAULT_HTTP_PORT}]: " input_port
     HTTP_PORT=${input_port:-${HTTP_PORT:-$DEFAULT_HTTP_PORT}}
 
-    echo "CONTAINER_NAME=\"$CONTAINER_NAME\"" > "$CONFIG_FILE"
-    echo "DATA_DIR=\"$DATA_DIR\"" >> "$CONFIG_FILE"
-    echo "HTTP_PORT=\"$HTTP_PORT\"" >> "$CONFIG_FILE"
+    mkdir -p "$(dirname $CONFIG_FILE)"
+    {
+        echo "CONTAINER_NAME=\"$CONTAINER_NAME\""
+        echo "DATA_DIR=\"$DATA_DIR\""
+        echo "HTTP_PORT=\"$HTTP_PORT\""
+    } > "$CONFIG_FILE"
 }
 
 create_dirs() {
     mkdir -p "$DATA_DIR/config" "$DATA_DIR/cache" "$DATA_DIR/media"
-    echo -e "${GREEN}已创建数据目录: $DATA_DIR${RESET}"
     chmod -R 755 "$DATA_DIR"
+    echo -e "${GREEN}已创建数据目录: $DATA_DIR${RESET}"
 }
 
 deploy_jellyfin() {
@@ -69,7 +69,7 @@ deploy_jellyfin() {
         -e UID=0 \
         -e GID=0 \
         -e GIDLIST=0 \
-        -p $HTTP_PORT:8096 \
+        -p 127.0.0.1:$HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
         -v $DATA_DIR/cache:/cache \
@@ -77,29 +77,36 @@ deploy_jellyfin() {
         $IMAGE_NAME
 
     PUBLIC_IP=$(get_public_ip)
-    if [[ $PUBLIC_IP != "无法获取公网 IP" ]]; then
-        echo -e "${GREEN}部署完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
-    else
-        echo -e "${GREEN}部署完成，但未能获取公网 IP，请使用内网访问${RESET}"
-    fi
+    echo -e "${GREEN}部署完成！访问地址: http://127.0.0.1:${HTTP_PORT}${RESET}"
+    read -p "按回车返回菜单..."
 }
 
-start_jellyfin() { docker start $CONTAINER_NAME && echo -e "${GREEN}容器已启动${RESET}"; }
-stop_jellyfin() { docker stop $CONTAINER_NAME && echo -e "${GREEN}容器已停止${RESET}"; }
-remove_jellyfin() { docker rm -f $CONTAINER_NAME && echo -e "${GREEN}容器已删除${RESET}"; }
-view_logs() { docker logs -f $CONTAINER_NAME; }
+start_jellyfin() {
+    docker start $CONTAINER_NAME && echo -e "${GREEN}容器已启动${RESET}"
+    read -p "按回车返回菜单..."
+}
+stop_jellyfin() {
+    docker stop $CONTAINER_NAME && echo -e "${GREEN}容器已停止${RESET}"
+    read -p "按回车返回菜单..."
+}
+remove_jellyfin() {
+    docker rm -f $CONTAINER_NAME && echo -e "${GREEN}容器已删除${RESET}"
+}
+view_logs() {
+    docker logs -f $CONTAINER_NAME
+}
 
 uninstall_all() {
-    stop_jellyfin
+    docker stop $CONTAINER_NAME
     remove_jellyfin
-    if [ -n "$DATA_DIR" ] && [ -d "$DATA_DIR" ]; then
-        read -p "确定要删除 $DATA_DIR 吗？此操作不可恢复 [y/N]: " confirm
+    if [ -d "$DEFAULT_DATA_DIR" ]; then
+        read -p "确定要删除 $DEFAULT_DATA_DIR 吗？此操作不可恢复 [y/N]: " confirm
         if [[ "$confirm" =~ ^[Yy]$ ]]; then
-            rm -rf "$DATA_DIR"
-            echo -e "${GREEN}数据目录已删除${RESET}"
+            rm -rf "$DEFAULT_DATA_DIR"
+            echo -e "${GREEN}数据和配置已删除${RESET}"
         fi
     fi
-    [ -f "$CONFIG_FILE" ] && rm -f "$CONFIG_FILE" && echo -e "${GREEN}配置文件已删除${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 update_image() {
@@ -107,7 +114,8 @@ update_image() {
         source "$CONFIG_FILE"
     else
         echo -e "${GREEN}配置文件不存在，请先部署容器${RESET}"
-        exit 1
+        read -p "按回车返回菜单..."
+        return
     fi
 
     echo -e "${GREEN}正在拉取最新镜像: $IMAGE_NAME ...${RESET}"
@@ -131,30 +139,25 @@ update_image() {
         -e UID=0 \
         -e GID=0 \
         -e GIDLIST=0 \
-        -p $HTTP_PORT:8096 \
+        -p 127.0.0.1:$HTTP_PORT:8096 \
         -p 8920:8920 \
         -v $DATA_DIR/config:/config \
         -v $DATA_DIR/cache:/cache \
         -v $DATA_DIR/media:/media \
         $IMAGE_NAME
 
-    PUBLIC_IP=$(get_public_ip)
-    if [[ $PUBLIC_IP != "无法获取公网 IP" ]]; then
-        echo -e "${GREEN}更新完成！公网访问地址: http://${PUBLIC_IP}:${HTTP_PORT}${RESET}"
-    else
-        echo -e "${GREEN}更新完成，但未能获取公网 IP，请使用内网访问${RESET}"
-    fi
+    echo -e "${GREEN}更新完成${RESET}"
+    read -p "按回车返回菜单..."
 }
 
 show_menu() {
-    echo -e "${GREEN}===== Jellyfin 一键部署与更新菜单 =====${RESET}"
-    echo -e "${GREEN}1. 部署 Jellyfin${RESET}"
+    echo -e "${GREEN}===== Jellyfin 菜单 =====${RESET}"
+    echo -e "${GREEN}1. 部署${RESET}"
     echo -e "${GREEN}2. 启动容器${RESET}"
     echo -e "${GREEN}3. 停止容器${RESET}"
-    echo -e "${GREEN}4. 删除容器${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 卸载全部数据（容器+目录+配置文件）${RESET}"
-    echo -e "${GREEN}7. 更新镜像并重启容器${RESET}"
+    echo -e "${GREEN}4. 查看日志${RESET}"
+    echo -e "${GREEN}5. 卸载${RESET}"
+    echo -e "${GREEN}6. 更新${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     echo -n "请输入编号: "
 }
@@ -168,11 +171,10 @@ while true; do
         1) deploy_jellyfin ;;
         2) start_jellyfin ;;
         3) stop_jellyfin ;;
-        4) remove_jellyfin ;;
-        5) view_logs ;;
-        6) uninstall_all ;;
-        7) update_image ;;
+        4) view_logs ;;
+        5) uninstall_all ;;
+        6) update_image ;;
         0) echo "退出脚本"; exit 0 ;;
-        *) echo -e "${GREEN}无效选项${RESET}" ;;
+        *) echo -e "${GREEN}无效选项${RESET}"; read -p "按回车返回菜单..." ;;
     esac
 done
