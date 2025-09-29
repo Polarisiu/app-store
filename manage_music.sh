@@ -20,6 +20,7 @@ mkdir -p "$PROJECT_DIR/data" "$MUSIC_DIR"
 cd "$PROJECT_DIR" || exit
 
 # ---------- 3️⃣ 定义安装函数 ----------
+```bash
 install_services() {
     echo "========== 开始安装三合一音乐服务 =========="
 
@@ -32,6 +33,16 @@ install_services() {
     read -s -p "设置 Miniserve 密码: " MINSERVE_PASS
     echo
 
+    # 自定义端口（默认值：Navidrome 4533，Miniserve 4534，MusicTagWeb 8002）
+    read -p "请输入 Navidrome 端口 (默认 4533): " ND_PORT
+    ND_PORT=${ND_PORT:-4533}
+
+    read -p "请输入 Miniserve 端口 (默认 4534): " MS_PORT
+    MS_PORT=${MS_PORT:-4534}
+
+    read -p "请输入 MusicTagWeb 端口 (默认 8002): " MTW_PORT
+    MTW_PORT=${MTW_PORT:-8002}
+
     # 生成 .env
     cat > .env <<EOF
 ND_LASTFM_ENABLED=true
@@ -42,6 +53,10 @@ ND_SPOTIFY_SECRET=$ND_SPOTIFY_SECRET
 
 MINSERVE_USER=$MINSERVE_USER
 MINSERVE_PASS=$MINSERVE_PASS
+
+ND_PORT=$ND_PORT
+MS_PORT=$MS_PORT
+MTW_PORT=$MTW_PORT
 EOF
 
     # 生成 docker-compose.yml（V2 格式，无 version）
@@ -57,14 +72,14 @@ services:
     networks:
       - music_net
     ports:
-      - "127.0.0.1:4533:4533"
+      - "127.0.0.1:$ND_PORT:4533"
     environment:
       ND_SCANSCHEDULE: 1m
-      ND_LASTFM_ENABLED: \${ND_LASTFM_ENABLED}
-      ND_LASTFM_APIKEY: \${ND_LASTFM_APIKEY}
-      ND_LASTFM_SECRET: \${ND_LASTFM_SECRET}
-      ND_SPOTIFY_ID: \${ND_SPOTIFY_ID}
-      ND_SPOTIFY_SECRET: \${ND_SPOTIFY_SECRET}
+      ND_LASTFM_ENABLED:${ND_LASTFM_ENABLED}
+      ND_LASTFM_APIKEY:${ND_LASTFM_APIKEY}
+      ND_LASTFM_SECRET:${ND_LASTFM_SECRET}
+      ND_SPOTIFY_ID:${ND_SPOTIFY_ID}
+      ND_SPOTIFY_SECRET:${ND_SPOTIFY_SECRET}
       ND_LASTFM_LANGUAGE: zh
       ND_LOGLEVEL: info
       ND_SESSIONTIMEOUT: 24h
@@ -85,10 +100,10 @@ services:
     depends_on:
       - navidrome
     ports:
-      - "4534:8080"
+      - "$MS_PORT:8080"
     volumes:
       - $MUSIC_DIR:/downloads
-    command: "-r -z -u -q -p 8080 -a \${MINSERVE_USER}:\${MINSERVE_PASS} /downloads"
+    command: "-r -z -u -q -p 8080 -a ${MINSERVE_USER}:${MINSERVE_PASS} /downloads"
     restart: unless-stopped
 
   music_tag_web:
@@ -99,7 +114,7 @@ services:
     depends_on:
       - navidrome
     ports:
-      - "127.0.0.1:8002:8002"
+      - "127.0.0.1:$MTW_PORT:8002"
     volumes:
       - $MUSIC_DIR:/app/media
       - ./data/music_tag_web:/app/data
@@ -110,11 +125,12 @@ EOF
     docker-compose up -d
 
     echo "✅ 安装完成！访问地址："
-    echo "Navidrome     : http://127.0.0.1:4533"
-    echo "Miniserve     : http://127.0.0.1:4534 (账号: $MINSERVE_USER  密码: $MINSERVE_PASS)"
-    echo "MusicTagWeb   : http://127.0.0.1:8002"
+    echo "Navidrome     : http://127.0.0.1:$ND_PORT (账号: $MINSERVE_USER  密码: $MINSERVE_PASS)"
+    echo "Miniserve     : http://127.0.0.1:$MS_PORT (账号: $MINSERVE_USER  密码: $MINSERVE_PASS)"
+    echo "MusicTagWeb   : http://127.0.0.1:$MTW_PORT"
     echo "========================================="
 }
+
 
 # ---------- 4️⃣ 管理菜单 ----------
 show_menu() {
