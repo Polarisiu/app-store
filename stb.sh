@@ -17,23 +17,25 @@ LOG_FILE="$BASE_DIR/app.log"
 MONGO_CONTAINER="stb-mongo"
 MONGO_PORT=27017
 MONGO_HOST="mongodb://localhost:${MONGO_PORT}/stb"
+# 获取公网 IP
+    SERVER_IP=$(curl -s https://ifconfig.me)
 
 mkdir -p "$BASE_DIR"
 
 # ================== 菜单 ==================
 function show_menu() {
     echo -e "${CYAN}================= STB 管理脚本 =================${RESET}"
-    echo -e "${GREEN}1. 下载源码${RESET}"
-    echo -e "${GREEN}2. 安装 Node.js / pnpm / 项目依赖${RESET}"
-    echo -e "${GREEN}3. 编译项目${RESET}"
-    echo -e "${GREEN}4. 启动项目${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 停止项目${RESET}"
-    echo -e "${GREEN}7. 检测 MongoDB${RESET}"
-    echo -e "${GREEN}8. 安装 MongoDB(Docker)${RESET}"
-    echo -e "${GREEN}9. 卸载项目及环境${RESET}"
+    echo -e "${GREEN}1.  下载源码${RESET}"
+    echo -e "${GREEN}2.  安装 Node.js / pnpm / 项目依赖${RESET}"
+    echo -e "${GREEN}3.  编译项目${RESET}"
+    echo -e "${GREEN}4.  安装 MongoDB(Docker)${RESET}"
+    echo -e "${GREEN}5.  检测 MongoDB${RESET}"
+    echo -e "${GREEN}6.  启动项目${RESET}"
+    echo -e "${GREEN}7.  查看日志${RESET}"
+    echo -e "${GREEN}8.  停止项目${RESET}"
+    echo -e "${GREEN}9.  卸载项目及环境${RESET}"
     echo -e "${GREEN}10. 更新项目${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
+    echo -e "${GREEN}0.  退出${RESET}"
     echo -e "${CYAN}==============================================${RESET}"
 }
 
@@ -93,6 +95,8 @@ function start_project() {
     export MONGO_URL=$MONGO_HOST
     nohup pnpm start > "$LOG_FILE" 2>&1 &
     echo -e "${YELLOW}项目已启动，日志输出到 $LOG_FILE${RESET}"
+    echo -e "${YELLOW}访问地址 http://${SERVER_IP}:25519${RESET}"
+
 }
 
 function view_logs() {
@@ -134,6 +138,7 @@ function uninstall_all() {
         docker stop $MONGO_CONTAINER
         docker rm $MONGO_CONTAINER
         rm -rf "$BASE_DIR/mongo_data"
+        rm -rf "$BASE_DIR"
         echo -e "${GREEN}MongoDB Docker 容器及数据已删除${RESET}"
     fi
 
@@ -183,11 +188,11 @@ while true; do
         1) clone_repo ;;
         2) install_dependencies ;;
         3) build_project ;;
-        4) start_project ;;
-        5) view_logs ;;
-        6) stop_project ;;
-        7) check_mongo ;;
-        8) install_mongo ;;
+        4) install_mongo ;;
+        5) check_mongo ;;
+        6) start_project ;;
+        7) view_logs ;;
+        8) stop_project ;;
         9) uninstall_all ;;
         10) update_project ;;
         0) echo -e "${GREEN}退出脚本${RESET}"; exit 0 ;;
