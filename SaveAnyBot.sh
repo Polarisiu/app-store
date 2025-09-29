@@ -141,7 +141,7 @@ while true; do
     echo -e "${GREEN}4. 查看日志${RESET}"
     echo -e "${GREEN}5. 编辑配置文件${RESET}"
     echo -e "${GREEN}6. 更新容器${RESET}"
-    echo -e "${GREEN}7. 卸载并删除所有数据${RESET}"
+    echo -e "${GREEN}7. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     echo -e "${GREEN}=================================${RESET}"
     read -p "请选择操作: " choice
