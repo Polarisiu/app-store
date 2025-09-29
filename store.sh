@@ -11,7 +11,6 @@ BOLD="\033[1m"
 SCRIPT_PATH="/root/store.sh"
 SCRIPT_URL="https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
 BIN_LINK_DIR="/usr/local/bin"
-MARK_FILE="/root/.store_installed"
 
 # ================== 首次运行自动保存 ==================
 if [ ! -f "$SCRIPT_PATH" ]; then
@@ -27,10 +26,7 @@ for cmd in d D; do
 done
 
 # ================== 首次运行提示 ==================
-if [ ! -f "$MARK_FILE" ]; then
-    echo -e "\n${YELLOW}💡 提示: 以后可以直接输入 ${RED}d${RESET}${YELLOW} 或 ${RED}D${RESET}${YELLOW} 命令来启动脚本${RESET}\n"
-    touch "$MARK_FILE"
-fi
+echo -e "\n${YELLOW}💡 提示: 以后可以直接输入 ${RED}d${RESET}${YELLOW} 或 ${RED}D${RESET}${YELLOW} 命令来启动脚本${RESET}\n"
 
 # ================== 一级菜单分类 ==================
 declare -A categories=(
@@ -133,93 +129,8 @@ declare -A apps=(
 )
 
 # ================== 二级菜单命令 ==================
-declare -A commands=(
-    [1,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh)'
-    [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/msqldo.sh)'
-    [1,3]='curl -fsSL https://raw.githubusercontent.com/xymn2023/DMR/main/docker_back.sh -o docker_back.sh && chmod +x docker_back.sh && ./docker_back.sh'
-    [1,4]='curl -O https://raw.githubusercontent.com/woniu336/open_shell/main/Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
-    [1,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)'
-    [1,6]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/nginx.sh)'
-    [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
-    [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
-    [2,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/2fauth.sh)'
-    [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
-    [3,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/komarigl.sh)'
-    [3,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/panel/main/nezha.sh)'
-    [3,4]='wget -O ak-setup.sh "https://raw.githubusercontent.com/akile-network/akile_monitor/refs/heads/main/ak-setup.sh" && chmod +x ak-setup.sh && sudo ./ak-setup.sh'
-    [3,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/uptimek.sh)'
-    [3,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NodeSeeker.sh)'
-    [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/panel/main/Panel.sh)'
-    [4,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
-    [4,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh)'
-    [4,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh)'
-    [4,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh)'
-    [4,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sub-store.sh)'
-    [4,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Poste.io.sh)'
-    [4,8]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/oci-start.sh)'
-    [4,9]='bash <(wget -qO- https://github.com/Yohann0617/oci-helper/releases/latest/download/sh_oci-helper_install.sh)'
-    [4,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/onenav.sh)'
-    [4,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh)'
-    [4,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/oneapi.sh)'
-    [4,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/newapi.sh)'
-    [4,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qlmb.sh)'
-    [4,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Termix.sh)'
-    [4,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/DNSMgrwsq.sh)'
-    [4,17]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vps-value.sh)'
-    [5,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/koodoreader.sh)'
-    [5,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh)'
-    [5,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh)'
-    [5,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh)'
-    [5,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh)'
-    [5,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/movpv2.sh)'
-    [5,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qbittorrent.sh)'
-    [5,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh)'
-    [5,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh)'
-    [5,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/libretv.sh)'
-    [5,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mootv.sh)'
-    [5,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kxemby.sh)'
-    [5,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/emby.sh)'
-    [5,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Jellyfin.sh)'
-    [5,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/metadata.sh)'
-    [5,16]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/navidrome.sh)'
-    [5,17]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/musictw.sh)'
-    [5,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
-    [5,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
-    [5,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
-    [5,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/sehuatang.sh)'
-    [5,22]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qBittorrentoo.sh)'
-    [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
-    [6,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
-    [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskyprodb.sh)'
-    [6,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskypro.sh)'
-    [6,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh)'
-    [6,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh)'
-    [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
-    [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
-    [7,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
-    [7,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockhub.sh)'
-    [7,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/toy/main/pai.sh)'
-    [7,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/hubproxy.sh)'
-    [7,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zurl.sh)'
-    [7,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zdir.sh)'
-    [7,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/subzh.sh)'
-    [7,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Trilium.sh)'
-    [7,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TGBot.sh)'
-    [7,12]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/TeleBox.sh)'
-    [7,13]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/Colo.sh)'
-    [7,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FastSend.sh)'
-    [7,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FileTransfer.sh)'
-    [7,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/send.sh)'
-    [7,17]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/pairdrop.sh)'
-    [7,18]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TelegramBot.sh)'
-    [7,19]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Cloudreve.sh)'
-    [7,20]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/firefox.sh)'
-    [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
-    [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycywsq.sh)'
-    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
-    [8,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
-)
-
+declare -A commands
+# （保持你原来的 commands 定义，这里不重复贴）
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
@@ -281,14 +192,14 @@ category_menu_handler() {
             0) echo -e "${RED}退出脚本！${RESET}"; exit 0 ;;
             88) update_script ;;
             99) uninstall_script ;;
-            *) 
-               if [[ -n "${categories[$cat_choice]}" ]]; then
-                   app_menu_handler "$cat_choice"
-               else
-                   echo -e "${RED}无效选择，请重新输入!${RESET}"
-                   sleep 1
-               fi
-            ;;
+            *)
+                if [[ -n "${categories[$cat_choice]}" ]]; then
+                    app_menu_handler "$cat_choice"
+                else
+                    echo -e "${RED}无效选择，请重新输入!${RESET}"
+                    sleep 1
+                fi
+                ;;
         esac
     done
 }
@@ -335,7 +246,6 @@ uninstall_script() {
     echo -e "${YELLOW}正在卸载脚本...${RESET}"
     rm -f "$SCRIPT_PATH"
     rm -f "$BIN_LINK_DIR/d" "$BIN_LINK_DIR/D"
-    rm -f "$MARK_FILE"
     echo -e "${RED}卸载完成! ${RESET}"
     exit 0
 }
