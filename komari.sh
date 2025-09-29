@@ -24,7 +24,6 @@ menu() {
     echo -e "${YELLOW}3) 卸载 Komari${RESET}"
     echo -e "${YELLOW}4) 查看日志${RESET}"
     echo -e "${YELLOW}0) 退出${RESET}"
-    echo
     read -p "请选择操作: " choice
 
     case $choice in
@@ -54,15 +53,6 @@ install_komari() {
     read -p "请输入管理员密码 (默认: admin123): " ADMIN_PASSWORD
     ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
 
-    read -p "是否启用 Cloudflared? (true/false, 默认: false): " KOMARI_ENABLE_CLOUDFLARED
-    KOMARI_ENABLE_CLOUDFLARED=${KOMARI_ENABLE_CLOUDFLARED:-false}
-
-    if [ "$KOMARI_ENABLE_CLOUDFLARED" == "true" ]; then
-        read -p "请输入 Cloudflared Token: " KOMARI_CLOUDFLARED_TOKEN
-    else
-        KOMARI_CLOUDFLARED_TOKEN=""
-    fi
-
     read -p "请输入 Komari 端口 (默认: 25774): " PORT
     PORT=${PORT:-25774}
 
@@ -70,8 +60,6 @@ install_komari() {
     cat > "$CONFIG_FILE" <<EOF
 ADMIN_USERNAME="$ADMIN_USERNAME"
 ADMIN_PASSWORD="$ADMIN_PASSWORD"
-KOMARI_ENABLE_CLOUDFLARED="$KOMARI_ENABLE_CLOUDFLARED"
-KOMARI_CLOUDFLARED_TOKEN="$KOMARI_CLOUDFLARED_TOKEN"
 PORT="$PORT"
 EOF
 
@@ -106,7 +94,7 @@ update_komari() {
 }
 
 uninstall_komari() {
-    echo -e "${RED}⚠️  即将卸载 Komari，并删除相关数据！${RESET}"
+    echo -e "${RED} 即将卸载 Komari，并删除相关数据！${RESET}"
     read -p "确认卸载? (y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         (cd "$APP_DIR" && docker compose down -v)
