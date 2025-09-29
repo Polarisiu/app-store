@@ -99,7 +99,7 @@ uninstall_app() {
 
 # 菜单
 while true; do
-    echo -e "\n${green}=== kuma-mieru 管理菜单 ===${plain}"
+    echo -e "${green}=== kuma-mieru 管理菜单 ===${plain}"
     echo -e "${green}1) 安装部署${plain}"
     echo -e "${green}2) 更新${plain}"
     echo -e "${green}3) 卸载${plain}"
