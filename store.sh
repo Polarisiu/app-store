@@ -215,7 +215,6 @@ declare -A commands=(
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
-    printf '\033c'
     echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${GREEN}${BOLD}         应用分类菜单${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
@@ -230,7 +229,6 @@ show_category_menu() {
 
 show_app_menu() {
     local cat=$1
-    printf '\033c'
     echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${GREEN}${BOLD}        ${categories[$cat]}${RESET}"
     echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
