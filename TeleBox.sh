@@ -129,14 +129,14 @@ update_telebox() {
 pm2_tools() {
     clear
     echo -e "${GREEN}=== PM2 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 查看服务状态 (pm2 status)${RESET}"
-    echo -e "${GREEN}2) 查看运行日志 (pm2 logs telebox)${RESET}"
-    echo -e "${GREEN}3) 重启服务 (pm2 restart telebox)${RESET}"
-    echo -e "${GREEN}4) 停止服务 (pm2 stop telebox)${RESET}"
-    echo -e "${GREEN}5) 查看所有进程 (pm2 list)${RESET}"
-    echo -e "${GREEN}6) 实时监控 (pm2 monit)${RESET}"
-    echo -e "${GREEN}7) 无缝重载 (pm2 reload telebox)${RESET}"
-    echo -e "${GREEN}8) 删除进程 (pm2 delete telebox)${RESET}"
+    echo -e "${GREEN}1) 查看服务状态${RESET}"
+    echo -e "${GREEN}2) 查看运行日志${RESET}"
+    echo -e "${GREEN}3) 重启服务${RESET}"
+    echo -e "${GREEN}4) 停止服务${RESET}"
+    echo -e "${GREEN}5) 查看所有进程${RESET}"
+    echo -e "${GREEN}6) 实时监控${RESET}"
+    echo -e "${GREEN}7) 无缝重载${RESET}"
+    echo -e "${GREEN}8) 删除进程${RESET}"
     echo -e "${GREEN}9) 安装 pm2-logrotate 插件 (日志管理)${RESET}"
     echo -e "${GREEN}0) 返回主菜单${RESET}"
     echo
