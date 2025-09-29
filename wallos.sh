@@ -17,7 +17,7 @@ function get_ip() {
 function menu() {
     clear
     echo -e "${GREEN}=== Wallos 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
