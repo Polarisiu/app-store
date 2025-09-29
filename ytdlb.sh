@@ -77,8 +77,6 @@ yt_menu_pro() {
         echo -e "${gl_lv}=== yt-dlp 下载工具 ===${gl_bai}"
         echo -e "${gl_lv}yt-dlp 状态: $YTDLP_STATUS${gl_bai}"
         echo -e "${gl_lv}视频保存目录: $VIDEO_DIR${gl_bai}"
-        echo -e "${gl_lv}支持 YouTube、Bilibili、Twitter 等站点${gl_bai}"
-        echo -e "${gl_lv}官网: https://github.com/yt-dlp/yt-dlp${gl_bai}"
         echo -e "${gl_lv}-------------------------${gl_bai}"
         echo -e "${gl_lv}已下载视频列表（按大小排序，输入序号删除）:${gl_bai}"
 
