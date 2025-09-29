@@ -4,7 +4,7 @@
 # 支持第一次安装和后续管理
 
 PROJECT_DIR=/opt/music_server
-MUSIC_DIR=/data/music
+MUSIC_DIR=/opt/data/music
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 
 # ---------- 1️⃣ 检查环境 ----------
