@@ -99,7 +99,7 @@ services:
     depends_on:
       - navidrome
     ports:
-      - "\${MS_PORT}:8080"
+      - ""127.0.0.1:\${MS_PORT}:8080"
     volumes:
       - $MUSIC_DIR:/downloads
     command: "-r -z -u -q -p 8080 -a \${MINSERVE_USER}:\${MINSERVE_PASS} /downloads"
@@ -124,7 +124,7 @@ EOF
     docker-compose up -d
 
     echo "✅ 安装完成！访问地址："
-    echo "Navidrome     : http://127.0.0.1:$ND_PORT"
+    echo "Navidrome     : http://127.0.0.1:$ND_PORT "
     echo "Miniserve     : http://127.0.0.1:$MS_PORT (账号: $MINSERVE_USER  密码: $MINSERVE_PASS)"
     echo "MusicTagWeb   : http://127.0.0.1:$MTW_PORT"
     echo "========================================="
@@ -188,7 +188,7 @@ uninstall_services() {
         # 删除项目目录
         rm -rf "$PROJECT_DIR"
 
-        echo "✅ 已卸载并删除所有数据 (目录 $PROJECT_DIR 已移除)"
+        echo "✅ 已卸载并删除所有数据"
     else
         echo "已取消卸载操作"
     fi
