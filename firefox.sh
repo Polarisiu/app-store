@@ -81,7 +81,7 @@ while true; do
   echo -e "${GREEN}1) 部署安装${RESET}"
   echo -e "${GREEN}2) 启动${RESET}"
   echo -e "${GREEN}3) 停止${RESET}"
-  echo -e "${GREEN}4) 删除（含数据）${RESET}"
+  echo -e "${GREEN}4) 卸载(含数据)${RESET}"
   echo -e "${GREEN}5) 查看日志${RESET}"
   echo -e "${GREEN}6) 更新${RESET}"
   echo -e "${GREEN}0) 退出${RESET}"
