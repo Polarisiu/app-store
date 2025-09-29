@@ -1,121 +1,146 @@
 #!/bin/bash
-
 # ========================================
-# Nexus Terminal 一键管理脚本
-# 功能：自动检查配置文件 + 菜单管理 + 启动后显示访问地址（端口固定18111）
+# Nexus Terminal 一键管理脚本 (Docker Compose)
 # ========================================
 
-# 颜色定义
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-BLUE="\033[34m"
-CYAN="\033[36m"
 RESET="\033[0m"
+APP_NAME="nexus-terminal"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# 工作目录
-WORKDIR="/opt/nexus-terminal"
-
-# 创建工作目录（如果不存在）
-if [ ! -d "$WORKDIR" ]; then
-    mkdir -p "$WORKDIR"
-    echo -e "${GREEN}已创建工作目录：$WORKDIR${RESET}"
-fi
-
-cd "$WORKDIR" || exit
-
-# 检查 docker-compose.yml 是否存在，不存在就下载
-if [ ! -f "docker-compose.yml" ]; then
-    echo -e "${BLUE}docker-compose.yml 文件不存在，正在下载...${RESET}"
-    wget -q https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/docker-compose.yml -O docker-compose.yml
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}docker-compose.yml 下载失败，请检查网络${RESET}"
-        exit 1
-    fi
-fi
-
-# 检查 .env 文件是否存在，不存在就下载
-if [ ! -f ".env" ]; then
-    echo -e "${BLUE}.env 文件不存在，正在下载...${RESET}"
-    wget -q https://raw.githubusercontent.com/Heavrnl/nexus-terminal/refs/heads/main/.env -O .env
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}.env 下载失败，请检查网络${RESET}"
-        exit 1
-    fi
-fi
-
-# 获取公网 IP 函数
-get_public_ip() {
-    IP=$(curl -s https://ifconfig.me)
-    # 如果不是 IPv4 格式，则显示 "服务器IP"
-    if ! [[ $IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        IP="服务器IP"
-    fi
-    echo "$IP"
-}
-
-# 菜单函数
-show_menu() {
-    echo -e "${CYAN}================ Nexus Terminal 管理菜单 ================${RESET}"
-    echo -e "${YELLOW}1. 启动服务${RESET}"
-    echo -e "${YELLOW}2. 停止服务${RESET}"
-    echo -e "${YELLOW}3. 更新服务${RESET}"
-    echo -e "${YELLOW}4. 查看日志${RESET}"
-    echo -e "${YELLOW}5. 卸载服务${RESET}"
-    echo -e "${YELLOW}6. 退出${RESET}"
-    echo -e "${CYAN}======================================================${RESET}"
-}
-
-# 菜单循环
-while true; do
-    show_menu
-    read -rp "请选择操作 [1-6]: " choice
+function menu() {
+    clear
+    echo -e "${GREEN}=== Nexus Terminal 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}==============================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1)
-            echo -e "${GREEN}启动服务中...${RESET}"
-            docker compose up -d
-            echo -e "${GREEN}服务已启动${RESET}"
-
-            # 获取公网 IP 并显示访问地址
-            IP=$(get_public_ip)
-            PORT=18111  # 固定端口
-            echo -e "${GREEN}访问地址：http://$IP:$PORT${RESET}"
-            ;;
-        2)
-            echo -e "${RED}停止服务中...${RESET}"
-            docker compose down
-            echo -e "${RED}服务已停止${RESET}"
-            ;;
-        3)
-            echo -e "${BLUE}更新服务中...${RESET}"
-            docker compose down
-            docker compose pull
-            docker compose up -d
-            echo -e "${GREEN}服务已更新并启动${RESET}"
-            ;;
-        4)
-            echo -e "${CYAN}显示日志（Ctrl+C 退出）${RESET}"
-            docker compose logs -f
-            ;;
-        5)
-            read -rp "确认卸载服务并删除所有数据吗？[y/N]: " confirm
-            if [[ "$confirm" =~ ^[Yy]$ ]]; then
-                echo -e "${RED}卸载中...${RESET}"
-                docker compose down --rmi all --volumes --remove-orphans
-                cd "$HOME" || exit
-                rm -rf "$WORKDIR"
-                echo -e "${GREEN}服务已卸载，工作目录已删除${RESET}"
-                exit 0
-            else
-                echo -e "${YELLOW}取消卸载${RESET}"
-            fi
-            ;;
-        6)
-            echo -e "${YELLOW}退出脚本${RESET}"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}输入错误，请重新选择${RESET}"
-            ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入前端宿主机端口 [默认:18111]: " input_front
+    PORT_FRONT=${input_front:-18111}
+
+    read -p "请输入后端宿主机端口 [默认:3001]: " input_back
+    PORT_BACK=${input_back:-3001}
+
+    read -p "请输入远程网关 HTTP 端口 [默认:9090]: " input_gateway_http
+    PORT_GATEWAY_HTTP=${input_gateway_http:-9090}
+
+    read -p "请输入远程网关 WS 端口 [默认:8080]: " input_gateway_ws
+    PORT_GATEWAY_WS=${input_gateway_ws:-8080}
+
+    mkdir -p "$APP_DIR/data"
+
+    cat > "$COMPOSE_FILE" <<EOF
+
+services:
+  frontend:
+    image: heavrnl/nexus-terminal-frontend:latest
+    container_name: nexus-terminal-frontend
+    ports:
+      - "127.0.0.1:$PORT_FRONT:80"
+    depends_on:
+      - backend
+      - remote-gateway
+
+  backend:
+    image: heavrnl/nexus-terminal-backend:latest
+    container_name: nexus-terminal-backend
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DEPLOYMENT_MODE: docker
+      REMOTE_GATEWAY_API_BASE_LOCAL: http://localhost:$PORT_GATEWAY_HTTP
+      REMOTE_GATEWAY_API_BASE_DOCKER: http://remote-gateway:$PORT_GATEWAY_HTTP
+      REMOTE_GATEWAY_WS_URL_DOCKER: ws://remote-gateway:$PORT_GATEWAY_WS
+      RP_ID: localhost
+      RP_ORIGIN: http://localhost
+    ports:
+      - "127.0.0.1:$PORT_BACK:3001"
+    volumes:
+      - $APP_DIR/data:/app/data  
+
+  remote-gateway:
+    image: heavrnl/nexus-terminal-remote-gateway:latest
+    container_name: nexus-terminal-remote-gateway
+    environment:
+      GUACD_HOST: guacd
+      GUACD_PORT: 4822
+      REMOTE_GATEWAY_API_PORT: $PORT_GATEWAY_HTTP
+      REMOTE_GATEWAY_WS_PORT: $PORT_GATEWAY_WS
+      FRONTEND_URL: http://frontend
+      MAIN_BACKEND_URL: http://backend:3001
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:$PORT_GATEWAY_HTTP:$PORT_GATEWAY_HTTP"
+      - "127.0.0.1:$PORT_GATEWAY_WS:$PORT_GATEWAY_WS"
+    depends_on:
+      - guacd
+      - backend  
+
+  guacd:
+    image: guacamole/guacd:latest
+    container_name: nexus-terminal-guacd
+    restart: unless-stopped
+EOF
+
+    echo "PORT_FRONT=$PORT_FRONT" > "$CONFIG_FILE"
+    echo "PORT_BACK=$PORT_BACK" >> "$CONFIG_FILE"
+    echo "PORT_GATEWAY_HTTP=$PORT_GATEWAY_HTTP" >> "$CONFIG_FILE"
+    echo "PORT_GATEWAY_WS=$PORT_GATEWAY_WS" >> "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    # 获取公网 IP
+    get_ip() {
+        curl -s ifconfig.me || curl -s ip.sb || echo "127.0.0.1"
+    }
+
+    echo -e "${GREEN}✅ Nexus Terminal 已启动${RESET}"
+    echo -e "${GREEN}🌐 前端 Web UI 地址: http://127.0.0.1:$PORT_FRONT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
+    echo -e "${GREEN}⚙️ 后端端口: $PORT_BACK, 远程网关 HTTP: $PORT_GATEWAY_HTTP, WS: $PORT_GATEWAY_WS${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ Nexus Terminal 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ Nexus Terminal 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f nexus-terminal-frontend
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
