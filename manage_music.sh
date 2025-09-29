@@ -110,7 +110,7 @@ EOF
     docker-compose up -d
 
     echo "✅ 安装完成！访问地址："
-    echo "Navidrome    : http://127.0.0.1:4533"
+    echo "Navidrome     : http://127.0.0.1:4533"
     echo "Miniserve     : http://127.0.0.1:4534 (账号: $MINSERVE_USER  密码: $MINSERVE_PASS)"
     echo "MusicTagWeb   : http://127.0.0.1:8002"
     echo "========================================="
