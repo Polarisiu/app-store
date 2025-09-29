@@ -217,7 +217,10 @@ declare -A commands=(
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
-    echo -e "${GREEN}${BOLD}========= 应用分类菜单 =========${RESET}\n"
+    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${GREEN}${BOLD}         应用分类菜单${RESET}"
+    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
+
     for i in $(seq 1 ${#categories[@]}); do
         printf "${GREEN}[%02d] %-20s${RESET}\n" "$i" "${categories[$i]}"
     done
@@ -228,7 +231,9 @@ show_category_menu() {
 
 show_app_menu() {
     local cat=$1
-    echo -e "${GREEN}${BOLD}==== ${categories[$cat]} ====${RESET}\n"
+    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${GREEN}${BOLD}        ${categories[$cat]}${RESET}"
+    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
 
     local i=1
     declare -gA menu_map
@@ -249,9 +254,9 @@ show_app_menu() {
         printf "${GREEN}[%02d] %-25s${RESET}\n" "$i" "${apps[$key]}"
         ((i++))
     done
+
     printf "${GREEN}[0 ] %-25s${RESET}\n" "返回上一级"
 }
-
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
     while true; do
