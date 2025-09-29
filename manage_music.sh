@@ -3,7 +3,7 @@
 # Docker Compose V2 格式，无 version 警告
 # 支持第一次安装和后续管理
 
-PROJECT_DIR=~/music_server
+PROJECT_DIR=/opt/music_server
 MUSIC_DIR=/data/music
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 
