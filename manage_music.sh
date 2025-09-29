@@ -20,7 +20,6 @@ mkdir -p "$PROJECT_DIR/data" "$MUSIC_DIR"
 cd "$PROJECT_DIR" || exit
 
 # ---------- 3️⃣ 定义安装函数 ----------
-```bash
 install_services() {
     echo "========== 开始安装三合一音乐服务 =========="
 
