@@ -1,6 +1,6 @@
 #!/bin/bash
 # 自动检测并运行 manage_music.sh
-PROJECT_DIR=~/music_server
+PROJECT_DIR=/opt/music_server
 MANAGE_SCRIPT="$PROJECT_DIR/manage_music.sh"
 
 # 检查 Docker 和 Docker Compose
