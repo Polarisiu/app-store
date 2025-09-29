@@ -32,7 +32,7 @@ save_port() {
 menu() {
     clear
     echo -e "${GREEN}=== MetaTube 管理菜单 ===${RESET}"
-    echo -e "${YELLOW}1) 安装/部署 MetaTube${RESET}"
+    echo -e "${YELLOW}1) 安装部署 MetaTube${RESET}"
     echo -e "${YELLOW}2) 更新 MetaTube${RESET}"
     echo -e "${YELLOW}3) 卸载 MetaTube${RESET}"
     echo -e "${YELLOW}4) 查看日志${RESET}"
