@@ -65,7 +65,7 @@ check_status() {
 show_menu() {
     while true; do
         echo -e "${GREEN}===== 异次元发卡 Docker 管理菜单 =====${RESET}"
-        echo -e "${GREEN}1. 安装/启动服务${RESET}"
+        echo -e "${GREEN}1. 安装启动服务${RESET}"
         echo -e "${GREEN}2. 停止服务${RESET}"
         echo -e "${GREEN}3. 重启服务${RESET}"
         echo -e "${GREEN}4. 查看日志${RESET}"
