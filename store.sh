@@ -328,7 +328,7 @@ uninstall_script() {
     rm -f "$SCRIPT_PATH"
     rm -f "$BIN_LINK_DIR/d" "$BIN_LINK_DIR/D"
     rm -f "$MARK_FILE"
-    echo -e "${RED}卸载完成! 已清理全局命令 d/D 和提示标记${RESET}"
+    echo -e "${RED}卸载完成! ${RESET}"
     exit 0
 }
 
