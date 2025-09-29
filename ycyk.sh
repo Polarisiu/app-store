@@ -72,7 +72,7 @@ show_menu() {
         echo -e "${GREEN}5. 更新服务${RESET}"
         echo -e "${GREEN}6. 卸载服务及数据${RESET}"
         echo -e "${GREEN}7. 查看状态（含 Redis/OPcache/数据库信息）${RESET}"
-        echo -e "${GREEN}8. 退出${RESET}"
+        echo -e "${GREEN}0. 退出${RESET}"
         read -p "请选择操作: " choice
         case $choice in
             1)
@@ -169,7 +169,7 @@ EOF
                 check_status
                 read -p "回车返回菜单..."
                 ;;
-            8)
+            0)
                 exit
                 ;;
             *)
