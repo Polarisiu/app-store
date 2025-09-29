@@ -1,114 +1,95 @@
 #!/bin/bash
 # ========================================
-# vps-value-calculator 菜单式管理脚本
+# VPS Value Calculator 一键管理脚本 (Docker Compose)
 # ========================================
 
-# ========== 颜色 ==========
-RED="\033[31m"
 GREEN="\033[32m"
-YELLOW="\033[33m"
-BLUE="\033[34m"
 RESET="\033[0m"
-
-# ========== 设置变量 ==========
 APP_NAME="vps-value-calculator"
-REPO_URL="https://github.com/podcctv/vps-value-calculator.git"
 APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# ========== 检查 Docker ==========
-check_docker() {
-    if ! command -v docker &>/dev/null; then
-        echo -e "${RED}错误: Docker 未安装！${RESET}"
-        exit 1
-    fi
-    if ! command -v docker-compose &>/dev/null && ! docker compose version &>/dev/null; then
-        echo -e "${RED}错误: Docker Compose 未安装！${RESET}"
-        exit 1
-    fi
-}
-
-# ========== 部署或更新项目 ==========
-deploy_app() {
-    if [ -d "$APP_DIR" ]; then
-        echo -e "${YELLOW}项目目录已存在，拉取最新代码...${RESET}"
-        cd "$APP_DIR" || exit
-        git pull
-    else
-        echo -e "${BLUE}克隆项目到 $APP_DIR ...${RESET}"
-        git clone "$REPO_URL" "$APP_DIR"
-        cd "$APP_DIR" || exit
-    fi
-
-    if [ -f ".env.example" ] && [ ! -f ".env" ]; then
-        echo -e "${BLUE}创建 .env 文件...${RESET}"
-        cp .env.example .env
-        echo -e "${GREEN}.env 文件创建完成，可根据需要修改.${RESET}"
-    fi
-
-    echo -e "${BLUE}启动 Docker 容器...${RESET}"
-    docker compose up -d
-    echo -e "${GREEN}服务已启动.${RESET}"
-}
-
-# ========== 停止服务 ==========
-stop_app() {
-    cd "$APP_DIR" || exit
-    docker compose down
-    echo -e "${GREEN}服务已停止.${RESET}"
-}
-
-# ========== 重启服务 ==========
-restart_app() {
-    cd "$APP_DIR" || exit
-    docker compose down
-    docker compose up -d
-    echo -e "${GREEN}服务已重启.${RESET}"
-}
-
-# ========== 删除容器和镜像 ==========
-remove_app() {
-    cd "$APP_DIR" || exit
-    docker compose down --rmi all
-    echo -e "${GREEN}容器和镜像已删除.${RESET}"
-}
-
-# ========== 查看日志 ==========
-logs_app() {
-    cd "$APP_DIR" || exit
-    docker compose logs -f
-}
-
-# ========== 显示访问地址 ==========
-show_address() {
-    HOST_IP=$(hostname -I | awk '{print $1}')
-    if grep -q "ports:" docker-compose.yml; then
-        PORT=$(grep "ports:" -A 1 docker-compose.yml | grep -oP '\d+(?=:)')
-        echo -e "${GREEN}服务访问地址: http://${HOST_IP}:${PORT}${RESET}"
-    else
-        echo -e "${GREEN}请根据 docker-compose.yml 配置的端口访问服务.${RESET}"
-    fi
-}
-
-# ========== 菜单 ==========
-while true; do
-    echo -e "\n${GREEN}========== VPS Value Calculator 管理菜单 ==========${RESET}"
-    echo -e "${GREEN}1. 部署/更新服务${RESET}"
-    echo -e "${GREEN}2. 停止服务${RESET}"
-    echo -e "${GREEN}3. 重启服务${RESET}"
-    echo -e "${GREEN}4. 删除容器和镜像${RESET}"
-    echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 显示访问地址${RESET}"
-    echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请选择操作 [0-6]: ${RESET}"
-    read -r choice
+function menu() {
+    clear
+    echo -e "${GREEN}=== VPS Value Calculator 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    echo -e "${GREEN}====================================${RESET}"
+    read -p "请选择: " choice
     case $choice in
-        1) check_docker && deploy_app ;;
-        2) stop_app ;;
-        3) restart_app ;;
-        4) remove_app ;;
-        5) logs_app ;;
-        6) show_address ;;
-        0) echo -e "${YELLOW}退出管理脚本.${RESET}"; exit 0 ;;
-        *) echo -e "${RED}无效选项，请重新选择.${RESET}" ;;
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo "无效选择"; sleep 1; menu ;;
     esac
-done
+}
+
+function install_app() {
+    read -p "请输入访问端口 [默认:8280]: " input_port
+    PORT=${input_port:-8280}
+
+    mkdir -p "$APP_DIR/data" "$APP_DIR/static/images"
+
+    cat > "$COMPOSE_FILE" <<EOF
+
+services:
+  $APP_NAME:
+    image: ghcr.io/podcctv/vps-value-calculator:latest
+    container_name: $APP_NAME
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:$PORT:8280"
+    volumes:
+      - $APP_DIR/data:/app/data
+      - $APP_DIR/static/images:/app/static/images
+EOF
+
+    echo "PORT=$PORT" > "$CONFIG_FILE"
+
+    cd "$APP_DIR"
+    docker compose up -d
+
+    # 获取公网IP
+    get_ip() {
+        curl -s ifconfig.me || curl -s ip.sb || hostname -I | awk '{print $1}'
+    }
+
+    echo -e "${GREEN}✅ $APP_NAME 已启动${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
+    echo -e "${GREEN}📂 图片目录: $APP_DIR/static/images${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function update_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ $APP_NAME 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function uninstall_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${GREEN}✅ $APP_NAME 已卸载，数据已删除${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function view_logs() {
+    docker logs -f $APP_NAME
+    read -p "按回车返回菜单..."
+    menu
+}
+
+menu
