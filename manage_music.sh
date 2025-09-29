@@ -4,7 +4,7 @@
 # 支持第一次安装和后续管理
 
 PROJECT_DIR=/opt/music_server
-MUSIC_DIR=/opt/data/music
+MUSIC_DIR=/opt/music_server/music
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 
 # ---------- 1️⃣ 检查环境 ----------
@@ -165,17 +165,23 @@ update_services() {
 }
 
 uninstall_services() {
-    echo "⚠️ 警告：此操作将停止并删除所有容器及镜像！"
+    echo "⚠️ 警告：此操作将停止并删除所有容器、镜像和数据文件！"
     read -p "你确定要继续吗？(y/N): " confirm
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        docker-compose down
+        # 停止并删除容器
+        docker-compose down -v --rmi all --remove-orphans
         docker-compose rm -f
-        echo "操作完成，如需删除数据，请手动清理 ./data 文件夹"
+
+        # 删除项目目录
+        rm -rf "$PROJECT_DIR"
+
+        echo "✅ 已卸载并删除所有数据 (目录 $PROJECT_DIR 已移除)"
     else
         echo "已取消卸载操作"
     fi
     read -p "按回车返回菜单..."
 }
+
 
 # ---------- 5️⃣ 执行 ----------
 # 第一次安装
