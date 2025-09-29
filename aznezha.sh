@@ -14,7 +14,7 @@ menu() {
     echo -e "${GREEN}6) 安装 哪吒 v1(国内)${RESET}"
     echo -e "${GREEN}7) 卸载 Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    read -p $'\033[32m请选择操作 (0-5): \033[0m' choice
+    read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
         1)
             echo -e "${GREEN}正在安装 unzip...${RESET}"
