@@ -17,10 +17,10 @@ function get_ip() {
 function menu() {
     clear
     echo -e "${GREEN}=== Sun Panel 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装/启动${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 重启${RESET}"
-    echo -e "${GREEN}4) 卸载 (含数据)${RESET}"
+    echo -e "${GREEN}4) 卸载(含数据)${RESET}"
     echo -e "${GREEN}5) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     echo -e "${GREEN}==========================${RESET}"
