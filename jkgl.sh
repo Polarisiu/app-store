@@ -5,7 +5,6 @@ RED="\033[31m"
 RESET="\033[0m"
 
 menu() {
-    clear
     echo -e "${GREEN}=== 监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 unzip${RESET}"
     echo -e "${GREEN}2) V0 哪吒监控安装${RESET}"
@@ -16,8 +15,7 @@ menu() {
     echo -e "${GREEN}7) 卸载哪吒 Agent${RESET}"
     echo -e "${GREEN}8) 卸载 Komari Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo
-    read -p $'\033[32m请选择操作 (0-8): \033[0m' choice
+    read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
         1)
             echo -e "${GREEN}正在安装 unzip...${RESET}"
@@ -31,7 +29,7 @@ menu() {
             ;;
         3)
             echo -e "${GREEN}正在安装 V1 哪吒监控...${RESET}"
-            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/panel/main/aznezha.sh)
+            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/aznezha.sh)
             pause
             ;;
         4)
@@ -54,7 +52,7 @@ menu() {
             ;;
         7)
             echo -e "${GREEN}正在卸载哪吒 Agent...${RESET}"
-            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/panel/main/nzagent.sh)
+            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nzagent.sh)
             pause
             ;;
         8)
