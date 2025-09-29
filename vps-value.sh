@@ -92,7 +92,7 @@ show_address() {
 # ========== 菜单 ==========
 while true; do
     echo -e "\n${GREEN}========== VPS Value Calculator 管理菜单 ==========${RESET}"
-    echo -e "${GREEN}1. 部署 / 更新并启动服务${RESET}"
+    echo -e "${GREEN}1. 部署/更新服务${RESET}"
     echo -e "${GREEN}2. 停止服务${RESET}"
     echo -e "${GREEN}3. 重启服务${RESET}"
     echo -e "${GREEN}4. 删除容器和镜像${RESET}"
