@@ -147,6 +147,7 @@ show_ip_port() {
 
 # 菜单循环
 while true; do
+    clear
     echo -e "${GREEN}====== New API 管理菜单 ======${RESET}"
     echo -e "${GREEN}1. 启动服务${RESET}"
     echo -e "${GREEN}2. 停止服务${RESET}"
