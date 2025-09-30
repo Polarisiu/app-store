@@ -5,6 +5,7 @@ RED="\033[31m"
 RESET="\033[0m"
 
 menu() {
+    clear
     echo -e "${GREEN}=== V1 哪吒监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 unzip${RESET}"
     echo -e "${GREEN}2) 安装 Docker + Docker Compose${RESET}"
