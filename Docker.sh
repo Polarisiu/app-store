@@ -325,8 +325,6 @@ docker_ps() {
         echo -e "${GREEN}09. 重启所有容器${RESET}"
         echo -e "${GREEN}10. 进入容器${RESET}"
         echo -e "${GREEN}11. 查看日志${RESET}"
-        echo -e "${GREEN}12. 查看网络信息${RESET}"
-        echo -e "${GREEN}13. 查看占用资源${RESET}"
         echo -e "${GREEN} 0. 返回主菜单${RESET}"
         read -p "请选择: " choice
         case $choice in
@@ -341,8 +339,6 @@ docker_ps() {
             09|9) containers=$(docker ps -q); [ -n "$containers" ] && docker restart $containers || echo "无容器正在运行" ;;
             10) read -p "请输入容器名: " name; docker exec -it $name /bin/bash ;;
             11) read -p "请输入容器名: " name; docker logs -f $name ;;
-            12) read -p "请输入容器名: " name; docker inspect $name | jq '.' ;;
-            13) read -p "请输入容器名: " name; docker stats $name ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
@@ -522,7 +518,7 @@ docker_backup_menu() {
 
     while true; do
         clear
-        echo -e "${BOLD}${CYAN}===== Docker 备份与恢复 =====${RESET}"
+        echo -e "${BOLD}${CYAN}===== Docker Run备份与恢复 =====${RESET}"
         echo -e "${GREEN}1. 备份 Docker${RESET}"
         echo -e "${GREEN}2. 恢复 Docker${RESET}"
         echo -e "${GREEN}3. 删除备份文件${RESET}"
@@ -731,8 +727,8 @@ main_menu() {
         echo -e "${GREEN}11. 切换 iptables-nft${RESET}"
         echo -e "${GREEN}12. Docker 备份/恢复${RESET}"
         echo -e "${GREEN}13. 卷管理 ${RESET}"
-        echo -e "${GREEN}14. 一键清理所有未使用容器/镜像/卷${RESET}"
-        echo -e "${GREEN}15.${RESET} ${YELLOW}重启 Docker${RESET}"
+        echo -e "${GREEN}14.${RESET} ${YELLOW}一键清理所有未使用容器/镜像/卷${RESET}"
+        echo -e "${GREEN}15. 重启 Docker${RESET}"
         echo -e "${GREEN} 0. 退出${RESET}"
 
         read -p "请选择: " choice
