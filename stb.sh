@@ -24,6 +24,7 @@ mkdir -p "$BASE_DIR"
 
 # ================== 菜单 ==================
 function show_menu() {
+    clear
     echo -e "${CYAN}================= STB 管理脚本 =================${RESET}"
     echo -e "${GREEN}1.  下载源码${RESET}"
     echo -e "${GREEN}2.  安装 Node.js / pnpm / 项目依赖${RESET}"
