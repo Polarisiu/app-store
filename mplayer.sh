@@ -37,6 +37,7 @@ EOF
 }
 
 show_menu() {
+    clear
     echo -e "${GREEN}=== Music Player 管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装并启动服务${RESET}"
     echo -e "${GREEN}2) 停止服务${RESET}"
