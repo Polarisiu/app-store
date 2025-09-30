@@ -397,7 +397,7 @@ docker_volume() {
             1) read -p "请输入卷名: " v; docker volume create $v ;;
             2) read -p "请输入卷名: " v; docker volume rm $v ;;
             3) docker volume prune -f ;;
-            4) docker volume rm $(docker volume ls -q) ;;
+            4) docker volume prune ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
