@@ -151,6 +151,7 @@ update_image() {
 }
 
 show_menu() {
+    clear
     echo -e "${GREEN}===== Jellyfin 菜单 =====${RESET}"
     echo -e "${GREEN}1. 部署${RESET}"
     echo -e "${GREEN}2. 启动容器${RESET}"
