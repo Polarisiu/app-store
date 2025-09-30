@@ -44,6 +44,7 @@ EOF
 }
 
 show_menu() {
+    clear
     echo -e "${GREEN}=== QMediaSync 管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装并启动 QMediaSync${RESET}"
     echo -e "${GREEN}2) 停止 QMediaSync${RESET}"
