@@ -11,6 +11,7 @@ BASE_DIR="/opt/vue-color-avatar"
 PORT=$DEFAULT_PORT  # 默认端口，可在安装时修改
 
 show_menu() {
+    clear
     echo -e "${GREEN}=== vue-color-avatar 管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装启动${RESET}"
     echo -e "${GREEN}2) 停止服务${RESET}"
