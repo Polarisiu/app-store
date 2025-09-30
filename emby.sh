@@ -191,6 +191,7 @@ update_image() {
 
 # 显示菜单
 show_menu() {
+    clear
     echo -e "${GREEN}===== EMBY菜单 =====${RESET}"
     echo -e "${GREEN}1.部署${RESET}"
     echo -e "${GREEN}2.启动容器${RESET}"
