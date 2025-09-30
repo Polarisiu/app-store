@@ -86,6 +86,7 @@ show_info() {
 
 menu() {
     while true; do
+        clear
         echo -e "${GREEN}==== DNSMgr Docker 管理菜单====${RESET}"
         echo -e "${GREEN}1) 安装启动${RESET}"
         echo -e "${GREEN}2) 启动服务${RESET}"
