@@ -110,6 +110,7 @@ update() {
 
 # 管理菜单
 while true; do
+    clear
     echo -e "${GREEN}=== Cloudreve 管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装部署${RESET}"
     echo -e "${GREEN}2) 启动${RESET}"
