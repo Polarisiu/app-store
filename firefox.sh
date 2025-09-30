@@ -75,6 +75,7 @@ deploy() {
 
 # ================== 管理菜单 ==================
 while true; do
+  clear
   echo -e "${GREEN}==============================${RESET}"
   echo -e "${GREEN}       Firefox 容器管理        ${RESET}"
   echo -e "${GREEN}==============================${RESET}"
