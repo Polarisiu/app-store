@@ -128,13 +128,14 @@ uninstall() {
 
 show_info() {
     local web_port="$1"
-    echo -e "\n${GREEN}==== 安装完成信息 ====${RESET}"
+    echo -e "${GREEN}==== 安装完成信息 ====${RESET}"
     echo -e "${YELLOW}访问 dnsmgr-web:${RESET} http://127.0.0.1:${web_port}"
     echo -e "${YELLOW}MySQL 主机:${RESET} dnsmgr-mysql"
     echo -e "${YELLOW}MySQL 端口:${RESET} 3306"
     echo -e "${YELLOW}MySQL 用户名:${RESET} root"
     echo -e "${YELLOW}MySQL 密码:${RESET} $MYSQL_ROOT_PASSWORD"
     echo -e "${YELLOW}数据库名称:${RESET} $MYSQL_DB_NAME"
+    echo -e "${GREEN}📂 数据目录: /opt/dnsmgr${RESET}"
 }
 
 menu() {
