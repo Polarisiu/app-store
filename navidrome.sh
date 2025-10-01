@@ -71,6 +71,7 @@ EOF
     cd "$APP_DIR"
     docker compose up -d
     echo -e "${GREEN}✅ Navidrome 已启动，访问地址: http://127.0.0.1:${port}${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIRP_DIR${RESET}"
     read -p "按回车键返回菜单..."
     show_menu
 }
