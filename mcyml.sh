@@ -28,31 +28,31 @@ check_status() {
 
 # ================== 菜单函数 ==================
 show_menu() {
-    echo -e "${GREEN}"
-    echo "======= MCY 全功能管理菜单 =========="
+    clear
+    echo -e "${GREEN}=== MCY 全功能管理菜单 =======${RESET}"
     check_status
-    echo "1.  启动服务"
-    echo "2.  停止服务"
-    echo "3.  重启服务"
-    echo "4.  卸载服务"
-    echo "5.  安装服务"
-    echo "6.  更新系统"
-    echo "7.  生成数据库模型"
-    echo "8.  创建语言包"
-    echo "9.  删除语言包"
-    echo "10. 批量删除语言包"
-    echo "11. 查看语言代码"
-    echo "12. 压缩 JS"
-    echo "13. 压缩 CSS"
-    echo "14. 压缩 JS+CSS"
-    echo "15. 停止插件"
-    echo "16. 查看运行插件"
-    echo "17. 重置超级管理员密码"
-    echo "18. 添加 Composer 依赖"
-    echo "19. 删除 Composer 依赖"
-    echo "20. 导入异次元 V3 用户数据"
-    echo "21. 退出"
-    echo -ne "${GREEN}请选择操作 [1-21]: ${RESET}"
+    echo -e "${GREEN}1.  启动服务${RESET}"
+    echo -e "${GREEN}2.  停止服务${RESET}"
+    echo -e "${GREEN}3.  重启服务${RESET}"
+    echo -e "${GREEN}4.  卸载服务${RESET}"
+    echo -e "${GREEN}5.  安装服务${RESET}"
+    echo -e "${GREEN}6.  更新系统${RESET}"
+    echo -e "${GREEN}7.  生成数据库模型${RESET}"
+    echo -e "${GREEN}8.  创建语言包${RESET}"
+    echo -e "${GREEN}9.  删除语言包${RESET}"
+    echo -e "${GREEN}10. 批量删除语言包${RESET}"
+    echo -e "${GREEN}11. 查看语言代码${RESET}"
+    echo -e "${GREEN}12. 压缩 JS${RESET}"
+    echo -e "${GREEN}13. 压缩 CSS${RESET}"
+    echo -e "${GREEN}14. 压缩 JS+CSS${RESET}"
+    echo -e "${GREEN}15. 停止插件${RESET}"
+    echo -e "${GREEN}16. 查看运行插件${RESET}"
+    echo -e "${GREEN}17. 重置超级管理员密码${RESET}"
+    echo -e "${GREEN}18. 添加 Composer依赖${RESET}"
+    echo -e "${GREEN}19. 删除 Composer依赖${RESET}"
+    echo -e "${GREEN}20. 导入异次元 V3用户数据${RESET}"
+    echo -e "${GREEN}0. 退出"
+    echo -ne "${GREEN}请选择操作: ${RESET}"
 }
 
 # ================== 主循环 ==================
@@ -148,7 +148,7 @@ while true; do
             read sqlfile
             cd "$INSTALL_DIR" && mcy migration.v3.user "$sqlfile"
             ;;
-        21)
+        0)
             echo -e "${GREEN}退出管理菜单${RESET}"
             exit 0
             ;;
@@ -156,6 +156,6 @@ while true; do
             echo -e "${RED}无效选项，请输入 1-21${RESET}"
             ;;
     esac
-    echo -e "\n${GREEN}操作完成，按 Enter 返回菜单...${RESET}"
+    echo -e "\n${GREEN}操作完成，按回车返回菜单...${RESET}"
     read
 done
