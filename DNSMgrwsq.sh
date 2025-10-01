@@ -80,8 +80,9 @@ uninstall() {
 
 show_info() {
     local web_port="$1"
-    echo -e "\n${GREEN}==== 安装完成信息 ====${RESET}"
+    echo -e "${GREEN}==== 安装完成信息 ====${RESET}"
     echo -e "${YELLOW}访问 dnsmgr-web:${RESET} http://127.0.0.1:$web_port"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
 }
 
 menu() {
