@@ -55,6 +55,7 @@ install_telebox() {
     configure_telebox
 
     echo -e "${GREEN}>>> TeleBox 安装完成！${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     echo -e "${GREEN}下一步: 请选择菜单 8 登录 TeleBox${RESET}"
 }
 
