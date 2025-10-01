@@ -220,7 +220,7 @@ docker_ipv6_off() {
 # -----------------------------
 open_all_ports() {
     root_use
-    read -p "⚠️ 确认要开放所有端口吗？(Y/N): " confirm
+    read -p "确认要开放所有端口吗？(Y/N): " confirm
     [[ $confirm =~ [Yy] ]] || { echo -e "${YELLOW}操作已取消${RESET}"; return; }
     echo -e "${YELLOW}正在检测可用防火墙工具...${RESET}"
 
