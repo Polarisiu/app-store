@@ -47,7 +47,6 @@ show_menu() {
     echo -e "${GREEN}6) 查看日志${RESET}"
     echo -e "${GREEN}7) 卸载服务（含数据）${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}==========================${RESET}"
     read -p "请选择: " choice
 }
 
@@ -55,6 +54,7 @@ print_access_info() {
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
     echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
     echo -e "🔑 管理员密码: ${GREEN}${ADMIN_PASSWORD}${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/music-player${RESET}"
 }
 
 install_app() {
