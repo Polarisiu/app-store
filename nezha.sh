@@ -14,7 +14,6 @@ menu() {
     echo -e "${GREEN}5) V1 关闭 SSH 功能${RESET}"
     echo -e "${GREEN}6) 卸载Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo
     read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
         1)
