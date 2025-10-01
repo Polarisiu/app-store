@@ -42,7 +42,6 @@ function install_app() {
     mkdir -p "$COMPOSE_DIR"
 
     cat > "$COMPOSE_FILE" <<EOF
-version: "3.8"
 
 services:
   hubp:
