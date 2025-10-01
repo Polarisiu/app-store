@@ -8,7 +8,7 @@ menu() {
     clear
     echo -e "${GREEN}=== V1 哪吒监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 unzip${RESET}"
-    echo -e "${GREEN}2) 安装 Docker + Docker Compose${RESET}"
+    echo -e "${GREEN}2) 安装 Docker + DockerCompose${RESET}"
     echo -e "${GREEN}3) 运行 Nginx 反代${RESET}"
     echo -e "${GREEN}4) 运行 Nginx 反代(CFCDN)${RESET}"
     echo -e "${GREEN}5) 安装 哪吒 v1${RESET}"
