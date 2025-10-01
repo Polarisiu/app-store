@@ -11,8 +11,7 @@ menu() {
     echo -e "${GREEN}2) NGINX 反代${RESET}"
     echo -e "${GREEN}3) 商城管理${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo
-    read -p $'\033[32m请选择操作 (0-4): \033[0m' choice
+    read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
         1)
             echo -e "${GREEN}正在安装萌次元商城...${RESET}"
