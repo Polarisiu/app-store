@@ -21,7 +21,6 @@ function menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}=======================${RESET}"
     read -p "请选择: " choice
     case $choice in
         1) install_app ;;
@@ -65,6 +64,7 @@ EOF
     docker compose up -d
     echo -e "${GREEN}✅ qBittorrent 已启动${RESET}"
     echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$WEB_PORT${RESET}"
+    echo -e "${GREEN}🌐 账号/密码:查看日志${RESET}"
     echo -e "${GREEN}📂 配置目录: $COMPOSE_DIR/config${RESET}"
     echo -e "${GREEN}📂 下载目录: $COMPOSE_DIR/downloads${RESET}"
     read -p "按回车返回菜单..."
