@@ -86,6 +86,7 @@ EOF
     cd "$BASE_DIR" && docker compose up -d
     echo -e "${GREEN}=== 部署完成！===${RESET}"
     echo -e "${GREEN}Cloudreve 管理面板: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/cloudreve${RESET}"
 }
 
 # 卸载函数
