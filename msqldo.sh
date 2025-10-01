@@ -35,7 +35,6 @@ function menu() {
     echo -e "${GREEN}9.  备份数据库${RESET}"
     echo -e "${GREEN}10. 恢复数据库${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
-    echo -e "${GREEN}=======================${RESET}"
     read -p "请选择: " choice
     case $choice in
         1) install_app ;;
