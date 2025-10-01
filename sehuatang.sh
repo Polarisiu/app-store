@@ -98,6 +98,8 @@ EOF
 
     echo -e "${GREEN}✅ magnetboard 已启动${RESET}"
     echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$WEB_PORT${RESET}"
+    echo -e "${GREEN}   账号: admin${RESET}"
+    echo -e "${GREEN}   密码: $ADMIN_PASSWORD ${RESET}"
     echo -e "${GREEN}📂 数据卷: $APP_DIR${RESET}"
     read -p "按回车返回菜单..."
     menu
