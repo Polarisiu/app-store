@@ -193,7 +193,7 @@ initial_check() {
     echo -e "\033[38;5;81m────────────────────────\033[0m"
 
     local menu_options=("安装 Poste.io" "更新服务" "卸载 Poste.io" "退出脚本")
-    local colors=($GREEN $GREEN $RED $RED)
+    local colors=($GREEN $GREEN $GREEN $GREEN)
 
     for i in "${!menu_options[@]}"; do
         printf "${colors[i]}▶ %d. %s${NC}\n" $((i+1)) "${menu_options[i]}"
