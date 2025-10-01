@@ -60,7 +60,7 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ $APP_NAME 已启动${RESET}"
-    echo -e "${YELLOW}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     read -rp "按回车返回菜单..."
     menu
