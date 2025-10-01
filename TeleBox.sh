@@ -26,7 +26,6 @@ show_menu() {
     echo -e "${GREEN} 9) 更新 TeleBox${RESET}"
     echo -e "${GREEN}10) PM2 管理命令${RESET}"
     echo -e "${GREEN} 0) 退出${RESET}"
-    echo
 }
 
 install_telebox() {
@@ -139,8 +138,6 @@ pm2_tools() {
     echo -e "${GREEN}8) 删除进程${RESET}"
     echo -e "${GREEN}9) 安装 pm2-logrotate 插件 (日志管理)${RESET}"
     echo -e "${GREEN}0) 返回主菜单${RESET}"
-    echo
-
     read -rp "请选择 PM2 操作: " pm2_choice
     case $pm2_choice in
         1) pm2 status ;;
