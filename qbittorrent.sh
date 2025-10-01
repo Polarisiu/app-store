@@ -1,6 +1,6 @@
 #!/bin/bash
 # ========================================
-# qBittorrent-Nox 一键管理脚本
+# qBittorrent-Nox 一键管理脚本 (统一 /opt 文件夹)
 # ========================================
 
 # 颜色
@@ -11,6 +11,14 @@ CYAN="\033[36m"
 RESET="\033[0m"
 
 SERVICE_NAME="qbittorrent"
+APP_DIR="/opt/qbittorrent"
+CONFIG_DIR="$APP_DIR/config"
+DOWNLOAD_DIR="$APP_DIR/downloads"
+
+# 检查并创建目录
+mkdir -p "$CONFIG_DIR" "$DOWNLOAD_DIR"
+chown -R $(whoami):$(whoami) "$APP_DIR"
+chmod -R 755 "$APP_DIR"
 
 # 部署 qBittorrent-Nox
 install_qbittorrent() {
@@ -26,9 +34,10 @@ Description=qBittorrent Command Line Client
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/qbittorrent-nox --webui-port=8080
-User=root
+ExecStart=/usr/bin/qbittorrent-nox --webui-port=8080 --profile=$CONFIG_DIR
+User=$(whoami)
 Restart=on-failure
+WorkingDirectory=$DOWNLOAD_DIR
 
 [Install]
 WantedBy=multi-user.target
@@ -41,6 +50,8 @@ EOF
     echo -e "${GREEN}qBittorrent-Nox 安装完成并已启动!${RESET}"
     echo -e "${CYAN}WebUI 访问地址: http://$(hostname -I | awk '{print $1}'):8080${RESET}"
     echo -e "${YELLOW}默认用户名: admin, 默认密码: adminadmin${RESET}"
+    echo -e "${GREEN}配置目录: $CONFIG_DIR${RESET}"
+    echo -e "${GREEN}下载目录: $DOWNLOAD_DIR${RESET}"
 }
 
 # 启动服务
@@ -72,11 +83,11 @@ uninstall_qbittorrent() {
     sudo systemctl disable ${SERVICE_NAME}
     sudo rm -f /etc/systemd/system/${SERVICE_NAME}.service
     sudo systemctl daemon-reload
-    echo -e "${YELLOW}是否删除 qBittorrent 配置和下载数据？[y/N]${RESET}"
+    echo -e "${YELLOW}是否删除配置和下载数据？[y/N]${RESET}"
     read -r del
     if [[ "$del" == "y" || "$del" == "Y" ]]; then
-        rm -rf ${HOME}/.config/qBittorrent
-        echo -e "${RED}配置已删除${RESET}"
+        rm -rf "$APP_DIR"
+        echo -e "${RED}配置和下载目录已删除${RESET}"
     fi
     echo -e "${GREEN}qBittorrent 已卸载${RESET}"
 }
@@ -92,7 +103,7 @@ menu() {
     echo -e "${GREEN}5. 查看日志${RESET}"
     echo -e "${GREEN}6. 卸载 qBittorrent${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${YELLOW}请输入选项: ${RESET}"
+    echo -ne "${GREEN}请输入选项: ${RESET}"
     read -r choice
     case "$choice" in
         1) install_qbittorrent ;;
