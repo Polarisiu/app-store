@@ -28,7 +28,7 @@ if ! command -v docker-compose >/dev/null 2>&1; then
 fi
 
 # ================== 配置路径 ==================
-INSTALL_DIR=~/acgfaka
+INSTALL_DIR=/opt/acgfaka
 mkdir -p $INSTALL_DIR/acgfaka
 
 # ================== 状态检测函数 ==================
@@ -105,6 +105,7 @@ EOF
                 docker compose up -d
                 echo -e "${GREEN}网站访问地址: http://127.0.0.1:$WEB_PORT${RESET}"
                 echo -e "${GREEN}后台路径: http://127.0.0.1:$WEB_PORT/admin${RESET}"
+                echo -e "${GREEN}📂文件目录: /opt/acgfaka${RESET}"
                 read -p "回车返回菜单..."
                 ;;
             2)
