@@ -6,7 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 APP_NAME="HubP"
-COMPOSE_DIR="$HOME/HubP"
+COMPOSE_DIR="/opt/HubP"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
 function get_ip() {
@@ -21,7 +21,6 @@ function menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}=======================${RESET}"
     read -p "请选择: " choice
     case $choice in
         1) install_app ;;
@@ -62,6 +61,7 @@ EOF
     echo -e "${GREEN}✅ HubP 已启动${RESET}"
     echo -e "${GREEN}🌐 访问地址: http://$(get_ip):${PORT}${RESET}"
     echo -e "${GREEN}🕵️ HUBP_DISGUISE: $DISGUISE${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/HubP${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
