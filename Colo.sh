@@ -21,7 +21,6 @@ show_menu() {
     echo -e "${GREEN}6) 查看日志${RESET}"
     echo -e "${GREEN}7) 卸载服务${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}===============================${RESET}"
     read -p "请选择: " choice
 }
 
@@ -44,6 +43,7 @@ install_app() {
     echo -e "✅ ${GREEN}vue-color-avatar 已安装并启动${RESET}"
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
     echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/vue-color-avatar${RESET}"
 }
 
 stop_app() {
