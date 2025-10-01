@@ -37,7 +37,6 @@ function show_menu() {
     echo -e "${GREEN}9.  卸载项目及环境${RESET}"
     echo -e "${GREEN}10. 更新项目${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
-    echo -e "${CYAN}==============================================${RESET}"
 }
 
 # ================== 功能 ==================
