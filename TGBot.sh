@@ -75,6 +75,7 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ $APP_NAME 已启动${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     read -p "按回车返回菜单..."
     show_menu
 }
