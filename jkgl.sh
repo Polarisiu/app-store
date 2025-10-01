@@ -13,8 +13,8 @@ menu() {
     echo -e "${GREEN}4) Komari 监控安装${RESET}"
     echo -e "${GREEN}5) V0 关闭 SSH 功能${RESET}"
     echo -e "${GREEN}6) V1 关闭 SSH 功能${RESET}"
-    echo -e "${GREEN}7) 卸载哪吒 Agent${RESET}"
-    echo -e "${GREEN}8) 卸载 Komari Agent${RESET}"
+    echo -e "${GREEN}7) 卸载 哪吒Agent${RESET}"
+    echo -e "${GREEN}8) 卸载 KomariAgent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
