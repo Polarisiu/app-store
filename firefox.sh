@@ -71,6 +71,7 @@ deploy() {
   echo -e "${GREEN}VNC端口: ${VNC_PORT}${RESET}"
   echo -e "${GREEN}用户名: ${CUSTOM_USER}${RESET}"
   echo -e "${GREEN}密码: ${PASSWORD}${RESET}"
+  echo -e "${GREEN}📂 数据目录: /opt/firefox${RESET}"
 }
 
 # ================== 管理菜单 ==================
@@ -86,8 +87,6 @@ while true; do
   echo -e "${GREEN}5) 查看日志${RESET}"
   echo -e "${GREEN}6) 更新${RESET}"
   echo -e "${GREEN}0) 退出${RESET}"
-  echo -e "${GREEN}==============================${RESET}"
-
   read -p "请输入选项 : " choice
   case $choice in
     1)
