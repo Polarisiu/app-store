@@ -51,7 +51,7 @@ show_menu() {
     echo -e "${GREEN}18. 添加 Composer依赖${RESET}"
     echo -e "${GREEN}19. 删除 Composer依赖${RESET}"
     echo -e "${GREEN}20. 导入异次元 V3用户数据${RESET}"
-    echo -e "${GREEN}0. 退出"
+    echo -e "${GREEN}0.  退出"
     echo -ne "${GREEN}请选择操作: ${RESET}"
 }
 
