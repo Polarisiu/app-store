@@ -18,7 +18,6 @@ function menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}=======================${RESET}"
     read -p "请选择: " choice
     case $choice in
         1) install_app ;;
@@ -53,6 +52,7 @@ EOF
 
     echo -e "${GREEN}✅ HubProxy 已启动${RESET}"
     echo -e "${GREEN}🌐 Web 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
