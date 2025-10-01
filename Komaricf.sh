@@ -72,6 +72,7 @@ EOF
     docker compose -f "$COMPOSE_FILE" up -d
     echo -e "${GREEN}✅ 部署完成！访问地址: http://$(curl -s https://api.ipify.org):$PORT${RESET}"
     echo -e "${GREEN}用户名: $ADMIN_USERNAME  密码: $ADMIN_PASSWORD${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/komari${RESET}"
     read -p "按回车返回菜单..." && menu
 }
 
