@@ -10,10 +10,10 @@ COMPOSE_FILE="$BASE_DIR/docker-compose.yml"
 ENV_FILE="$DATA_DIR/.env"
 
 MYSQL_CONTAINER="newapi-mysql"
-MYSQL_ROOT_PASSWORD="123456"
+MYSQL_ROOT_PASSWORD="562584"
 MYSQL_DB="newapi"
 MYSQL_USER="newapi"
-MYSQL_PASSWORD="newapi123"
+MYSQL_PASSWORD="newapiguy"
 
 DEFAULT_PORT=3000
 API_PORT=$DEFAULT_PORT
@@ -142,6 +142,8 @@ show_logs_mysql() {
 show_ip_port() {
     IP=$(hostname -I | awk '{print $1}')
     echo -e "${GREEN}访问地址: http://127.0.0.1:$API_PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/newapi${RESET}"
+
 }
 
 
