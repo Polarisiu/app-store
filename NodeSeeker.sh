@@ -19,7 +19,6 @@ function menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}============================${RESET}"
     echo -ne "${GREEN}请选择: ${RESET}"
     read choice
     case $choice in
