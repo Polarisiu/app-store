@@ -65,6 +65,7 @@ EOF
 
     docker compose -f $YML_FILE up -d
     echo -e "${GREEN}✅ $APP_NAME 已启动，访问地址: http://127.0.0.1:${port}${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/music-tag${RESET}"
     read -p "按回车键返回菜单..."
     show_menu
 }
