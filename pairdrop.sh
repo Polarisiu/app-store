@@ -51,6 +51,7 @@ EOF
     fi
 
     echo -e "${GREEN}>>> Pairdrop 服务已安装并运行在: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $INSTALL_DIR ${RESET}"
     read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
     menu
 }
@@ -106,7 +107,6 @@ menu() {
     echo -e "${GREEN}5. 更新${RESET}"
     echo -e "${GREEN}6. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "${GREEN}======================${RESET}"
     echo -ne "${GREEN}请输入选项: ${RESET}"
     read CHOICE
     case $CHOICE in
