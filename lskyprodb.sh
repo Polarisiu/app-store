@@ -100,6 +100,7 @@ EOF
 
     echo -e "${GREEN}✅ Lsky-Pro 已启动${RESET}"
     echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     show_db_info
     read -p "按回车返回菜单..."
     menu
