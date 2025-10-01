@@ -120,6 +120,7 @@ deploy_services() {
     PORT=$(cat "$WORKDIR/.oneapi_port")
     echo -e "${GREEN}访问地址: http://127.0.0.1:${PORT}${RESET}"
     echo -e "${GREEN}OneAPI 初始账号用户名为 root，密码为 123456${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/oneapi${RESET}"
 }
 
 start_services() {
@@ -224,7 +225,6 @@ menu() {
     echo -e "${GREEN}12. 删除所有容器和数据${RESET}"
     echo -e "${GREEN}13. 查看当前配置${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
-    echo "================================="
 }
 
 # ================== 主循环 ==================
