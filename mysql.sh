@@ -141,8 +141,6 @@ while true; do
     echo -e "${GREEN}11. 查看访问地址${RESET}"
     echo -e "${GREEN}12. 更新 MySQL${RESET}"
     echo -e "${GREEN}0.  退出${RESET}"
-    echo -e "${GREEN}===========================${RESET}"
-
     read -p "请输入选项: " choice
 
     case $choice in
