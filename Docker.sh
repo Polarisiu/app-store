@@ -386,14 +386,12 @@ docker_volume() {
         echo -e "${GREEN}1. 创建卷${RESET}"
         echo -e "${GREEN}2. 删除卷${RESET}"
         echo -e "${GREEN}3. 删除所有无用卷${RESET}"
-        echo -e "${GREEN}4. 删除所有卷${RESET}"
         echo -e "${GREEN}0. 返回上一级菜单${RESET}"
         read -p "请输入选择: " choice
         case $choice in
             1) read -p "请输入卷名: " v; docker volume create $v ;;
             2) read -p "请输入卷名: " v; docker volume rm $v ;;
             3) docker volume prune -f ;;
-            4) docker volume prune ;;
             0) break ;;
             *) echo "无效选择" ;;
         esac
