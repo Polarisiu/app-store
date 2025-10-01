@@ -117,7 +117,6 @@ menu() {
     echo -e "${GREEN}5. 更新${RESET}"
     echo -e "${GREEN}6. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "${GREEN}======================${RESET}"
     echo -ne "${GREEN}请输入选项: ${RESET}"
     read CHOICE
     case $CHOICE in
