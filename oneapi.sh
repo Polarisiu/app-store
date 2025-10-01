@@ -14,7 +14,7 @@ DATE=$(date +%Y%m%d_%H%M%S)
 DB_CONTAINER="mysql"
 ONEAPI_CONTAINER="oneapi"
 DB_USER="oneapi"
-DB_PASSWORD="123456"
+DB_PASSWORD="554786"
 DB_NAME="oneapi"
 
 mkdir -p "$WORKDIR" "$BACKUP_DIR"
