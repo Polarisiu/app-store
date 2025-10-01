@@ -61,6 +61,8 @@ EOF
 
     echo -e "${GREEN}✅ Vertex 已启动${RESET}"
     echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}账号: admin${RESET}"
+    echo -e "${GREEN}密码: 查看初始密码${RESET}"
     echo -e "${GREEN}📂 配置目录: $APP_DIR/config${RESET}"
     read -p "按回车返回菜单..."
     menu
