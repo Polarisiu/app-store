@@ -72,7 +72,6 @@ show_menu() {
     echo -e "${GREEN}4) 更新应用${RESET}"
     echo -e "${GREEN}5) 卸载应用${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}===========================${RESET}"
     read -p "请选择: " choice
     case $choice in
         1) setup_script ;;
