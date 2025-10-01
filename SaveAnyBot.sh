@@ -143,7 +143,6 @@ while true; do
     echo -e "${GREEN}6. 更新容器${RESET}"
     echo -e "${GREEN}7. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -e "${GREEN}=================================${RESET}"
     read -p "请选择操作: " choice
     case $choice in
         1) start_bot ;;
