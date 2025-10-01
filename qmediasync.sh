@@ -1,26 +1,50 @@
 #!/bin/bash
-# QMediaSync 一键管理脚本
+# ========================================
+# QMediaSync 一键管理脚本 (端口映射模式)
+# ========================================
 
 GREEN="\033[32m"
+YELLOW="\033[33m"
+RED="\033[31m"
 RESET="\033[0m"
 
-APP_NAME="qmediasync"
-BASE_DIR="/opt/qmediasync"
-CONFIG_DIR="$BASE_DIR/config"
-MEDIA_DIR="$BASE_DIR/media"
-YML_FILE="$BASE_DIR/qmediasync-compose.yml"
+APP_NAME="QMediaSync"
+APP_DIR="/opt/qmediasync"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/config.env"
 
-# 获取公网IP
-get_ip() {
-    curl -s ipv4.icanhazip.com || curl -s ifconfig.me
+menu() {
+    clear
+    echo -e "${GREEN}===== QMediaSync 管理菜单 =====${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载(含数据)${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    read -rp "请输入编号: " choice
+    case $choice in
+        1) install_app ;;
+        2) update_app ;;
+        3) uninstall_app ;;
+        4) view_logs ;;
+        0) exit 0 ;;
+        *) echo -e "${RED}❌ 无效选择${RESET}"; sleep 1; menu ;;
+    esac
 }
 
-create_compose() {
-    mkdir -p "$CONFIG_DIR"
-    mkdir -p "$MEDIA_DIR"
-    mkdir -p "$BASE_DIR"
+install_app() {
+    mkdir -p "$APP_DIR/config" "$APP_DIR/media"
 
-    cat > $YML_FILE <<EOF
+    read -rp "请输入主端口 [默认 12333]: " port_main
+    PORT_MAIN=${port_main:-12333}
+
+    read -rp "请输入 Emby http端口 [默认 8095]: " port_web
+    PORT_WEB=${port_web:-8095}
+
+    read -rp "请输入 Emby https端口 [默认 8094]: " port_api
+    PORT_API=${port_api:-8094}
+
+    cat > "$COMPOSE_FILE" <<EOF
 
 services:
   qmediasync:
@@ -28,94 +52,55 @@ services:
     container_name: qmediasync
     restart: unless-stopped
     ports:
-      - "127.0.0.1:12333:12333"
-      - "8095:8095"
-      - "8094:8094"
+      - "127.0.0.1:$PORT_MAIN:12333"
+      - "127.0.0.1:$PORT_WEB:8095"
+      - "127.0.0.1:$PORT_API:8094"
     volumes:
-      - $CONFIG_DIR:/app/config
-      - $MEDIA_DIR:/media
+      - ./config:/app/config
+      - ./media:/media
     environment:
       - TZ=Asia/Shanghai
-
-networks:
-  default:
-    name: qmediasync
 EOF
-}
 
-show_menu() {
-    clear
-    echo -e "${GREEN}=== QMediaSync 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装并启动 QMediaSync${RESET}"
-    echo -e "${GREEN}2) 停止 QMediaSync${RESET}"
-    echo -e "${GREEN}3) 启动 QMediaSync${RESET}"
-    echo -e "${GREEN}4) 重启 QMediaSync${RESET}"
-    echo -e "${GREEN}5) 更新 QMediaSync${RESET}"
-    echo -e "${GREEN}6) 查看日志${RESET}"
-    echo -e "${GREEN}7) 卸载 QMediaSync（含数据）${RESET}"
-    echo -e "${GREEN}0) 退出${RESET}"
-    echo -e "${GREEN}==========================${RESET}"
-    read -p "请选择: " choice
-}
+    echo "PORT_MAIN=$PORT_MAIN" > "$CONFIG_FILE"
+    echo "PORT_WEB=$PORT_WEB" >> "$CONFIG_FILE"
+    echo "PORT_API=$PORT_API" >> "$CONFIG_FILE"
 
-print_access_info() {
-    local ip=$(get_ip)
-    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:12333${RESET}"
-    echo -e "👤 默认用户: ${GREEN}admin${RESET}"
-    echo -e "🔑 默认密码: ${GREEN}admin123${RESET}"
-}
+    cd "$APP_DIR" || exit
+    docker compose up -d
 
-install_app() {
-    create_compose
-    docker compose -f $YML_FILE up -d
-    echo -e "✅ ${GREEN}QMediaSync 已安装并启动${RESET}"
-    print_access_info
-}
-
-stop_app() {
-    docker compose -f $YML_FILE down
-    echo -e "🛑 ${GREEN}QMediaSync 已停止${RESET}"
-}
-
-start_app() {
-    docker compose -f $YML_FILE up -d
-    echo -e "🚀 ${GREEN}QMediaSync 已启动${RESET}"
-}
-
-restart_app() {
-    docker compose -f $YML_FILE down
-    docker compose -f $YML_FILE up -d
-    echo -e "🔄 ${GREEN}QMediaSync 已重启${RESET}"
+    echo -e "${GREEN}✅ $APP_NAME 已启动${RESET}"
+    echo -e "${GREEN}🌐 访问地址: 127.0.0.1:$PORT_MAIN${RESET}"
+    echo -e "${GREEN}🌐 Emby http端口: $PORT_WEB${RESET}"
+    echo -e "${GREEN}🌐 Emby https端口:$PORT_API${RESET}"
+    echo -e "${GREEN}🌐 账户/密码: admin/admin123${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
+    read -rp "按回车返回菜单..."
+    menu
 }
 
 update_app() {
-    docker compose -f $YML_FILE pull
-    docker compose -f $YML_FILE up -d
-    echo -e "⬆️ ${GREEN}QMediaSync 已更新到最新版本${RESET}"
-}
-
-logs_app() {
-    docker logs -f $APP_NAME
+    cd "$APP_DIR" || { echo -e "${RED}未检测到安装目录，请先安装${RESET}"; sleep 1; menu; }
+    docker compose pull
+    docker compose up -d
+    echo -e "${GREEN}✅ $APP_NAME 已更新并重启完成${RESET}"
+    read -rp "按回车返回菜单..."
+    menu
 }
 
 uninstall_app() {
-    docker compose -f $YML_FILE down
-    rm -f $YML_FILE
-    rm -rf "$CONFIG_DIR" "$MEDIA_DIR"
-    echo -e "🗑️ ${GREEN}QMediaSync 已卸载，数据目录也已删除${RESET}"
+    cd "$APP_DIR" || { echo -e "${RED}未检测到安装目录${RESET}"; sleep 1; menu; }
+    docker compose down -v
+    rm -rf "$APP_DIR"
+    echo -e "${RED}✅ $APP_NAME 已卸载，数据已删除${RESET}"
+    read -rp "按回车返回菜单..."
+    menu
 }
 
-while true; do
-    show_menu
-    case $choice in
-        1) install_app ;;
-        2) stop_app ;;
-        3) start_app ;;
-        4) restart_app ;;
-        5) update_app ;;
-        6) logs_app ;;
-        7) uninstall_app ;;
-        0) exit 0 ;;
-        *) echo -e "❌ ${GREEN}无效选择${RESET}" ;;
-    esac
-done
+view_logs() {
+    docker logs -f qmediasync
+    read -rp "按回车返回菜单..."
+    menu
+}
+
+menu
