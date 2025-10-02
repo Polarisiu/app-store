@@ -11,7 +11,7 @@ COMPOSE_DIR="/opt/qbittorrent"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
 
 function get_ip() {
-    curl -s ifconfig.me || curl -s ip.sb || echo "your-ip"
+    curl -s ifconfig.me || curl -s ip.sb || echo "127.0.0.1"
 }
 
 function menu() {
@@ -21,6 +21,7 @@ function menu() {
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
     case $choice in
@@ -28,6 +29,7 @@ function menu() {
         2) update_app ;;
         3) uninstall_app ;;
         4) view_logs ;;
+        5) restart_app ;;
         0) exit 0 ;;
         *) echo "无效选择"; sleep 1; menu ;;
     esac
@@ -77,6 +79,14 @@ function update_app() {
     docker compose pull
     docker compose up -d
     echo -e "${GREEN}✅ qBittorrent 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function restart_app() {
+    cd "$COMPOSE_DIR" || exit
+    docker compose restart
+    echo -e "${GREEN}✅ qBittorrent 已重启${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
