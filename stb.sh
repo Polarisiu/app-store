@@ -25,7 +25,7 @@ mkdir -p "$BASE_DIR"
 # ================== 菜单 ==================
 function show_menu() {
     clear
-    echo -e "${CYAN}================= STB 管理脚本 =================${RESET}"
+    echo -e "${CYAN}====== STB 管理脚本 =======${RESET}"
     echo -e "${GREEN}1.  下载源码${RESET}"
     echo -e "${GREEN}2.  安装 Node.js / pnpm / 项目依赖${RESET}"
     echo -e "${GREEN}3.  编译项目${RESET}"
@@ -94,8 +94,9 @@ function start_project() {
     cd "$APP_DIR" || exit
     export MONGO_URL=$MONGO_HOST
     nohup pnpm start > "$LOG_FILE" 2>&1 &
-    echo -e "${YELLOW}项目已启动，日志输出到 $LOG_FILE${RESET}"
+    echo -e "${GREEN}项目已启动，日志输出到 $LOG_FILE${RESET}"
     echo -e "${YELLOW}访问地址 http://${SERVER_IP}:25519${RESET}"
+    echo -e "${GREEN}📂 数据目录: /opt/stb${RESET}"
 
 }
 
