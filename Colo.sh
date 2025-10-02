@@ -1,111 +1,163 @@
 #!/bin/bash
-# vue-color-avatar 一键管理脚本（增加更新功能）
+# ========================================
+# vue-color-avatar 一键管理脚本 (Docker Compose)
+# ========================================
 
 GREEN="\033[32m"
+YELLOW="\033[33m"
+RED="\033[31m"
 RESET="\033[0m"
 
 APP_NAME="vue-color-avatar"
-IMAGE_NAME="vue-color-avatar:latest"
-DEFAULT_PORT=3000
-BASE_DIR="/opt/vue-color-avatar"
-PORT=$DEFAULT_PORT  # 默认端口，可在安装时修改
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+ENV_FILE="$APP_DIR/.env"
 
-show_menu() {
-    clear
-    echo -e "${GREEN}=== vue-color-avatar 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装启动${RESET}"
-    echo -e "${GREEN}2) 停止${RESET}"
-    echo -e "${GREEN}3) 启动${RESET}"
-    echo -e "${GREEN}4) 重启${RESET}"
-    echo -e "${GREEN}5) 更新${RESET}"
-    echo -e "${GREEN}6) 查看日志${RESET}"
-    echo -e "${GREEN}7) 卸载${RESET}"
-    echo -e "${GREEN}0) 退出${RESET}"
-    read -p "请选择: " choice
+check_root() {
+    if [ "$(id -u)" != "0" ]; then
+        echo -e "${RED}请使用 root 用户运行脚本${RESET}"
+        exit 1
+    fi
+}
+
+install_docker() {
+    if ! command -v docker &> /dev/null; then
+        echo -e "${GREEN}安装 Docker...${RESET}"
+        apt update
+        apt install -y docker.io
+    fi
+    if ! docker compose version &> /dev/null; then
+        echo -e "${GREEN}安装 Docker Compose 插件...${RESET}"
+        apt install -y docker-compose-plugin
+    fi
+    if ! systemctl is-active --quiet docker; then
+        echo -e "${GREEN}启动 Docker 服务...${RESET}"
+        systemctl enable docker
+        systemctl start docker
+    fi
 }
 
 install_app() {
-    read -p "请输入映射端口 (默认 ${DEFAULT_PORT}): " input_port
-    PORT=${input_port:-$DEFAULT_PORT}
+    install_docker
+    mkdir -p "$APP_DIR"
 
-    # 克隆代码
-    if [ ! -d "$BASE_DIR" ]; then
-        git clone https://github.com/Codennnn/vue-color-avatar.git "$BASE_DIR"
+    read -p "请输入映射端口 [默认:3000]: " input_port
+    PORT=${input_port:-3000}
+
+    if [ -d "$APP_DIR/.git" ]; then
+        echo -e "${GREEN}检测到已有代码，更新中...${RESET}"
+        cd "$APP_DIR"
+        git pull
+    else
+        echo -e "${GREEN}克隆代码...${RESET}"
+        git clone https://github.com/Codennnn/vue-color-avatar.git "$APP_DIR"
+        cd "$APP_DIR"
     fi
 
-    # 构建镜像
-    cd "$BASE_DIR"
-    docker build -t $IMAGE_NAME .
+    # 写 .env 文件
+    cat > "$ENV_FILE" <<EOF
+PORT=$PORT
+EOF
 
-    # 启动容器
-    docker run -d -p "127.0.0.1:$PORT:80" --name $APP_NAME $IMAGE_NAME
+    # 写 docker-compose.yml
+    cat > "$COMPOSE_FILE" <<EOF
+services:
+  vue-color-avatar:
+    build: .
+    image: vue-color-avatar:latest
+    container_name: vue-color-avatar
+    ports:
+      - "\${PORT}:80"
+    restart: always
+EOF
 
-    echo -e "✅ ${GREEN}vue-color-avatar 已安装并启动${RESET}"
-    local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
-    echo -e "${GREEN}📂 数据目录: /opt/vue-color-avatar${RESET}"
-}
+    cd "$APP_DIR"
+    docker compose --env-file "$ENV_FILE" up -d --build
 
-stop_app() {
-    docker stop $APP_NAME
-    echo -e "🛑 ${GREEN}vue-color-avatar 已停止${RESET}"
-}
-
-start_app() {
-    docker start $APP_NAME
-    echo -e "🚀 ${GREEN}vue-color-avatar 已启动${RESET}"
-}
-
-restart_app() {
-    docker restart $APP_NAME
-    echo -e "🔄 ${GREEN}vue-color-avatar 已重启${RESET}"
+    SERVER_IP=$(hostname -I | awk '{print $1}')
+    echo -e "${GREEN}✅ vue-color-avatar 已启动${RESET}"
+    echo -e "${YELLOW}🌐 访问地址: http://127.0.0.1:${PORT}${RESET}"
+    echo -e "${GREEN}📂数据目录: $APP_DIR${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
 update_app() {
-    if [ ! -d "$BASE_DIR" ]; then
-        echo -e "❌ ${GREEN}代码目录不存在，请先安装服务${RESET}"
-        return
+    if [ ! -d "$APP_DIR" ]; then
+        echo -e "${RED}未检测到安装目录，请先安装${RESET}"
+        read -p "按回车返回菜单..."
+        menu
     fi
-
-    # 停止并删除旧容器
-    docker stop $APP_NAME
-    docker rm $APP_NAME
-
-    # 拉取最新代码并重建镜像
-    cd "$BASE_DIR"
+    cd "$APP_DIR"
     git pull
-    docker build -t $IMAGE_NAME .
-
-    # 启动新容器
-    docker run -d -p "127.0.0.1:$PORT:80" --name $APP_NAME $IMAGE_NAME
-    echo -e "⬆️ ${GREEN}vue-color-avatar 已更新并重启${RESET}"
-    local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
+    docker compose --env-file "$ENV_FILE" build
+    docker compose --env-file "$ENV_FILE" up -d
+    echo -e "${GREEN}✅ 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-logs_app() {
-    docker logs -f $APP_NAME
+restart_app() {
+    if [ ! -d "$APP_DIR" ]; then
+        echo -e "${RED}未检测到安装目录，请先安装${RESET}"
+        read -p "按回车返回菜单..."
+        menu
+    fi
+    cd "$APP_DIR"
+    docker compose --env-file "$ENV_FILE" restart
+    echo -e "${GREEN}✅ 服务已重启${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
+view_logs() {
+    if [ ! -d "$APP_DIR" ]; then
+        echo -e "${RED}未检测到安装目录，请先安装${RESET}"
+        read -p "按回车返回菜单..."
+        menu
+    fi
+    cd "$APP_DIR"
+    echo -e "${GREEN}日志输出（Ctrl+C 退出）...${RESET}"
+    docker compose --env-file "$ENV_FILE" logs --tail 100 -f
+    read -p "按回车返回菜单..."
+    menu
 }
 
 uninstall_app() {
-    docker stop $APP_NAME
-    docker rm $APP_NAME
-    docker rmi $IMAGE_NAME
-    rm -rf "$BASE_DIR"
-    echo -e "🗑️ ${GREEN}vue-color-avatar 已卸载，镜像和代码已删除${RESET}"
+    if [ ! -d "$APP_DIR" ]; then
+        echo -e "${RED}未检测到安装目录${RESET}"
+        read -p "按回车返回菜单..."
+        menu
+    fi
+    cd "$APP_DIR"
+    docker compose --env-file "$ENV_FILE" down -v --rmi all
+    cd ~
+    rm -rf "$APP_DIR"
+    echo -e "${RED}✅ 已卸载并删除数据${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-while true; do
-    show_menu
+menu() {
+    clear
+    echo -e "${GREEN}=== vue-color-avatar 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 重启服务${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 卸载${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    read -p "请选择: " choice
     case $choice in
         1) install_app ;;
-        2) stop_app ;;
-        3) start_app ;;
-        4) restart_app ;;
-        5) update_app ;;
-        6) logs_app ;;
-        7) uninstall_app ;;
+        2) update_app ;;
+        3) restart_app ;;
+        4) view_logs ;;
+        5) uninstall_app ;;
         0) exit 0 ;;
-        *) echo -e "❌ ${GREEN}无效选择${RESET}" ;;
+        *) echo -e "${RED}无效选择${RESET}" ; sleep 1 ; menu ;;
     esac
-done
+}
+
+check_root
+menu
