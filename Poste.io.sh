@@ -192,7 +192,7 @@ initial_check() {
     echo -e "\n\033[1;36m操作选项\033[0m"
     echo -e "\033[38;5;81m────────────────────────\033[0m"
 
-    local menu_options=("安装 Poste.io" "更新服务" "卸载 Poste.io" "退出脚本")
+    local menu_options=("安装" "更新" "卸载" "退出脚本")
     local colors=($GREEN $GREEN $GREEN $GREEN)
 
     for i in "${!menu_options[@]}"; do
