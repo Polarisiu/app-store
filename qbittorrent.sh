@@ -48,7 +48,7 @@ EOF
     sudo systemctl enable qbittorrent
 
     echo -e "${GREEN}qBittorrent-Nox 安装完成并已启动!${RESET}"
-    echo -e "${CYAN}WebUI 访问地址: http://$(hostname -I | awk '{print $1}'):8080${RESET}"
+    echo -e "${YELLOW}WebUI 访问地址: http://$(hostname -I | awk '{print $1}'):8080${RESET}"
     echo -e "${YELLOW}默认用户名: admin, 默认密码: adminadmin${RESET}"
     echo -e "${GREEN}配置目录: $CONFIG_DIR${RESET}"
     echo -e "${GREEN}下载目录: $DOWNLOAD_DIR${RESET}"
