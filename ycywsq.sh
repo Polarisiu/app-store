@@ -79,7 +79,7 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ ACGFaka 已启动${RESET}"
-    echo -e "${GREEN}本地访问地址: http://127.0.0.1:${WEB_PORT}${RESET}"
+    echo -e "${YELLOW}本地访问地址: http://127.0.0.1:${WEB_PORT}${RESET}"
     echo -e "${GREEN}后台路径: http://127.0.0.1:$WEB_PORT/admin${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     read -rp "按回车返回菜单..."
