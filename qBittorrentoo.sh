@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+YELLOW="\033[33m"
 APP_NAME="qbittorrent"
 COMPOSE_DIR="/opt/qbittorrent"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
@@ -63,7 +64,7 @@ EOF
     cd "$COMPOSE_DIR"
     docker compose up -d
     echo -e "${GREEN}✅ qBittorrent 已启动${RESET}"
-    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$WEB_PORT${RESET}"
+    echo -e "${YELLOW}🌐 本机访问地址: http://127.0.0.1:$WEB_PORT${RESET}"
     echo -e "${GREEN}🌐 账号/密码:查看日志${RESET}"
     echo -e "${GREEN}📂 配置目录: $COMPOSE_DIR/config${RESET}"
     echo -e "${GREEN}📂 下载目录: $COMPOSE_DIR/downloads${RESET}"
