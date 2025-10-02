@@ -17,6 +17,7 @@ function menu() {
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
     case $choice in
@@ -24,10 +25,20 @@ function menu() {
         2) update_app ;;
         3) uninstall_app ;;
         4) view_logs ;;
+        5) restart_app ;;
         0) exit 0 ;;
         *) echo "无效选择"; sleep 1; menu ;;
     esac
 }
+
+function restart_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose restart
+    echo -e "${GREEN}✅ Nexus Terminal 所有容器已重启${RESET}"
+    read -p "按回车返回菜单..."
+    menu
+}
+
 
 function install_app() {
     read -p "请输入前端宿主机端口 [默认:18111]: " input_front
