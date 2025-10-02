@@ -22,6 +22,7 @@ menu() {
     echo -e "${GREEN}2) 更新 Komari${RESET}"
     echo -e "${GREEN}3) 卸载 Komari${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 重启 Komari${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择操作: " choice
 
@@ -30,10 +31,19 @@ menu() {
         2) update_komari ;;
         3) uninstall_komari ;;
         4) view_logs ;;
+        5) restart_komari ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选择！${RESET}" && sleep 1 && menu ;;
     esac
 }
+
+restart_komari() {
+    echo -e "${GREEN}=== 重启 Komari ===${RESET}"
+    docker compose -f "$COMPOSE_FILE" restart
+    echo -e "${GREEN}✅ Komari 已重启${RESET}"
+    read -p "按回车返回菜单..." && menu
+}
+
 
 install_komari() {
     echo -e "${GREEN}=== 开始安装 Komari ===${RESET}"
