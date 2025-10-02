@@ -21,6 +21,7 @@ show_menu() {
     echo -e "${GREEN}2) 更新 Navidrome${RESET}"
     echo -e "${GREEN}3) 卸载 Navidrome${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 重启 Navidrome${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
     case $choice in
@@ -28,10 +29,20 @@ show_menu() {
         2) update_app ;;
         3) uninstall_app ;;
         4) logs_app ;;
+        5) restart_app ;;
         0) exit ;;
         *) echo "❌ 无效选择"; sleep 1; show_menu ;;
     esac
 }
+
+restart_app() {
+    cd "$APP_DIR" || { echo "❌ 未检测到安装目录"; sleep 1; show_menu; }
+    docker compose -f "$YML_FILE" restart
+    echo -e "${GREEN}✅ Navidrome 已重启${RESET}"
+    read -p "按回车键返回菜单..."
+    show_menu
+}
+
 
 install_app() {
     read -p "请输入音乐目录路径 (默认 /opt/navidrome/music): " music_dir
@@ -71,7 +82,7 @@ EOF
     cd "$APP_DIR"
     docker compose up -d
     echo -e "${GREEN}✅ Navidrome 已启动，访问地址: http://127.0.0.1:${port}${RESET}"
-    echo -e "${GREEN}📂 数据目录: $APP_DIRP_DIR${RESET}"
+    echo -e "${GREEN}📂 数据目录: $APP_DIR ${RESET}"
     read -p "按回车键返回菜单..."
     show_menu
 }
