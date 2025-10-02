@@ -98,8 +98,8 @@ EOF
     echo -e "${GREEN}数据库名称: acgfakadb${RESET}"
     echo -e "${GREEN}数据库账号: $MYSQL_USER${RESET}"
     echo -e "${GREEN}数据库密码: $MYSQL_PASSWORD${RESET}"
-    echo -e "${GREEN}访问地址: http://127.0.0.1:${WEB_PORT}${RESET}"
-    echo -e "${GREEN}后台路径: http://127.0.0.1:${WEB_PORT}/admin${RESET}"
+    echo -e "${YELLOW}访问地址: http://127.0.0.1:${WEB_PORT}${RESET}"
+    echo -e "${YELLOW}后台路径: http://127.0.0.1:${WEB_PORT}/admin${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR${RESET}"
     read -rp "按回车返回菜单..."
 }
