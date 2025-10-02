@@ -3,6 +3,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+YELLOW="\033[33m"
 
 APP_NAME="music-player"
 BASE_DIR="/opt/music-player"
@@ -52,8 +53,8 @@ show_menu() {
 
 print_access_info() {
     local ip=$(curl -s ipv4.icanhazip.com || curl -s ifconfig.me)
-    echo -e "🌐 访问地址: ${GREEN}http://127.0.0.1:${PORT}${RESET}"
-    echo -e "🔑 管理员密码: ${GREEN}${ADMIN_PASSWORD}${RESET}"
+    echo -e "${YELLOW}🌐 访问地址: http://127.0.0.1:${PORT}${RESET}"
+    echo -e "${GREEN}🔑 管理员密码:${ADMIN_PASSWORD}${RESET}"
     echo -e "${GREEN}📂 数据目录: /opt/music-player${RESET}"
 }
 
