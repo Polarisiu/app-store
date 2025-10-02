@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+YELLOW="\033[33m"
 APP_NAME="sun-panel"
 COMPOSE_DIR="/opt/sun-panel"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
@@ -58,7 +59,9 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ ${APP_NAME} 已启动${RESET}"
-    echo -e "${GREEN}🌐 Web UI 地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${YELLOW}🌐 本机访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}账号: admin@sun.cc${RESET}"
+    echo -e "${GREEN}密码: 12345678${RESET}"
     echo -e "${GREEN}📂 配置目录: $COMPOSE_DIR/conf${RESET}"
     read -p "按回车返回菜单..."
     menu
