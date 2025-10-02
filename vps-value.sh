@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+YELLOW="\033[33m"
 APP_NAME="vps-value-calculator"
 APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
@@ -60,7 +61,7 @@ EOF
     }
 
     echo -e "${GREEN}✅ $APP_NAME 已启动${RESET}"
-    echo -e "${GREEN}🌐 访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${YELLOW}🌐 本机访问地址: http://127.0.0.1:$PORT${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
     echo -e "${GREEN}📂 图片目录: $APP_DIR/static/images${RESET}"
     read -p "按回车返回菜单..."
