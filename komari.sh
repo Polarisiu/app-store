@@ -19,11 +19,11 @@ CONTAINER_NAME="komari"
 menu() {
     clear
     echo -e "${GREEN}=== Komari 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装部署 Komari${RESET}"
-    echo -e "${GREEN}2) 更新 Komari${RESET}"
-    echo -e "${GREEN}3) 卸载 Komari${RESET}"
+    echo -e "${GREEN}1) 安装部署${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
-    echo -e "${GREEN}5) 重启 Komari${RESET}"
+    echo -e "${GREEN}5) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择操作: " choice
 
