@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+YELLOW="\033[33m"
 APP_NAME="nginx-proxy-manager"
 APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
@@ -22,6 +23,7 @@ function menu() {
     echo -e "${GREEN}2) 更新${RESET}"
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
     case $choice in
@@ -29,6 +31,7 @@ function menu() {
         2) update_app ;;
         3) uninstall_app ;;
         4) view_logs ;;
+        5) restart_app ;;
         0) exit 0 ;;
         *) echo "无效选择"; sleep 1; menu ;;
     esac
@@ -44,7 +47,6 @@ function install_app() {
 
     # 生成 docker-compose.yml
     cat > "$COMPOSE_FILE" <<EOF
-
 services:
   app:
     image: 'jc21/nginx-proxy-manager:latest'
@@ -66,7 +68,7 @@ EOF
     docker compose up -d
 
     echo -e "${GREEN}✅ Nginx Proxy Manager 已启动${RESET}"
-    echo -e "${GREEN}🌐 Web UI 地址: http://$(get_ip):$ADMIN_PORT${RESET}"
+    echo -e "${YELLOW}🌐 访问地址: http://$(get_ip):$ADMIN_PORT${RESET}"
     echo -e "${GREEN}   初始用户名: admin@example.com${RESET}"
     echo -e "${GREEN}   初始密码: changeme${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR/data${RESET}"
@@ -95,6 +97,14 @@ function uninstall_app() {
 
 function view_logs() {
     docker logs -f app
+    read -p "按回车返回菜单..."
+    menu
+}
+
+function restart_app() {
+    cd "$APP_DIR" || { echo "未检测到安装目录"; sleep 1; menu; }
+    docker compose restart
+    echo -e "${GREEN}✅ Nginx Proxy Manager 已重启${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
