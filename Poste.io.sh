@@ -165,7 +165,7 @@ initial_check() {
     fi
 
     echo -n "✓ 邮局服务....... "
-    if [ -d "opt/posteio" ]; then
+    if [ -d "/opt/posteio" ]; then
         echo -e "${GREEN}已安装${NC}"
     else
         echo -e "${RED}未安装${NC}"
