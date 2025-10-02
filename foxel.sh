@@ -37,7 +37,7 @@ function restart_app() {
     cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
     docker compose restart
     source "$CONFIG_FILE"
-    echo -e "${GREEN}✅ Foxel 已重启！访问地址: http://127.0.0.1:$PORT${RESET}"
+    echo -e "${GREEN}✅ Foxel 已重启！${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
