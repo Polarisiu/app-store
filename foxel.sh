@@ -18,7 +18,7 @@ function menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}5) 查看密钥${RESET}"
-    echo -e "${GREEN}6) 重启 Foxel${RESET}"
+    echo -e "${GREEN}6) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
     case $choice in
