@@ -1,44 +1,41 @@
 #!/bin/bash
+# ========================================
+# kuma-mieru 一键管理脚本 (Docker Compose)
+# ========================================
 
-# ================================
-# kuma-mieru 管理脚本（菜单式）
-# 自动显示访问 IP+端口，配置 .env
-# ================================
+GREEN="\033[32m"
+YELLOW="\033[33m"
+RED="\033[31m"
+RESET="\033[0m"
 
-green="\033[32m"
-red="\033[31m"
-plain="\033[0m"
-
-APP_DIR="/opt/kuma-mieru"
+APP_NAME="kuma-mieru"
+APP_DIR="/opt/$APP_NAME"
+COMPOSE_FILE="$APP_DIR/docker-compose.yml"
+CONFIG_FILE="$APP_DIR/.env"
 HOST_PORT=3883
 
-if [ "$(id -u)" != "0" ]; then
-    echo -e "${red}请使用 root 用户运行脚本${plain}"
-    exit 1
-fi
-
-install_docker() {
-    if ! command -v docker &> /dev/null; then
-        echo -e "${green}安装 Docker...${plain}"
-        apt update
-        apt install -y docker.io
-    fi
-    if ! docker compose version &> /dev/null; then
-        echo -e "${green}安装 Docker Compose 插件...${plain}"
-        apt install -y docker-compose-plugin
+check_root() {
+    if [ "$(id -u)" != "0" ]; then
+        echo -e "${RED}请使用 root 用户运行脚本${RESET}"
+        exit 1
     fi
 }
 
 install_app() {
-    install_docker
+    read -p "请输入 Uptime Kuma 地址 (例如 https://example.kuma-mieru.invalid): " UPTIME_KUMA_BASE_URL
+    while [[ -z "$UPTIME_KUMA_BASE_URL" ]]; do
+        echo -e "${RED}地址不能为空${RESET}"
+        read -p "请输入 Uptime Kuma 地址: " UPTIME_KUMA_BASE_URL
+    done
 
-    echo -e "${green}请输入 Uptime Kuma 地址 (例如 https://example.kuma-mieru.invalid):${plain}"
-    read UPTIME_KUMA_BASE_URL
-    echo -e "${green}请输入页面 ID:${plain}"
-    read PAGE_ID
+    read -p "请输入页面 ID: " PAGE_ID
+    while [[ -z "$PAGE_ID" ]]; do
+        echo -e "${RED}页面 ID 不能为空${RESET}"
+        read -p "请输入页面 ID: " PAGE_ID
+    done
 
     if [ -d "$APP_DIR" ]; then
-        echo -e "${green}检测到已有项目，拉取最新代码...${plain}"
+        echo -e "${GREEN}检测到已有项目，拉取最新代码...${RESET}"
         cd "$APP_DIR"
         git pull
     else
@@ -53,72 +50,88 @@ install_app() {
     docker compose up -d
 
     SERVER_IP=$(hostname -I | awk '{print $1}')
-    echo -e "${green}部署完成！访问地址: http://${SERVER_IP}:${HOST_PORT}${plain}"
+    echo -e "${GREEN}✅部署完成！${RESET}"
+    echo -e "${YELLOW}🌐访问地址: http://${SERVER_IP}:${HOST_PORT}${RESET}"
+    echo -e "${GREEN}📂数据目录: $APP_DIR${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
 update_app() {
     if [ ! -d "$APP_DIR" ]; then
-        echo -e "${red}项目未安装，请先安装！${plain}"
-        return
+        echo -e "${RED}项目未安装，请先安装！${RESET}"
+        read -p "按回车返回菜单..."
+        menu
     fi
     cd "$APP_DIR"
+    git pull
     docker compose pull
     docker compose up -d
-    echo -e "${green}更新镜像并重启服务...${plain}"
+    echo -e "${GREEN}✅ 已更新并重启完成${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
 restart_app() {
     if [ ! -d "$APP_DIR" ]; then
-        echo -e "${red}项目未安装，请先安装！${plain}"
-        return
+        echo -e "${RED}项目未安装，请先安装！${RESET}"
+        read -p "按回车返回菜单..."
+        menu
     fi
     cd "$APP_DIR"
-    echo -e "${green}重启服务中...${plain}"
     docker compose restart
-    echo -e "${green}重启完成！${plain}"
+    echo -e "${GREEN}✅ 服务已重启${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-show_logs() {
+view_logs() {
     if [ ! -d "$APP_DIR" ]; then
-        echo -e "${red}项目未安装，请先安装！${plain}"
-        return
+        echo -e "${RED}项目未安装，请先安装！${RESET}"
+        read -p "按回车返回菜单..."
+        menu
     fi
     cd "$APP_DIR"
-    echo -e "${green}显示日志（按 Ctrl+C 退出）...${plain}"
-    docker compose logs -f
+    echo -e "${GREEN}日志输出（Ctrl+C 退出）...${RESET}"
+    docker compose logs --tail 100 -f
+    read -p "按回车返回菜单..."
+    menu
 }
 
 uninstall_app() {
     if [ ! -d "$APP_DIR" ]; then
-        echo -e "${red}项目未安装，无需卸载${plain}"
-        return
+        echo -e "${RED}项目未安装，无需卸载${RESET}"
+        read -p "按回车返回菜单..."
+        menu
     fi
     cd "$APP_DIR"
-    echo -e "${green}停止并删除容器和镜像...${plain}"
-    docker compose down --rmi all
-    cd ~
+    docker compose down --rmi all -v
     rm -rf "$APP_DIR"
-    echo -e "${green}卸载完成！${plain}"
+    echo -e "${RED}✅ 已卸载并删除数据${RESET}"
+    read -p "按回车返回菜单..."
+    menu
 }
 
-while true; do
+menu() {
     clear
-    echo -e "${green}=== kuma-mieru 管理菜单 ===${plain}"
-    echo -e "${green}1) 安装启动${plain}"
-    echo -e "${green}2) 更新${plain}"
-    echo -e "${green}3) 卸载${plain}"
-    echo -e "${green}4) 重启服务${plain}"
-    echo -e "${green}5) 查看日志${plain}"
-    echo -e "${green}0) 退出${plain}"
-    echo -ne "${green}请选择操作: ${plain}"
-    read choice
-    case "$choice" in
+    echo -e "${GREEN}=== kuma-mieru 管理菜单 ===${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 重启服务${RESET}"
+    echo -e "${GREEN}4) 查看日志${RESET}"
+    echo -e "${GREEN}5) 卸载${RESET}"
+    echo -e "${GREEN}0) 退出${RESET}"
+    read -p "请选择: " choice
+    case $choice in
         1) install_app ;;
         2) update_app ;;
-        3) uninstall_app ;;
-        4) restart_app ;;
-        5) show_logs ;;
+        3) restart_app ;;
+        4) view_logs ;;
+        5) uninstall_app ;;
         0) exit 0 ;;
-        *) echo -e "${red}无效选项${plain}" ;;
+        *) echo -e "${RED}无效选择${RESET}" ; sleep 1 ; menu ;;
     esac
-done
+}
+
+check_root
+menu
