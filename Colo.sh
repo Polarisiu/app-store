@@ -14,12 +14,12 @@ show_menu() {
     clear
     echo -e "${GREEN}=== vue-color-avatar 管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装启动${RESET}"
-    echo -e "${GREEN}2) 停止服务${RESET}"
-    echo -e "${GREEN}3) 启动服务${RESET}"
-    echo -e "${GREEN}4) 重启服务${RESET}"
-    echo -e "${GREEN}5) 更新服务${RESET}"
+    echo -e "${GREEN}2) 停止${RESET}"
+    echo -e "${GREEN}3) 启动${RESET}"
+    echo -e "${GREEN}4) 重启${RESET}"
+    echo -e "${GREEN}5) 更新${RESET}"
     echo -e "${GREEN}6) 查看日志${RESET}"
-    echo -e "${GREEN}7) 卸载服务${RESET}"
+    echo -e "${GREEN}7) 卸载${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "请选择: " choice
 }
