@@ -9,7 +9,7 @@ RESET="\033[0m"
 
 # ================== 本地备份函数 ==================
 backup() {
-    read -rp "请输入要备份的 Docker Compose 项目目录（可多选，用空格分隔）: " -a PROJECT_DIRS
+    read -rp "请输入要备份的 Docker Compose 项目目录（例如 //opt/caddy可多选，用空格分隔）: " -a PROJECT_DIRS
     if [[ ${#PROJECT_DIRS[@]} -eq 0 ]]; then
         echo -e "${RED}❌ 没有输入项目目录${RESET}"
         return
@@ -217,7 +217,7 @@ delete_backup() {
 # ================== 菜单 ==================
 while true; do
     clear
-    echo -e "${CYAN}===== Docker Compose 项目备份与恢复 =====${RESET}"
+    echo -e "${CYAN}=== Docker Compose 项目备份与恢复==${RESET}"
     echo -e "${GREEN}1. 本地备份项目${RESET}"
     echo -e "${GREEN}2. 远程备份（上传已有备份）${RESET}"
     echo -e "${GREEN}3. 恢复项目${RESET}"
@@ -233,6 +233,6 @@ while true; do
         0) exit 0 ;;
         *) echo -e "${RED}❌ 无效选择${RESET}" ;;
     esac
-    echo -e "\n按回车键继续..."
+    echo -e "${GREEN}按回车键继续...${RESET}"
     read
 done
