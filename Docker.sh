@@ -12,7 +12,7 @@ YELLOW="\033[33m"
 CYAN="\033[36m"
 BOLD="\033[1m"
 RESET="\033[0m"
-
+BLUE="\033[34m"
 # -----------------------------
 # 检查 root
 # -----------------------------
@@ -62,7 +62,7 @@ check_docker_running() {
         return 1
     fi
     if ! docker info &>/dev/null; then
-        echo -e "${YELLOW}⚠️ Docker 未运行，尝试启动...${RESET}"
+        echo -e "${YELLOW} Docker 未运行，尝试启动...${RESET}"
         if systemctl list-unit-files | grep -q "^docker.service"; then
             systemctl start docker
         else
@@ -211,7 +211,7 @@ docker_ipv6_off() {
         docker ps -a -q | xargs -r docker start
         echo -e "${GREEN}✅ Docker IPv6 已关闭，所有容器已恢复${RESET}"
     else
-        echo -e "${YELLOW}⚠️ Docker 配置文件不存在，无法关闭 IPv6${RESET}"
+        echo -e "${YELLOW} Docker 配置文件不存在，无法关闭 IPv6${RESET}"
     fi
 }
 
@@ -699,8 +699,7 @@ main_menu() {
         echo " | | |/ _ \ / __| |/ / _ \ '__|"
         echo " | |_| | (_) | (__|   <  __/ |   "
         echo " |____/ \___/ \___|_|\_\___|_|   "
-        echo -e "\033[33m🐳 一键 VPS Docker 管理工具${RESET}"
-
+        echo -e "${BLUE}🐳 一键 VPS Docker 管理工具${RESET}"
         # 检测 Docker 状态
         if command -v docker &>/dev/null; then
             docker_status=$(docker info &>/dev/null && echo "运行中" || echo "未运行")
@@ -727,7 +726,7 @@ main_menu() {
         echo -e "${GREEN}13. 卷管理 ${RESET}"
         echo -e "${GREEN}14.${RESET} ${YELLOW}一键清理所有未使用容器/镜像/卷${RESET}"
         echo -e "${GREEN}15. 重启 Docker${RESET}"
-        echo -e "${GREEN} 0. 退出${RESET}"
+        echo -e "${GREEN}00. 退出${RESET}"
         read -p "请选择: " choice
         case $choice in
             01|1) docker_install_update ;;
@@ -745,8 +744,8 @@ main_menu() {
             13|13) check_docker_running && docker_volume ;;
             14|14) check_docker_running && docker_cleanup ;;
             15|15) check_docker_running && restart_docker ;;
-            0) exit 0 ;;
-            *) echo "无效选择" ;;
+            00) exit 0 ;;
+            *) echo -e "${RED}无效选择${RESET}" ;;
         esac
         read -p "按回车继续..."
     done
