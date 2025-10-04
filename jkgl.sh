@@ -13,8 +13,8 @@ menu() {
     echo -e "${GREEN}4) Komari 监控安装${RESET}"
     echo -e "${GREEN}5) V0 关闭 SSH 功能${RESET}"
     echo -e "${GREEN}6) V1 关闭 SSH 功能${RESET}"
-    echo -e "${GREEN}7) 卸载 哪吒Agent${RESET}"
-    echo -e "${GREEN}8) 卸载 KomariAgent${RESET}"
+    echo -e "${GREEN}7) 哪吒Agent管理${RESET}"
+    echo -e "${GREEN}8) KomariAgent管理${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
@@ -25,7 +25,7 @@ menu() {
             ;;
         2)
             echo -e "${GREEN}正在安装 V0 哪吒监控...${RESET}"
-            bash <(wget -qO- https://raw.githubusercontent.com/fscarmen2/Argo-Nezha-Service-Container/main/dashboard.sh)
+            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nezhav0Argo.sh)
             pause
             ;;
         3)
@@ -52,17 +52,13 @@ menu() {
             pause
             ;;
         7)
-            echo -e "${GREEN}正在卸载哪吒 Agent...${RESET}"
-            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nzagent.sh)
+            echo -e "${GREEN}正在安装哪吒 Agent管理...${RESET}"
+            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NezhaAgent.sh)
             pause
             ;;
         8)
-            echo -e "${GREEN}正在卸载 Komari Agent...${RESET}"
-            sudo systemctl stop komari-agent
-            sudo systemctl disable komari-agent
-            sudo rm -f /etc/systemd/system/komari-agent.service
-            sudo systemctl daemon-reload
-            sudo rm -rf /opt/komari /var/log/komari
+            echo -e "${GREEN}正在安装 Komari Agent管理...${RESET}"
+            bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/KomariAgent.sh)
             pause
             ;;
         0)
