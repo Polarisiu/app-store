@@ -9,7 +9,7 @@ menu() {
     echo -e "${GREEN}=== Komari 监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 Komari${RESET}"
     echo -e "${GREEN}2) 安装 Komari(CF)${RESET}"
-    echo -e "${GREEN}3) 卸载 Komari Agent${RESET}"
+    echo -e "${GREEN}3) 管理 Komari Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p $'\033[32m请选择操作: \033[0m' choice
     case $choice in
@@ -24,13 +24,8 @@ menu() {
             pause
             ;;
         3)
-            echo -e "${GREEN}正在卸载 Komari Agent...${RESET}"
-            sudo systemctl stop komari-agent
-            sudo systemctl disable komari-agent
-            sudo rm -f /etc/systemd/system/komari-agent.service
-            sudo systemctl daemon-reload
-            sudo rm -rf /opt/komari /var/log/komari
-            echo -e "${GREEN}卸载完成！${RESET}"
+            echo -e "${GREEN}管理 Komari Agent...${RESET}"
+            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/KomariAgent.sh)
             pause
             ;;
         0)
