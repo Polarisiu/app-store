@@ -4,9 +4,9 @@
 GREEN="\033[32m"
 YELLOW="\033[33m"
 RED="\033[31m"
+BLUE="\033[34m"
 RESET="\033[0m"
 BOLD="\033[1m"
-
 # ================== 脚本路径 ==================
 SCRIPT_PATH="/root/store.sh"
 SCRIPT_URL="https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
@@ -30,214 +30,260 @@ fi
 # ================== 一级菜单分类 ==================
 declare -A categories=(
     [1]="Docker管理"
-    [2]="订阅服务"
-    [3]="监控通知"
-    [4]="管理面板"
-    [5]="多媒体工具"
-    [6]="图床工具"
-    [7]="实用工具"
-    [8]="交易商店"
+    [2]="数据证书"
+    [3]="订阅服务"
+    [4]="监控通知"
+    [5]="管理面板"
+    [6]="多媒体工具"
+    [7]="图床工具"
+    [8]="实用工具"
+    [9]="交易商店"
+    [10]="文件管理"
+    [11]="机器人工具"
 )
 
 # ================== 二级菜单应用 ==================
 declare -A apps=(
-    [1,1]="安装/管理 Docker"
-    [1,2]="MySQL数据管理"
+    [1,1]="安装管理Docker"
+    [1,2]="Dockercompose项目管理"
     [1,3]="Dockercompose备份恢复"
-    [1,4]="Docker容器迁移"
-    [1,5]="NGINX反代"
-    [1,6]="NginxProxyManager可视化面板"
-    [2,1]="Wallos订阅"
-    [2,2]="Vaultwarden (密码管理)"
-    [2,3]="2FBA"
-    [3,1]="Kuma-Mieru"
-    [3,2]="Komari监控"
-    [3,3]="哪吒监控"
-    [3,4]="Akile Monitor"
-    [3,5]="uptime-kuma"
-    [3,6]="NodeSeeker监控"
-    [3,7]="Beszel"
-    [4,1]="运维面板"
-    [4,2]="XTrafficDash(流量监控)"
-    [4,3]="Sun-Panel"
-    [4,4]="WebSSH"
-    [4,5]="NexusTerminal(SSH)"
-    [4,6]="Sub-store"
-    [4,7]="Poste.io邮局"
-    [4,8]="oci-start"
-    [4,9]="Y探长"
-    [4,10]="OneNav书签管理"
-    [4,11]="彩虹聚合DNS(MySQL)"
-    [4,12]="ONE API"
-    [4,13]="NEW API"
-    [4,14]="青龙面板"
-    [4,15]="Termix(SSH)"
-    [4,16]="彩虹聚合DNS(远程MySQL)"
-    [4,17]="VPS 剩余价值计算器"
-    [5,1]="koodoreader阅读"
-    [5,2]="LrcApi(歌词)"
-    [5,3]="Openlist"
-    [5,4]="SPlayer音乐"
-    [5,5]="AutoBangumi"
-    [5,6]="MoviePilot"
-    [5,7]="qBittorrentv4.6.3"
-    [5,8]="Vertex"
-    [5,9]="yt-dlp视频下载工具"
-    [5,10]="libretv"
-    [5,11]="MoonTV"
-    [5,12]="Emby(开心版)"
-    [5,13]="Emby"
-    [5,14]="Jellyfin"
-    [5,15]="metatube"
-    [5,16]="navidrome"
-    [5,17]="music-tag-web"
-    [5,18]="strm+302"
-    [5,19]="弹幕API"
-    [5,20]="music-player"
-    [5,21]="磁力爬虫"
-    [5,22]="qBittorrent(最新版)"
-    [6,1]="Foxel图片管理"
-    [6,2]="STB图床"
-    [6,3]="兰空图床(MySQL)"
-    [6,4]="兰空图床(远程MySQL)"
-    [6,5]="图片API (兰空图床)"
-    [6,6]="简单图床"
-    [7,1]="ALLinSSL证书"
-    [7,2]="SaveAnyBot(TG转存)"
-    [7,3]="github镜像"
-    [7,4]="Docker加速"
-    [7,5]="计算圆周率"
-    [7,6]="DockerGitHub加速代理"
-    [7,7]="超级短链"
-    [7,8]="多功能文件分享"
-    [7,9]="订阅转换"
-    [7,10]="笔记"
-    [7,11]="TGBotRSS"
-    [7,12]="TeleBox"
-    [7,13]="随机头像生成"
-    [7,14]="fastsend文件快传"
-    [7,15]="FileTransferGo文件快传"
-    [7,16]="send文件快传"
-    [7,17]="pairdrop文件快传"
-    [7,18]="TG转发机器人"
-    [7,19]="Cloudreve网盘"
-    [7,20]="firefox浏览器"
-    [7,21]="留言板"
-    [8,1]="异次元商城(MySQL)"
-    [8,2]="异次元商城(远程MySQL)"
-    [8,3]="萌次元商城"
-    [8,4]="UPAYPRO"
+    [1,4]="Docker容器备份迁移"
+    [2,1]="MySQL数据管理"
+    [2,2]="caddy证书管理"
+    [2,3]="NginxProxyManager可视化面板"
+    [2,4]="ALLinSSL证书管理"
+    [2,5]="彩虹聚合DNS管理系统(MySQL)"
+    [2,6]="彩虹聚合DNS管理系统"
+    [2,7]="DDNS-GO动态DNS管理工具"
+    [3,1]="Sub-store节点订阅管理"
+    [3,2]="subwebmodify节点订阅转换"
+    [3,3]="Wallos个人财务管理工具"
+    [3,4]="Vaultwarden密码管理"
+    [4,1]="Kuma-Mieru监控工具"
+    [4,2]="Komari监控"
+    [4,3]="哪吒V1监控"
+    [4,4]="AK监控"
+    [4,5]="uptime-kuma监控工具"
+    [4,6]="NodeSeeker关键词监控"
+    [4,7]="Beszel服务器监控"
+    [4,8]="XTrafficDash 3XUI面板流量监控"
+    [4,9]="哪吒V0监控"
+    [4,10]="Changedetection 网页监控"
+    [5,1]="运维面板"
+    [5,2]="Sun-Panel导航面板"
+    [5,3]="WebSSH网页版SSH连接工具"
+    [5,4]="NexusTerminal远程连接工具"
+    [5,5]="Poste.io邮局"
+    [5,6]="OneNav书签管理"
+    [5,7]="ONEAPI(MSQL)大模型资产管理"
+    [5,8]="ONEAPI大模型资产管理"
+    [5,9]="NEWAPI(MSQL)大模型资产管理"
+    [5,10]="NEWAPI大模型资产管理"
+    [5,11]="青龙面板定时任务管理平台"
+    [5,12]="Termix远程连接工具"
+    [5,13]="VPS剩余价值计算器"
+    [5,14]="Trilium 笔记"
+    [5,15]="firefox浏览器"
+    [5,16]="moments 微信朋友圈"
+    [5,17]="searxng聚合搜索站"
+    [6,1]="koodoreader阅读"
+    [6,2]="LrcApi音乐数据"
+    [6,3]="OpenList多存储文件列表程序"
+    [6,4]="SPlayer网页音乐播放器"
+    [6,5]="AutoBangumi全自动追番"
+    [6,6]="MoviePilot媒体库自动化管理工具"
+    [6,7]="qBittorrentBT磁力下载面板"
+    [6,8]="Vertex PT刷流管理工具"
+    [6,9]="yt-dlp油管视频下载工具"
+    [6,10]="libretv私有影视"
+    [6,11]="MoonTV私有影视"
+    [6,12]="Emby开心版(AMD)"
+    [6,13]="Emby开心版(ARM)"
+    [6,14]="Emby官方版(AMD)"
+    [6,15]="Emby官方版(ARM)"
+    [6,16]="Jellyfiny多媒体管理系统 "
+    [6,17]="metatube刮削插件"
+    [6,18]="Navidrome音乐管理系统"
+    [6,19]="musictagweb音乐数据刮削"
+    [6,20]="qmediasync(strm+302)网盘观影"
+    [6,21]="LogVar弹幕API"
+    [6,22]="music-player网页音乐播放器"
+    [6,23]="MagnetBoard磁力番号库可视化面板"
+    [6,24]="Melody音乐精灵"
+    [6,25]="SyncTV一起看"
+    [7,1]="Foxel图片管理"
+    [7,2]="STB图床"
+    [7,3]="兰空图床(MySQL)"
+    [7,4]="兰空图床"
+    [7,5]="图片API (兰空图床)"
+    [7,6]="简单图床"
+    [8,1]="2FAuth自托管二步验证器"
+    [8,2]="gh-proxy Github文件加速"
+    [8,3]="HubP 轻量级Docker镜像加速"
+    [8,4]="HubProxy DockerGitHub加速代理"
+    [8,5]="Zurl短链接系统"
+    [8,6]="vue-color-avatar头像生成网站"
+    [8,7]="msgboard实时留言板"
+    [8,8]="it-tools工具箱"
+    [8,9]="LibreSpeed测速工具"
+    [8,10]="libretranslate在线翻译服务器"
+    [8,11]="linkwarden书签管理"
+    [8,12]="LookingGlass 服务器测速"
+    [8,13]="StirlingPDF工具大全"
+    [9,1]="异次元商城(MySQL)"
+    [9,2]="异次元商城"
+    [9,3]="萌次元商城"
+    [9,4]="UPAYPRO"
+    [10,1]="Cloudreve网盘"
+    [10,2]="ZdirPro多功能文件分享"
+    [10,3]="fastsend文件快传"
+    [10,4]="FileTransferGo文件快传"
+    [10,5]="send文件快传"
+    [10,6]="pairdrop文件快传"
+    [10,7]="Gopeed高速下载工具"
+    [10,8]="Syncthing点对点文件同步工具"
+    [10,9]="迅雷离线下载工具"
+    [11,1]="SaveAnyBot(TG转存)"
+    [11,2]="TeleBoxTG机器人"
+    [11,3]="TGBotRSS RSS订阅工具"
+    [11,4]="messageTG消息转发机器人"
+    [11,5]="AstrBot聊天机器人"
+    [11,6]="Miaospeed测速后端"
+    [11,7]="Napcat QQ机器人"
+    [11,8]="Koipy 测速机器人"
 )
 
 # ================== 二级菜单命令 ==================
 declare -A commands=(
     [1,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Docker.sh)'
-    [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/msqldo.sh)'
-    [1,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockcomp.sh)'
+    [1,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockercompose.sh)'
+    [1,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockcompback.sh)'
     [1,4]='curl -O https://raw.githubusercontent.com/woniu336/open_shell/main/Docker_container_migration.sh && chmod +x Docker_container_migration.sh && ./Docker_container_migration.sh'
-    [1,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/tool/main/Nginxws.sh)'
-    [1,6]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/nginx.sh)'
-    [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
-    [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
-    [2,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/2fauth.sh)'
-    [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
-    [3,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/komarigl.sh)'
-    [3,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nezha.sh)'
-    [3,4]='wget -O ak-setup.sh "https://raw.githubusercontent.com/akile-network/akile_monitor/refs/heads/main/ak-setup.sh" && chmod +x ak-setup.sh && sudo ./ak-setup.sh'
-    [3,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/uptimek.sh)'
-    [3,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NodeSeeker.sh)'
-    [3,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Beszel.sh)'
-    [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/panel/main/Panel.sh)'
-    [4,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
-    [4,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh)'
-    [4,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh)'
-    [4,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh)'
-    [4,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sub-store.sh)'
-    [4,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Poste.io.sh)'
-    [4,8]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/oci-start.sh)'
-    [4,9]='bash <(wget -qO- https://github.com/Yohann0617/oci-helper/releases/latest/download/sh_oci-helper_install.sh)'
-    [4,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/onenav.sh)'
-    [4,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dnss.sh)'
-    [4,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/oneapi.sh)'
-    [4,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/newapi.sh)'
-    [4,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qlmb.sh)'
-    [4,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Termix.sh)'
-    [4,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/DNSMgrwsq.sh)'
-    [4,17]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vps-value.sh)'
-    [5,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/koodoreader.sh)'
-    [5,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh)'
-    [5,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh)'
-    [5,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh)'
-    [5,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh)'
-    [5,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/movpv2.sh)'
-    [5,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qbittorrent.sh)'
-    [5,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh)'
-    [5,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlb.sh)'
-    [5,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/libretv.sh)'
-    [5,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mootv.sh)'
-    [5,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kxemby.sh)'
-    [5,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/emby.sh)'
-    [5,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Jellyfin.sh)'
-    [5,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/metadata.sh)'
-    [5,16]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/navidrome.sh)'
-    [5,17]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/musictw.sh)'
-    [5,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
-    [5,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
-    [5,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
-    [5,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/sehuatang.sh)'
-    [5,22]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qBittorrentoo.sh)'
-    [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
-    [6,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
-    [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskyprodb.sh)'
-    [6,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskypro.sh)'
-    [6,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh)'
-    [6,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh)'
-    [7,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
-    [7,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
-    [7,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
-    [7,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockhub.sh)'
-    [7,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/pai.sh)'
-    [7,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/hubproxy.sh)'
-    [7,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zurl.sh)'
-    [7,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zdir.sh)'
-    [7,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/subzh.sh)'
-    [7,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Trilium.sh)'
-    [7,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TGBot.sh)'
-    [7,12]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/TeleBox.sh)'
-    [7,13]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/Colo.sh)'
-    [7,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FastSend.sh)'
-    [7,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FileTransfer.sh)'
-    [7,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/send.sh)'
-    [7,17]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/pairdrop.sh)'
-    [7,18]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TelegramBot.sh)'
-    [7,19]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Cloudreve.sh)'
-    [7,20]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/firefox.sh)'
-    [7,21]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/realtime.sh)'
-    [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycyk.sh)'
-    [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ycywsq.sh)'
-    [8,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
-    [8,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
+    [2,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/msql.sh)'
+    [2,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/CaddyDocker.sh)'
+    [2,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NginxProxy.sh)'
+    [2,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/ALLSSL.sh)'
+    [2,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/DNSMgrdb.sh)'
+    [2,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/DNSMgr.sh)'
+    [2,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/DDNS-GO.sh)'
+    [3,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sub-store.sh)'
+    [3,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/subzh.sh)'
+    [3,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/wallos.sh)'
+    [3,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/vaultwarden.sh)'
+    [4,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kuma-mieru.sh)'
+    [4,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/komarigl.sh)'
+    [4,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/aznezha.sh)'
+    [4,4]='wget -O ak-setup.sh "https://raw.githubusercontent.com/akile-network/akile_monitor/refs/heads/main/ak-setup.sh" && chmod +x ak-setup.sh && sudo ./ak-setup.sh'
+    [4,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/UptimeKuma.sh)'
+    [4,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NodeSeeker.sh)'
+    [4.7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Beszel.sh)'
+    [4.8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/xtrafficdash.sh)'
+    [4,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nezhav0Argo.sh)'
+    [4,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/changedetection.sh)'
+    [5,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/panel/main/Panel.sh)'
+    [5,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/sun-panel.sh)'
+    [5,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/webssh.sh)'
+    [5,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/nexus-terminal.sh)'
+    [5,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/posteio.sh)'
+    [5,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/onenav.sh)'
+    [5,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/OneAPIdb.sh)'
+    [5,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/OneAPI.sh)'
+    [5,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NewAPIdb.sh)'
+    [5,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/NewAPI.sh)'
+    [5,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qlmb.sh)'
+    [5,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Termix.sh)'
+    [5,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vps-value.sh)'
+    [5,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Trilium.sh)'
+    [5,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/firefox.sh)'
+    [5,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/moments.sh)'
+    [5,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/searxng.sh)'
+    [6,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/koodoreader.sh'
+    [6,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/lacapi.sh)'
+    [6,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Openlist.sh)'
+    [6,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/splayer.sh)'
+    [6,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Autobangumi.sh)'
+    [6,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/movpv2.sh)'
+    [6,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/qBittorrentoo.sh)'
+    [6,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/vertex.sh)'
+    [6,9]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ytdlpweb.sh)'
+    [6,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/libretv.sh)'
+    [6,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/mootv.sh)'
+    [6,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kxembyamd.sh)'
+    [6,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/kxembyarm.sh)'
+    [6,14]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/embyamd.sh)'
+    [6,15]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/embyarm.sh)'
+    [6,16]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Jellyfin.sh)'
+    [6,17]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/metadata.sh)'
+    [6,18]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/navidrome.sh)'
+    [6,19]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/musictw.sh)'
+    [6,20]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/qmediasync.sh)'
+    [6,21]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/danmu.sh)'
+    [6,22]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mplayer.sh)'
+    [6,23]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/magnetboard.sh)'
+    [6,24]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/Melody.sh)'
+    [6,24]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/synctv.sh)'
+    [7,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/foxel.sh)'
+    [7,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/stb.sh)'
+    [7,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskyprodb.sh)'
+    [7,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lskypro.sh)'
+    [7,5]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/apitu.sh)'
+    [7,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/EasyImage.sh)'
+    [8,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/2fauth.sh)'
+    [8,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/fdgit.sh)'
+    [8,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/dockhub.sh)'
+    [8,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/hubproxy.sh)'
+    [8,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zurl.sh)'
+    [8,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Colo.sh)'
+    [8,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/MsgBoard.sh)'
+    [8,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/it-tools.sh)'
+    [8,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/LibreSpeed.sh)'
+    [8,10]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/libretranslate.sh)'
+    [8,11]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Linkwarden.sh)'
+    [8,12]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/lookingglass.sh)'
+    [8,13]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/StirlingPDF.sh)'
+    [9,1]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ACGFakadb.sh)'
+    [9,2]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/ACGFaka.sh)'
+    [9,3]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/mcygl.sh)'
+    [9,4]='bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/UPayPro.sh)'
+    [10,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Cloudreve.sh)'
+    [10,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Zdir.sh)'
+    [10,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FastSend.sh)'
+    [10,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/FileTransfer.sh)'
+    [10,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/send.sh)'
+    [10,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/pairdrop.sh)'
+    [10,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/gopeed.sh)'
+    [10,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/syncthing.sh)'
+    [10,9]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/xunlei.sh)'
+    [11,1]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/SaveAnyBot.sh)'
+    [11,2]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TeleBox.sh)'
+    [11,3]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TGRSSBot.sh)'
+    [11,4]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/TelegramBot.sh)'
+    [11,5]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Astrbot.sh)'
+    [11,6]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Miaospeed.sh)'
+    [11,7]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Napcat.sh)'
+    [11,8]='bash <(curl -sL https://raw.githubusercontent.com/Polarisiu/app-store/main/Koipy.sh)'
 )
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
-    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
-    echo -e "${GREEN}${BOLD}         应用分类菜单${RESET}"
-    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
+    echo -e "${BLUE}${BOLD}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${BLUE}${BOLD}         应用分类菜单${RESET}"
+    echo -e "${BLUE}${BOLD}╚════════════════════════════════════════╝${RESET}"
 
     for i in $(seq 1 ${#categories[@]}); do
-        printf "${GREEN}[%02d] %-20s${RESET}\n" "$i" "${categories[$i]}"
+        printf "${YELLOW}[%02d] %-20s${RESET}\n" "$i" "${categories[$i]}"
     done
-    printf "${GREEN}[88] %-20s${RESET}\n" "更新脚本"
-    printf "${GREEN}[99] %-20s${RESET}\n" "卸载脚本"
-    printf "${GREEN}[0 ] %-20s${RESET}\n" "退出脚本"
+
+    printf "${GREEN}[%02d] %-20s${RESET}\n" 88 "更新脚本"
+    printf "${GREEN}[%02d] %-20s${RESET}\n" 99 "卸载脚本"
+    printf "${GREEN}[%02d] %-20s${RESET}\n" 0  "退出脚本"
 }
 
 show_app_menu() {
     local cat=$1
-    echo -e "${GREEN}${BOLD}╔════════════════════════════════════════╗${RESET}"
-    echo -e "${GREEN}${BOLD}        ${categories[$cat]}${RESET}"
-    echo -e "${GREEN}${BOLD}╚════════════════════════════════════════╝${RESET}\n"
+    echo -e "${BLUE}${BOLD}╔════════════════════════════════════════╗${RESET}"
+    echo -e "${BLUE}${BOLD}        ${categories[$cat]}${RESET}"
+    echo -e "${BLUE}${BOLD}╚════════════════════════════════════════╝${RESET}"
 
     local i=1
     declare -gA menu_map
@@ -255,12 +301,13 @@ show_app_menu() {
 
     for key in "${sorted_keys[@]}"; do
         menu_map[$i]=$key
-        printf "${GREEN}[%02d] %-25s${RESET}\n" "$i" "${apps[$key]}"
+        printf "${YELLOW}[%02d] %-25s${RESET}\n" "$i" "${apps[$key]}"
         ((i++))
     done
 
-    printf "${GREEN}[0 ] %-25s${RESET}\n" "返回上一级"
+    printf "${RED}[%02d] %-25s${RESET}\n" 00 "返回上一级"
 }
+
 # ================== 菜单处理函数 ==================
 category_menu_handler() {
     while true; do
@@ -275,7 +322,7 @@ category_menu_handler() {
         fi
 
         case "$cat_choice" in
-            0) echo -e "${RED}退出脚本！${RESET}"; exit 0 ;;
+            00) echo -e "${RED}退出脚本！${RESET}"; exit 0 ;;
             88) update_script ;;
             99) uninstall_script ;;
             *) 
@@ -303,7 +350,7 @@ app_menu_handler() {
             continue
         fi
 
-        if [[ "$app_choice" == "0" ]]; then
+        if [[ "$app_choice" == "00" ]]; then
             break
         elif [[ -n "${menu_map[$app_choice]}" ]]; then
             key="${menu_map[$app_choice]}"
