@@ -6,7 +6,7 @@ RESET="\033[0m"
 
 menu() {
     clear
-    echo -e "${GREEN}=== V1 哪吒监控管理菜单 ===${RESET}"
+    echo -e "${GREEN}===哪吒监控 V1管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 哪吒v1${RESET}"
     echo -e "${GREEN}2) 安装 哪吒v1(Argo)${RESET}"
     echo -e "${GREEN}3) 管理 Agent${RESET}"
