@@ -744,7 +744,7 @@ main_menu() {
             13|13) check_docker_running && docker_volume ;;
             14|14) check_docker_running && docker_cleanup ;;
             15|15) check_docker_running && restart_docker ;;
-            00) exit 0 ;;
+             00|0) exit 0 ;;
             *) echo -e "${RED}无效选择${RESET}" ;;
         esac
         read -p "按回车继续..."
