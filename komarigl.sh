@@ -8,7 +8,7 @@ menu() {
     clear
     echo -e "${GREEN}=== Komari 监控管理菜单 ===${RESET}"
     echo -e "${GREEN}1) 安装 Komari${RESET}"
-    echo -e "${GREEN}2) 安装 Komari(CF)${RESET}"
+    echo -e "${GREEN}2) 安装 Komari(Argo)${RESET}"
     echo -e "${GREEN}3) 管理 Komari Agent${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p $'\033[32m请选择操作: \033[0m' choice
