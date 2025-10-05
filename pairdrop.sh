@@ -8,6 +8,7 @@ COMPOSE_FILE="$INSTALL_DIR/docker-compose.yml"
 # 颜色
 GREEN="\e[32m"
 RESET="\e[0m"
+RED="\033[31m"
 
 install() {
     echo -e "${GREEN}>>> 开始安装 Pairdrop 服务...${RESET}"
@@ -97,9 +98,7 @@ uninstall() {
 
 menu() {
     clear
-    echo -e "${GREEN}======================${RESET}"
-    echo -e "${GREEN} Pairdrop 管理菜单${RESET}"
-    echo -e "${GREEN}======================${RESET}"
+    echo -e "${GREEN}====Pairdrop 管理菜单======${RESET}"
     echo -e "${GREEN}1. 安装${RESET}"
     echo -e "${GREEN}2. 启动${RESET}"
     echo -e "${GREEN}3. 停止${RESET}"
@@ -107,7 +106,7 @@ menu() {
     echo -e "${GREEN}5. 更新${RESET}"
     echo -e "${GREEN}6. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    echo -ne "${GREEN}请输入选项: ${RESET}"
+    echo -ne "${GREEN}请选择: ${RESET}"
     read CHOICE
     case $CHOICE in
         1) install ;;
@@ -117,7 +116,7 @@ menu() {
         5) update ;;
         6) uninstall ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选项${RESET}" ; sleep 1 ; menu ;;
+        *) echo -e "${RED}无效选择${RESET}" ; sleep 1 ; menu ;;
     esac
 }
 
