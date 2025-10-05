@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 YELLOW="\033[33m"
 APP_NAME="qbittorrent"
 COMPOSE_DIR="/opt/qbittorrent"
@@ -31,7 +32,7 @@ function menu() {
         4) view_logs ;;
         5) restart_app ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选择${RESET}"; sleep 1; menu ;;
+        *) echo -e "${RED}无效选择${RESET}"; sleep 1; menu ;;
     esac
 }
 
