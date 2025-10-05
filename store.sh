@@ -17,14 +17,14 @@ BIN_LINK_DIR="/usr/local/bin"
 if [ ! -f "$SCRIPT_PATH" ]; then
     curl -fsSL -o "$SCRIPT_PATH" "$SCRIPT_URL"
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ 下载失败，请检查网络或 URL${RESET}"
+        echo -e "${RED}❌ 安装失败，请检查网络或 URL${RESET}"
         exit 1
     fi
     chmod +x "$SCRIPT_PATH"
     ln -sf "$SCRIPT_PATH" "$BIN_LINK_DIR/d"
     ln -sf "$SCRIPT_PATH" "$BIN_LINK_DIR/D"
     echo -e "${GREEN}✅ 安装完成${RESET}"
-    echo -e "${GREEN}💡 快捷键已添加：d 或 D 可快速启动${RESET}"
+    echo -e "${GREEN}✅ 快捷键已添加：d 或 D 可快速启动${RESET}"
 fi
 
 # ================== 一级菜单分类 ==================
