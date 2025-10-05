@@ -149,13 +149,12 @@ while true; do
             cd "$INSTALL_DIR" && mcy migration.v3.user "$sqlfile"
             ;;
         0)
-            echo -e "${GREEN}退出管理菜单${RESET}"
             exit 0
             ;;
         *)
-            echo -e "${RED}无效选项，请输入 1-21${RESET}"
+            echo -e "${RED}无效选项，请重新输入${RESET}"
             ;;
     esac
-    echo -e "\n${GREEN}操作完成，按回车返回菜单...${RESET}"
+    echo -e "${GREEN}操作完成，按回车返回菜单...${RESET}"
     read
 done
