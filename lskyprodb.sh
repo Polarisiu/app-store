@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 APP_NAME="lsky-pro"
 APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
@@ -20,7 +21,7 @@ function menu() {
     echo -e "${GREEN}5) 查看数据库信息${RESET}"
     echo -e "${GREEN}6) 重启${RESET}"   
     echo -e "${GREEN}0) 退出${RESET}"
-    read -p "请选择: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1) install_app ;;
         2) update_app ;;
@@ -29,7 +30,7 @@ function menu() {
         5) show_db_info ;;
         6) restart_app ;;  
         0) exit 0 ;;
-        *) echo "无效选择"; sleep 1; menu ;;
+        *) echo -e "${RED}无效选择${RESET}"; sleep 1; menu ;;
     esac
 }
 
