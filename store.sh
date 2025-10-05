@@ -268,7 +268,7 @@ declare -A commands=(
 show_category_menu() {
     clear
     echo -e "${BLUE}${BOLD}╔══════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}        应用分类菜单${RESET}"
+    echo -e "${BLUE}${BOLD}          应用分类菜单${RESET}"
     echo -e "${BLUE}${BOLD}╚══════════════════════════════╝${RESET}"
 
     for i in $(seq 1 ${#categories[@]}); do
@@ -283,7 +283,7 @@ show_category_menu() {
 show_app_menu() {
     local cat=$1
     echo -e "${BLUE}${BOLD}╔═════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}        ${categories[$cat]}    ${RESET}"
+    echo -e "${BLUE}${BOLD}           ${categories[$cat]} ${RESET}"
     echo -e "${BLUE}${BOLD}╚═════════════════════════════╝${RESET}"
 
     local i=1
