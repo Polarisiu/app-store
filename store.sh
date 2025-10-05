@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # ================== 颜色定义 ==================
@@ -267,6 +268,7 @@ declare -A commands=(
 
 # ================== 菜单显示函数 ==================
 show_category_menu() {
+    clear
     echo -e "${BLUE}${BOLD}╔════════════════════════════════════════╗${RESET}"
     echo -e "${BLUE}${BOLD}         应用分类菜单${RESET}"
     echo -e "${BLUE}${BOLD}╚════════════════════════════════════════╝${RESET}"
@@ -323,7 +325,7 @@ category_menu_handler() {
         fi
 
         case "$cat_choice" in
-            00) echo -e "${RED}退出脚本！${RESET}"; exit 0 ;;
+            00) exit 0 ;;
             88) update_script ;;
             99) uninstall_script ;;
             *) 
