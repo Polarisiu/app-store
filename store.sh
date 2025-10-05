@@ -306,33 +306,33 @@ show_app_menu() {
         ((i++))
     done
 
-    printf "${RED}[%02d] %-25s${RESET}\n" 00 "返回上一级"
+    printf "${GREEN}[%02d] %-25s${RESET}\n" 00 "返回上一级"
 }
 
-# ================== 菜单处理函数 ==================
 category_menu_handler() {
     while true; do
         show_category_menu
         read -rp "$(echo -e "${RED}请输入分类编号:${RESET}")" cat_choice
-        cat_choice=$(echo "$cat_choice" | xargs)
+        cat_choice=$(echo "$cat_choice" | xargs)  # 去掉前后空格
 
-        if ! [[ "$cat_choice" =~ ^[0-9]+$ ]]; then
+        # 检查是否为数字（允许前导零）
+        if ! [[ "$cat_choice" =~ ^0*[0-9]+$ ]]; then
             echo -e "${RED}无效选择，请输入数字!${RESET}"
             sleep 1
             continue
         fi
 
         case "$cat_choice" in
-            00) exit 0 ;;
+            0|00) exit 0 ;;           # 支持 0 或 00
             88) update_script ;;
             99) uninstall_script ;;
-            *) 
-               if [[ -n "${categories[$cat_choice]}" ]]; then
-                   app_menu_handler "$cat_choice"
-               else
-                   echo -e "${RED}无效选择，请重新输入!${RESET}"
-                   sleep 1
-               fi
+            *)
+                if [[ -n "${categories[$cat_choice]}" ]]; then
+                    app_menu_handler "$cat_choice"
+                else
+                    echo -e "${RED}无效选择，请重新输入!${RESET}"
+                    sleep 1
+                fi
             ;;
         esac
     done
@@ -345,13 +345,15 @@ app_menu_handler() {
         read -rp "$(echo -e "${RED}请输入应用编号:${RESET}")" app_choice
         app_choice=$(echo "$app_choice" | xargs)
 
-        if ! [[ "$app_choice" =~ ^[0-9]+$ ]]; then
+        # 检查是否为数字（允许前导零）
+        if ! [[ "$app_choice" =~ ^0*[0-9]+$ ]]; then
             echo -e "${RED}无效选择，请输入数字!${RESET}"
             sleep 1
             continue
         fi
 
-        if [[ "$app_choice" == "00" ]]; then
+        # 支持 0 或 00 返回上一级
+        if [[ "$app_choice" == "0" || "$app_choice" == "00" ]]; then
             break
         elif [[ -n "${menu_map[$app_choice]}" ]]; then
             key="${menu_map[$app_choice]}"
@@ -364,6 +366,7 @@ app_menu_handler() {
         read -rp $'\033[33m按回车返回应用菜单...\033[0m'
     done
 }
+
 
 # ================== 脚本更新与卸载 ==================
 update_script() {
