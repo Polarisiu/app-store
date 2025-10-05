@@ -34,7 +34,7 @@ menu() {
         3) uninstall_app ;;
         4) view_logs ;;
         0) exit 0 ;;
-        *) echo "无效选择"; sleep 1; menu ;;
+        *) echo -e "${GREEN}无效选择${RESET}"; sleep 1; menu ;;
     esac
 }
 
