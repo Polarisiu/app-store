@@ -20,7 +20,7 @@ menu() {
             ;;
         2)
             echo -e "${GREEN}正在安装 Komari(CF) ...${RESET}"
-            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/Komaricf.sh)
+            bash <(curl -fsSL https://raw.githubusercontent.com/Polarisiu/app-store/main/komaricf.sh)
             pause
             ;;
         3)
