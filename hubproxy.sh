@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 APP_NAME="hubproxy"
 APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
@@ -25,7 +26,7 @@ function menu() {
         3) uninstall_app ;;
         4) view_logs ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选择${RESET}"; sleep 1; menu ;;
+        *) echo -e "${RED}无效选择${RESET}"; sleep 1; menu ;;
     esac
 }
 
