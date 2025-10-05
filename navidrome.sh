@@ -6,6 +6,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 
 APP_NAME="navidrome"
 APP_DIR="/opt/$APP_NAME"
@@ -23,7 +24,7 @@ show_menu() {
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}5) 重启 Navidrome${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    read -p "请选择: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1) install_app ;;
         2) update_app ;;
@@ -31,7 +32,7 @@ show_menu() {
         4) logs_app ;;
         5) restart_app ;;
         0) exit ;;
-        *) echo "❌ 无效选择"; sleep 1; show_menu ;;
+        *) echo -e "${RED}无效选择${RESET}"; sleep 1; show_menu ;;
     esac
 }
 
