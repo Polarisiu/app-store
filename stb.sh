@@ -184,7 +184,7 @@ function update_project() {
 # ================== 主循环 ==================
 while true; do
     show_menu
-    read -p "请输入选项: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1) clone_repo ;;
         2) install_dependencies ;;
@@ -196,7 +196,7 @@ while true; do
         8) stop_project ;;
         9) uninstall_all ;;
         10) update_project ;;
-        0) echo -e "${GREEN}退出脚本${RESET}"; exit 0 ;;
-        *) echo -e "${RED}无效选项，请重新输入${RESET}" ;;
+        0) exit 0 ;;
+        *) echo -e "${RED}无效选择${RESET}" ;;
     esac
 done
