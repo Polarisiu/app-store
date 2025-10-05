@@ -11,6 +11,7 @@ ENV_FILE="$APP_DIR/.env"
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 
 show_menu() {
     clear
@@ -139,7 +140,7 @@ pm2_tools() {
     echo -e "${GREEN}8) 删除进程${RESET}"
     echo -e "${GREEN}9) 安装 pm2-logrotate 插件 (日志管理)${RESET}"
     echo -e "${GREEN}0) 返回主菜单${RESET}"
-    read -rp "请选择 PM2 操作: " pm2_choice
+    read -rp "$(echo -e ${GREEN}请选择 PM2 操作: ${RESET})" pm2_choice
     case $pm2_choice in
         1) pm2 status ;;
         2) pm2 logs "$APP_NAME" ;;
@@ -151,7 +152,7 @@ pm2_tools() {
         8) pm2 delete "$APP_NAME" ;;
         9) pm2 install pm2-logrotate ;;
         0) return ;;
-        *) echo -e "${GREEN}无效选择${RESET}" ;;
+        *) echo -e "${RED}无效选择${RESET}" ;;
     esac
     echo -e "${GREEN}按回车返回 PM2 菜单...${RESET}"
     read
@@ -160,7 +161,7 @@ pm2_tools() {
 
 while true; do
     show_menu
-    read -rp "请选择操作: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1) install_telebox ;;
         2) start_telebox ;;
@@ -173,7 +174,7 @@ while true; do
         9) update_telebox ;;
         10) pm2_tools ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选择，请重新输入${RESET}" ;;
+        *) echo -e "${RED}无效选择${RESET}" ;;
     esac
     echo -e "${GREEN}按回车键继续...${RESET}"
     read
