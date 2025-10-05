@@ -313,7 +313,7 @@ show_app_menu() {
 category_menu_handler() {
     while true; do
         show_category_menu
-        read -rp "$(echo -e "${RED}请输入分类编号: ${RESET}")" cat_choice
+        read -rp "$(echo -e "${RED}请输入分类编号:${RESET}")" cat_choice
         cat_choice=$(echo "$cat_choice" | xargs)
 
         if ! [[ "$cat_choice" =~ ^[0-9]+$ ]]; then
@@ -342,7 +342,7 @@ app_menu_handler() {
     local cat=$1
     while true; do
         show_app_menu "$cat"
-        read -rp "$(echo -e "${RED}请输入应用编号: ${RESET}")" app_choice
+        read -rp "$(echo -e "${RED}请输入应用编号:${RESET}")" app_choice
         app_choice=$(echo "$app_choice" | xargs)
 
         if ! [[ "$app_choice" =~ ^[0-9]+$ ]]; then
