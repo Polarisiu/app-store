@@ -268,7 +268,7 @@ declare -A commands=(
 show_category_menu() {
     clear
     echo -e "${BLUE}${BOLD}╔════════════════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}         应用分类菜单${RESET}"
+    echo -e "${BLUE}${BOLD}           应用分类菜单${RESET}"
     echo -e "${BLUE}${BOLD}╚════════════════════════════════════════╝${RESET}"
 
     for i in $(seq 1 ${#categories[@]}); do
