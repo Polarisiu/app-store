@@ -6,6 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 YELLOW="\033[33m"
+RED="\033[31m"
 APP_NAME="nginx-proxy-manager"
 APP_DIR="/opt/$APP_NAME"
 COMPOSE_FILE="$APP_DIR/docker-compose.yml"
