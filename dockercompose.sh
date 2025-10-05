@@ -234,7 +234,7 @@ function project_menu() {
         echo -e "${GREEN}10) 删除整个项目（含文件）${RESET}"
         echo -e "${GREEN}11) 切换项目${RESET}"
         echo -e "${GREEN} 0) 返回主菜单${RESET}"
-        read -p "请选择操作: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case "$choice" in
             1) docker compose -f "$COMPOSE_FILE" up -d && action_done ;;
             2) docker compose -f "$COMPOSE_FILE" stop && action_done ;;
