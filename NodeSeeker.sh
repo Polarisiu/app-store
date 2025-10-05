@@ -5,6 +5,7 @@
 
 GREEN="\033[32m"
 RESET="\033[0m"
+RED="\033[31m"
 
 APP_NAME="nodeseeker"
 APP_DIR="/opt/$APP_NAME"
