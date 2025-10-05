@@ -6,6 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 YELLOW="\033[33m"
+RED="\033[31m"
 APP_NAME="sub-web-modify"
 COMPOSE_DIR="/opt/sub-web-modify"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
