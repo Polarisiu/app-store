@@ -282,9 +282,9 @@ show_category_menu() {
 
 show_app_menu() {
     local cat=$1
-    echo -e "${BLUE}${BOLD}╔══════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}    ${categories[$cat]}${RESET}"
-    echo -e "${BLUE}${BOLD}╚══════════════════════════════╝${RESET}"
+    echo -e "${BLUE}${BOLD}╔═════════════════════════════╗${RESET}"
+    echo -e "${BLUE}${BOLD}        ${categories[$cat]}    ${RESET}"
+    echo -e "${BLUE}${BOLD}╚═════════════════════════════╝${RESET}"
 
     local i=1
     declare -gA menu_map
