@@ -223,7 +223,7 @@ while true; do
     echo -e "${GREEN}3. 恢复项目${RESET}"
     echo -e "${GREEN}4. 删除备份文件${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
-    read -rp "请选择操作: " CHOICE
+    read -rp "$(echo -e ${GREEN}请选择操作: ${RESET})" CHOICE
 
     case $CHOICE in
         1) backup ;;
