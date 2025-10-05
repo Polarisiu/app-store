@@ -6,6 +6,7 @@
 GREEN="\033[32m"
 RESET="\033[0m"
 YELLOW="\033[33m"
+RED="\033[31m"
 APP_NAME="xtrafficdash"
 COMPOSE_DIR="/opt/xtrafficdash"
 COMPOSE_FILE="$COMPOSE_DIR/docker-compose.yml"
@@ -26,7 +27,7 @@ function menu() {
         echo -e "${GREEN}4) 查看日志${RESET}"
         echo -e "${GREEN}5) 重启${RESET}"
         echo -e "${GREEN}0) 退出${RESET}"
-        read -p "请选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             1) install_app ;;
             2) update_app ;;
@@ -34,7 +35,7 @@ function menu() {
             4) view_logs ;;
             5) restart_app ;;
             0) exit 0 ;;
-            *) echo "无效选择"; sleep 1 ;;
+            *) echo -e "${RED}无效选择${RESET}"; sleep 1 ;;
         esac
     done
 }
