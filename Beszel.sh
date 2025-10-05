@@ -33,7 +33,13 @@ function menu() {
 }
 
 function restart_app() {
-    cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; 
+    cd "$APP_DIR" || { 
+        echo "未检测到安装目录，请先安装"
+        sleep 1
+        menu
+        return
+    }
+    
     docker compose restart
     echo -e "${GREEN}✅ Beszel 已重启${RESET}"
     read -p "按回车返回菜单..."
