@@ -727,7 +727,7 @@ main_menu() {
         echo -e "${GREEN}14.${RESET} ${YELLOW}一键清理所有未使用容器/镜像/卷${RESET}"
         echo -e "${GREEN}15. 重启 Docker${RESET}"
         echo -e "${GREEN}00. 退出${RESET}"
-        read -p "请选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             01|1) docker_install_update ;;
             02|2) docker_compose_install_update ;;
