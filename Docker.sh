@@ -326,7 +326,7 @@ docker_ps() {
         echo -e "${GREEN}10. 进入容器${RESET}"
         echo -e "${GREEN}11. 查看日志${RESET}"
         echo -e "${GREEN} 0. 返回主菜单${RESET}"
-        read -p "请选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             01|1) read -p "请输入创建命令: " cmd; $cmd ;;
             02|2) read -p "请输入容器名: " name; docker start $name ;;
@@ -340,9 +340,9 @@ docker_ps() {
             10) read -p "请输入容器名: " name; docker exec -it $name /bin/bash ;;
             11) read -p "请输入容器名: " name; docker logs -f $name ;;
             0) break ;;
-            *) echo "无效选择" ;;
+            *) echo -e "${RED}无效选择${RESET}" ;;
         esac
-        read -p "按回车继续..."
+        read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
     done
 }
 
@@ -361,16 +361,16 @@ docker_image() {
         echo -e "${GREEN}03. 删除镜像${RESET}"
         echo -e "${GREEN}04. 删除所有镜像${RESET}"
         echo -e "${GREEN} 0. 返回主菜单${RESET}"
-        read -p "请选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             01|1) read -p "请输入镜像名: " imgs; for img in $imgs; do docker pull $img; done ;;
             02|2) read -p "请输入镜像名: " imgs; for img in $imgs; do docker pull $img; done ;;
             03|3) read -p "请输入镜像名: " imgs; for img in $imgs; do docker rmi -f $img; done ;;
             04|4) read -p "确定删除所有镜像? (Y/N): " c; [[ $c =~ [Yy] ]] && docker rmi -f $(docker images -q) ;;
             0) break ;;
-            *) echo "无效选择" ;;
+            *) echo -e "${RED}无效选择${RESET}" ;;
         esac
-        read -p "按回车继续..."
+        read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
     done
 }
 
@@ -387,15 +387,15 @@ docker_volume() {
         echo -e "${GREEN}2. 删除卷${RESET}"
         echo -e "${GREEN}3. 删除所有无用卷${RESET}"
         echo -e "${GREEN}0. 返回上一级菜单${RESET}"
-        read -p "请输入选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             1) read -p "请输入卷名: " v; docker volume create $v ;;
             2) read -p "请输入卷名: " v; docker volume rm $v ;;
             3) docker volume prune -f ;;
             0) break ;;
-            *) echo "无效选择" ;;
+            *) echo -e "${RED}无效选择${RESET}" ;;
         esac
-        read -p "按回车继续..."
+        read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
     done
 }
 
@@ -423,16 +423,16 @@ docker_network() {
         echo -e "${GREEN}3. 退出网络${RESET}"
         echo -e "${GREEN}4. 删除网络${RESET}"
         echo -e "${GREEN}0. 返回上一级菜单${RESET}"
-        read -p "请输入你的选择: " sub_choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " sub_choice
         case $sub_choice in
             1) read -p "设置新网络名: " dockernetwork; docker network create $dockernetwork ;;
             2) read -p "加入网络名: " dockernetwork; read -p "容器名: " dockername; docker network connect $dockernetwork $dockername ;;
             3) read -p "退出网络名: " dockernetwork; read -p "容器名: " dockername; docker network disconnect $dockernetwork $dockername ;;
             4) read -p "请输入要删除的网络名: " dockernetwork; docker network rm $dockernetwork || echo -e "${RED}删除失败，网络可能被容器占用${RESET}" ;;
             0) break ;;
-            *) echo "无效选择" ;;
+            *) echo -e "${RED}无效选择${RESET}" ;;
         esac
-        read -p "按回车继续..."
+        read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
     done
 }
 
@@ -462,7 +462,7 @@ docker_backup_menu() {
             dnf install -y jq
         else
             echo -e "${RED}无法检测到包管理器，请手动安装 jq${RESET}"
-            read -p "按回车返回菜单..."
+            read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
             return
         fi
     fi
@@ -480,7 +480,7 @@ docker_backup_menu() {
             dnf install -y docker
         else
             echo -e "${RED}无法检测到包管理器，请手动安装 Docker${RESET}"
-            read -p "按回车返回菜单..."
+            read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
             return
         fi
     fi
@@ -499,7 +499,7 @@ docker_backup_menu() {
         sleep 2
         if ! pgrep -x dockerd &>/dev/null; then
             echo -e "${RED}Docker 启动失败，请手动检查服务${RESET}"
-            read -p "按回车返回菜单..."
+            read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
             return
         fi
     fi
@@ -510,7 +510,7 @@ docker_backup_menu() {
     avail_space=$(df --output=avail "$BACKUP_DIR" | tail -1)
     if (( avail_space < 1048576 )); then
         echo -e "${RED}磁盘剩余空间不足 1GB，无法执行备份！${RESET}"
-        read -p "按回车返回菜单..."
+        read -p "$(echo -e ${GREEN}按回车返回菜单...${RESET})"
         return
     fi
 
@@ -521,7 +521,7 @@ docker_backup_menu() {
         echo -e "${GREEN}2. 恢复 Docker${RESET}"
         echo -e "${GREEN}3. 删除备份文件${RESET}"
         echo -e "${GREEN}0. 返回上一级菜单${RESET}"
-        read -p "请选择: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case $choice in
             1)
                 # -----------------------------
@@ -534,7 +534,7 @@ docker_backup_menu() {
                     echo -e "${GREEN}3. 卷${RESET}"
                     echo -e "${GREEN}4. 全量${RESET}"
                     echo -e "${GREEN}0. 返回上一级${RESET}"
-                    read -p "请输入选择: " btype
+                    read -p "$(echo -e ${GREEN}请选择:${RESET}) " btype
                     [[ "$btype" == "0" ]] && break
 
                     read -p "请输入备份文件名（默认 docker_backup_$(date +%F).tar.gz）: " backup_name
@@ -589,7 +589,7 @@ docker_backup_menu() {
                     tar -czf "$backup_path" -C "$TMP_BACKUP_DIR" .
                     rm -rf "$TMP_BACKUP_DIR"
                     echo -e "${GREEN}备份完成: $backup_path${RESET}"
-                    read -p "按回车继续..."
+                    read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
                     break
                 done
                 ;;
@@ -604,7 +604,7 @@ docker_backup_menu() {
                     echo -e "${GREEN}3. 卷${RESET}"
                     echo -e "${GREEN}4. 全量${RESET}"
                     echo -e "${GREEN}0. 返回上一级${RESET}"
-                    read -p "请输入选择: " rtype
+                    read -p "$(echo -e ${GREEN}请选择:${RESET}) " rtype
                     [[ "$rtype" == "0" ]] && break
 
                     read -p "请输入备份文件路径: " backup_file
@@ -660,7 +660,7 @@ docker_backup_menu() {
 
                     rm -rf "$TMP_RESTORE_DIR"
                     echo -e "${GREEN}恢复完成${RESET}"
-                    read -p "按回车继续..."
+                    read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
                     break
                 done
                 ;;
@@ -675,12 +675,12 @@ docker_backup_menu() {
                     [[ "$del_files" == "0" ]] && break
                     rm -f $BACKUP_DIR/$del_files
                     echo -e "${GREEN}删除完成${RESET}"
-                    read -p "按回车继续..."
+                    read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
                     break
                 done
                 ;;
             0) break ;;
-            *) echo "无效选择"; read -p "按回车继续..." ;;
+            *) echo -e "${RED}无效选择${RESET}"; read -p "$(echo -e ${GREEN}按回车继续...${RESET})" ;;
         esac
     done
 }
@@ -699,7 +699,6 @@ main_menu() {
         echo " | | |/ _ \ / __| |/ / _ \ '__|"
         echo " | |_| | (_) | (__|   <  __/ |   "
         echo " |____/ \___/ \___|_|\_\___|_|   "
-        echo -e "${BLUE}🐳 一键 VPS Docker 管理工具${RESET}"
         # 检测 Docker 状态
         if command -v docker &>/dev/null; then
             docker_status=$(docker info &>/dev/null && echo "运行中" || echo "未运行")
@@ -747,7 +746,7 @@ main_menu() {
              00|0) exit 0 ;;
             *) echo -e "${RED}无效选择${RESET}" ;;
         esac
-        read -p "按回车继续..."
+        read -p "$(echo -e ${GREEN}按回车继续...${RESET})"
     done
 }
 
