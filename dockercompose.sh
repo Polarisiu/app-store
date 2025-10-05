@@ -27,7 +27,7 @@ function confirm_action() {
 # 操作完成提示
 # ---------------------------
 function action_done() {
-    read -p "操作完成！按回车返回菜单..." temp
+    read -p "$(echo -e ${GREEN}操作完成！按回车返回菜单...${RESET})" temp
 }
 
 # ---------------------------
@@ -77,7 +77,7 @@ function select_project() {
     done
     echo -e "${GREEN}0) 返回主菜单${RESET}"
 
-    read -p "请输入编号: " choice
+    read -p "$(echo -e ${GREEN}请输入编号: ${RESET})" choice
     if [[ "$choice" == "0" ]]; then
         main_menu
     elif [[ "$choice" =~ ^[0-9]+$ && $choice -ge 1 && $choice -le ${#projects[@]} ]]; then
@@ -145,7 +145,7 @@ function delete_multiple_projects() {
         echo -e "${GREEN}$((i+1))) $project_name${RESET}"
     done
     echo -e "${GREEN}输入要删除的项目编号，用空格分隔（例如: 1 3 5），0 返回主菜单${RESET}"
-    read -p "请选择: " choices
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choices
 
     if [[ "$choices" == "0" ]]; then
         return
@@ -275,7 +275,7 @@ function network_menu() {
         echo -e "${GREEN}4) 将容器加入网络（支持多选）${RESET}"
         echo -e "${GREEN}5) 将容器退出网络（支持多选）${RESET}"
         echo -e "${GREEN}0) 返回主菜单${RESET}"
-        read -p "请选择操作: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case "$choice" in
             1)
                 docker network ls
