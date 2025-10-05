@@ -214,7 +214,7 @@ menu() {
     echo -e "${GREEN}4) 卸载(含数据)${RESET}"
     echo -e "${GREEN}5) 端口检测${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    read -p "请选择: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1) install_app ;;
         2) update_app ;;
