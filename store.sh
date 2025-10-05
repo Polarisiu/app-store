@@ -361,7 +361,7 @@ app_menu_handler() {
             sleep 1
         fi
 
-        read -rp $'\n\033[33m按回车返回应用菜单...\033[0m'
+        read -rp $'\033[33m按回车返回应用菜单...\033[0m'
     done
 }
 
