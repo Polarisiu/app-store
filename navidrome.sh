@@ -18,11 +18,11 @@ mkdir -p "$APP_DIR"
 show_menu() {
     clear
     echo -e "${GREEN}=== Navidrome 管理菜单 ===${RESET}"
-    echo -e "${GREEN}1) 安装启动 Navidrome${RESET}"
-    echo -e "${GREEN}2) 更新 Navidrome${RESET}"
-    echo -e "${GREEN}3) 卸载 Navidrome${RESET}"
+    echo -e "${GREEN}1) 安装启动${RESET}"
+    echo -e "${GREEN}2) 更新${RESET}"
+    echo -e "${GREEN}3) 卸载${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
-    echo -e "${GREEN}5) 重启 Navidrome${RESET}"
+    echo -e "${GREEN}5) 重启${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
     read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
