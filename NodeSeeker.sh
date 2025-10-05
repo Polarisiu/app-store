@@ -30,7 +30,7 @@ function menu() {
         4) view_logs ;;
         5) restart_app ;;
         0) exit 0 ;;
-        *) echo -e "${GREEN}无效选择${RESET}"; sleep 1; menu ;;
+        *) echo -e "${RED}无效选择${RESET}"; sleep 1; menu ;;
     esac
 }
 
