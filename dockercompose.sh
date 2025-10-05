@@ -374,7 +374,7 @@ function main_menu() {
         echo -e "${GREEN}4) 多选删除项目（含容器、镜像、数据卷、文件）${RESET}"
         echo -e "${GREEN}5) 一键删除所有未运行的项目${RESET}"
         echo -e "${GREEN}0) 退出${RESET}"
-        read -p "请选择操作: " choice
+        read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
         case "$choice" in
             1) select_project ;;
             2) network_menu ;;
