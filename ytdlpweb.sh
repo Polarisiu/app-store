@@ -27,7 +27,7 @@ menu() {
     echo -e "${GREEN}3) 卸载(含数据)${RESET}"
     echo -e "${GREEN}4) 查看日志${RESET}"
     echo -e "${GREEN}0) 退出${RESET}"
-    read -rp "$(echo -e ${GREEN}请选择: ${RESET})" choice
+    read -rp "$(echo -e ${RED}请选择: ${RESET})" choice
     case $choice in
         1) install_app ;;
         2) update_app ;;
