@@ -354,7 +354,6 @@ app_menu_handler() {
 
         # X/x 直接退出脚本
         if [[ "$app_choice" =~ ^[xX]$ ]]; then
-            echo -e "${RED}已退出脚本${RESET}"
             exit 0
         fi
 
