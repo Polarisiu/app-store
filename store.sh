@@ -6,6 +6,8 @@ RED="\033[31m"
 BLUE="\033[34m"
 RESET="\033[0m"
 BOLD="\033[1m"
+ORANGE='\033[38;5;208m'
+
 # ================== 脚本路径 ==================
 SCRIPT_PATH="/root/store.sh"
 SCRIPT_URL="https://raw.githubusercontent.com/Polarisiu/app-store/main/store.sh"
@@ -267,9 +269,9 @@ declare -A commands=(
 # ================== 菜单显示函数 ==================
 show_category_menu() {
     clear
-    echo -e "${BLUE}${BOLD}╔══════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}          应用分类菜单${RESET}"
-    echo -e "${BLUE}${BOLD}╚══════════════════════════════╝${RESET}"
+    echo -e "${ORANGE}${BOLD}╔══════════════════════════════╗${RESET}"
+    echo -e "${ORANGE}${BOLD}          应用分类菜单${RESET}"
+    echo -e "${ORANGE}${BOLD}╚══════════════════════════════╝${RESET}"
 
     for i in $(seq 1 ${#categories[@]}); do
         printf "${YELLOW}[%02d] %-20s${RESET}\n" "$i" "${categories[$i]}"
@@ -277,14 +279,14 @@ show_category_menu() {
 
     printf "${GREEN}[%02d] %-20s${RESET}\n" 88 "更新脚本"
     printf "${GREEN}[%02d] %-20s${RESET}\n" 99 "卸载脚本"
-    printf "${GREEN}[%02d] %-20s${RESET}\n" 0  "退出脚本"
+    printf "${YELLOW}[%02d] %-20s${RESET}\n" 0  "退出脚本"
 }
 
 show_app_menu() {
     local cat=$1
-    echo -e "${BLUE}${BOLD}╔═════════════════════════════╗${RESET}"
-    echo -e "${BLUE}${BOLD}           ${categories[$cat]} ${RESET}"
-    echo -e "${BLUE}${BOLD}╚═════════════════════════════╝${RESET}"
+    echo -e "${ORANGE}${BOLD}╔═════════════════════════════╗${RESET}"
+    echo -e "${ORANGE}${BOLD}           ${categories[$cat]} ${RESET}"
+    echo -e "${ORANGE}${BOLD}╚═════════════════════════════╝${RESET}"
 
     local i=1
     declare -gA menu_map
