@@ -308,8 +308,13 @@ show_app_menu() {
         ((i++))
     done
 
-    printf "${GREEN}[%02d] %-25s${RESET}\n" 00 "返回"
+    # 返回上一级菜单
+    printf "${GREEN}[00] %-25s${RESET}\n" "返回"
+
+    # 退出脚本
+    printf "${GREEN}[X] %-25s${RESET}\n" " 退出"
 }
+
 
 category_menu_handler() {
     while true; do
@@ -346,6 +351,12 @@ app_menu_handler() {
         show_app_menu "$cat"
         read -rp "$(echo -e "${RED}请输入应用编号:${RESET}")" app_choice
         app_choice=$(echo "$app_choice" | xargs)
+
+        # X/x 直接退出脚本
+        if [[ "$app_choice" =~ ^[xX]$ ]]; then
+            echo -e "${RED}已退出脚本${RESET}"
+            exit 0
+        fi
 
         # 检查是否为数字（允许前导零）
         if ! [[ "$app_choice" =~ ^0*[0-9]+$ ]]; then
