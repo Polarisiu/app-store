@@ -96,12 +96,12 @@ uninstall_qbittorrent() {
 menu() {
     clear
     echo -e "${GREEN}==== qBittorrent-Nox 管理菜单 ====${RESET}"
-    echo -e "${GREEN}1. 安装 & 部署 qBittorrent-Nox${RESET}"
-    echo -e "${GREEN}2. 启动 qBittorrent${RESET}"
-    echo -e "${GREEN}3. 停止 qBittorrent${RESET}"
-    echo -e "${GREEN}4. 重启 qBittorrent${RESET}"
+    echo -e "${GREEN}1. 安装部署${RESET}"
+    echo -e "${GREEN}2. 启动${RESET}"
+    echo -e "${GREEN}3. 停止${RESET}"
+    echo -e "${GREEN}4. 重启${RESET}"
     echo -e "${GREEN}5. 查看日志${RESET}"
-    echo -e "${GREEN}6. 卸载 qBittorrent${RESET}"
+    echo -e "${GREEN}6. 卸载${RESET}"
     echo -e "${GREEN}0. 退出${RESET}"
     echo -ne "${GREEN}请输入选项: ${RESET}"
     read -r choice
