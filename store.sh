@@ -308,7 +308,7 @@ show_app_menu() {
         ((i++))
     done
 
-    printf "${GREEN}[%02d] %-25s${RESET}\n" 00 "返回上一级"
+    printf "${GREEN}[%02d] %-25s${RESET}\n" 00 "返回"
 }
 
 category_menu_handler() {
