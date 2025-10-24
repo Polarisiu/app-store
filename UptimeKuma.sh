@@ -41,7 +41,7 @@ function restart_app() {
     cd "$APP_DIR" || { echo "未检测到安装目录，请先安装"; sleep 1; menu; }
     docker compose restart
     source "$CONFIG_FILE"
-    echo -e "${GREEN}✅ Uptime-Kuma 已重启！$PORT${RESET}"
+    echo -e "${GREEN}✅ Uptime-Kuma 已重启！${RESET}"
     read -p "按回车返回菜单..."
     menu
 }
