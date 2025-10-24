@@ -57,7 +57,7 @@ function install_app() {
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma:2
     container_name: uptime-kuma
     restart: always
     ports:
