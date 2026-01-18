@@ -60,6 +60,7 @@ EOF
 
     echo -e "${GREEN}✅ EasyImg 已启动${RESET}"
     echo -e "${YELLOW}🌐 访问地址: http://127.0.0.1:${PORT}${RESET}"
+    echo -e "${GREEN}📂 默认账号: easyimg 默认密码: easyimg ${RESET}"
     echo -e "${GREEN}📂 数据目录: $APP_DIR/db${RESET}"
     echo -e "${GREEN}📂 上传目录: $APP_DIR/uploads${RESET}"
     read -p "按回车返回菜单..."
