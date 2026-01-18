@@ -22,7 +22,7 @@ show_menu() {
     echo -e "${GREEN}0) 退出${RESET}"
 }
 read_choice() {
-    read -p "请输入你的选择: " choice
+    read -p "$(echo -e ${GREEN}请选择:${RESET}) " choice
     case $choice in
         1)
             sudo systemctl start nezha-agent
