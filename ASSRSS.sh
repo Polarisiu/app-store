@@ -69,6 +69,7 @@ EOF
 
     echo -e "${GREEN}✅ Ani-RSS 已启动${RESET}"
     echo -e "${YELLOW}🌐 Web 地址: http://127.0.0.1:${PORT}${RESET}"
+    echo -e "${GREEN}📂 默认账号: admin 默认密码: admin ${RESET}"
     echo -e "${GREEN}📂 配置目录: ${CONFIG_DIR}${RESET}"
     echo -e "${GREEN}📂 媒体目录: ${MEDIA_DIR}${RESET}"
     read -p "按回车返回菜单..."
