@@ -9,7 +9,7 @@ RESET="\033[0m"
 
 # ================== 本地备份函数 ==================
 backup() {
-    read -rp "请输入要备份的 Docker Compose 项目目录（例如 //opt/caddy可多选，用空格分隔）: " -a PROJECT_DIRS
+    read -rp "请输入要备份的 Docker Compose 项目目录（例如 /opt/caddy可多选，用空格分隔）: " -a PROJECT_DIRS
     if [[ ${#PROJECT_DIRS[@]} -eq 0 ]]; then
         echo -e "${RED}❌ 没有输入项目目录${RESET}"
         return
